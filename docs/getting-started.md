@@ -16,6 +16,10 @@ Create a new repository for your study. Use a descriptive project name. Keep it 
 
 You are creating an independent research workspace, not a fork that must remain synchronized with the ORW development repository.
 
+:::{important}
+**OpenResearchWorkspace itself is MIT licensed**, but your new research project is independent. Its scientific outputs do not automatically inherit MIT; choose licenses appropriate for your own code, data, documentation, manuscripts, figures, and other outputs.
+:::
+
 ## 2. Run first-time setup
 
 The template is intended to provide a first-run setup workflow that asks only for the information needed to initialize the workspace.
