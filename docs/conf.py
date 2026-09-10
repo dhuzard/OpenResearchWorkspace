@@ -3,6 +3,7 @@ author = "OpenResearchWorkspace contributors"
 
 extensions = [
     "myst_parser",
+    "sphinx_design",
 ]
 
 source_suffix = {
