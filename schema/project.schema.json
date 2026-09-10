@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dhuzard/OpenResearchWorkspace/blob/main/schema/project.schema.json",
+  "title": "OpenResearchWorkspace Core Project",
+  "type": "object",
+  "required": ["spec_version", "project"],
+  "properties": {
+    "spec_version": {"type": "string", "const": "0.1"},
+    "project": {
+      "type": "object",
+      "required": ["title", "description", "status"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["active", "paused", "completed", "archived"]},
+        "keywords": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      },
+      "additionalProperties": true
+    },
+    "contributors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "orcid": {"type": "string", "pattern": "^(https://orcid\\.org/)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"},
+          "role": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "resources": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
+    "data": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
+    "outputs": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
+    "related_identifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["identifier"],
+        "properties": {
+          "identifier": {"type": "string", "minLength": 1},
+          "relation": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {"enabled": {"type": "boolean"}},
+        "additionalProperties": true
+      }
+    },
+    "extensions": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "resource": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "type": {"type": "string"},
+        "path": {"type": "string"},
+        "identifier": {"type": "string"},
+        "location": {"type": "string"},
+        "access": {"type": "string", "enum": ["open", "restricted", "private", "embargoed", "unknown"]},
+        "description": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  }
+}
