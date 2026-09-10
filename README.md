@@ -2,17 +2,23 @@
 
 **A research workspace specification with a GitHub template as its primary reference implementation.**
 
-OpenResearchWorkspace (ORW) defines a portable format/contract for research workspaces that are human usable, FAIR-oriented, machine readable, reproducible, and able to evolve toward agent-ready science.
+OpenResearchWorkspace (ORW) defines a portable format/contract for research workspaces that are **human usable, FAIR-oriented, machine readable, reproducible, and agent ready**.
 
 The normal researcher does **not** fork ORW and does not use a central ORW application.
-
-The intended workflow is:
 
 > **Use template → initialize project → collaborate → work → publish**
 
 Each researcher or lab creates an independent repository from the ORW GitHub template. That repository becomes the canonical project workspace and remains owned by the researcher/lab.
 
 GitHub is infrastructure, not the user model. Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or release mechanics to use the workspace.
+
+## Start here
+
+If you are a researcher, begin with the step-by-step guide in [`docs/getting-started.md`](docs/getting-started.md).
+
+If you want to understand the architecture, read [`docs/concepts.md`](docs/concepts.md) and [`SPEC.md`](SPEC.md).
+
+A MyST/Sphinx documentation site is included under [`docs/`](docs/) and configured for Read the Docs. It uses the Furo theme and Markdown-first authoring.
 
 ## What ORW is
 
@@ -37,8 +43,6 @@ ORW specification
 
 ## Researcher-facing workflow
 
-For an ordinary scientist, the experience should be:
-
 ```text
 Use this template
       ↓
@@ -62,22 +66,20 @@ The setup workflow should write the machine-readable files behind the scenes. Re
 Every ORW-compatible workspace should be:
 
 - **Human usable** — understandable without learning repository internals.
-- **FAIR-oriented** — metadata, identifiers and licensing are captured during the project, not reconstructed only at publication.
+- **FAIR-oriented** — metadata, identifiers, and licensing are captured during the project rather than reconstructed only at publication.
 - **Machine readable** — one canonical structured project description.
-- **Reproducible** — optional capabilities can describe environments, workflows and provenance.
+- **Reproducible** — optional capabilities can describe environments, workflows, and provenance.
 - **Agent ready** — AI systems can discover project context without reverse-engineering filenames or repository history.
 
 ## Canonical project model
 
-The canonical machine-readable project record is:
+The canonical project record is:
 
 ```text
 .research/project.yml
 ```
 
-Human-facing documents, citation files, archival metadata and agent context should be generated from or synchronized with that record rather than maintained independently.
-
-Workspace-level implementation/version information is separate from project metadata:
+Workspace implementation/version information is separate:
 
 ```text
 .research/workspace.yml
@@ -89,11 +91,11 @@ Optional feature activation is recorded in:
 .research/capabilities.yml
 ```
 
-This separation allows a workspace to be upgraded without confusing ORW implementation metadata with the scientific project description.
+Human-facing documents, citation files, archival metadata, and agent context should be generated from or synchronized with the canonical project record rather than maintained independently.
 
 ## Template lifecycle
 
-The GitHub template is primarily an **initialization mechanism**, not a long-term upstream dependency.
+The GitHub template is an **initialization mechanism**, not a long-term upstream dependency.
 
 A project created from the template records the ORW specification and template versions it started from. Future upgrades should be explicit workspace/schema migrations rather than asking scientists to merge changes from the original template repository.
 
@@ -109,39 +111,12 @@ optional explicit ORW migration later
 
 See [`TEMPLATE_WORKFLOW.md`](TEMPLATE_WORKFLOW.md).
 
-## Architecture
-
-The project separates four concepts:
-
-1. **Core specification** — what the research project *is*.
-2. **Reference implementation** — how the GitHub template instantiates and initializes it.
-3. **Optional capabilities** — what the workspace *can do* (archival publication, FAIR enrichment, reproducibility, agent-readiness, etc.).
-4. **Agent skills/adapters** — what AI systems can safely do with the project and how provider-specific tools discover those rules.
-
-## v0 goal
-
-The first usable version is deliberately narrow:
-
-```text
-Create project
-↓
-Describe project
-↓
-Invite collaborators
-↓
-Add files and/or data links
-↓
-Work
-↓
-Publish a permanent citable version
-```
-
-The critical usability test is:
-
-> Can a scientist unfamiliar with Git create, understand, collaborate on, and publish a research project without reading Git documentation?
-
 ## Repository contents
 
+- [`docs/getting-started.md`](docs/getting-started.md) — step-by-step researcher guide.
+- [`docs/concepts.md`](docs/concepts.md) — ORW concepts and architecture.
+- [`docs/capabilities.md`](docs/capabilities.md) — FAIR, reproducibility, AI-ready, and agent-ready capability model.
+- [`docs/faq.md`](docs/faq.md) — practical FAQ.
 - [`SPEC.md`](SPEC.md) — Research Workspace Core v0.1 draft specification.
 - [`schema/project.schema.json`](schema/project.schema.json) — machine-readable project schema.
 - [`examples/minimal.project.yml`](examples/minimal.project.yml) — minimal example project record.
@@ -155,11 +130,20 @@ The critical usability test is:
 
 **v1 — FAIR capability:** persistent identifiers, richer metadata, DataCite export, RO-Crate, FAIR Signposting.
 
-**v2 — Reproducible workspace:** environments, workflows, provenance and automated QA.
+**v2 — Reproducible workspace:** environments, workflows, provenance, and automated QA.
 
-**v3 — AI-ready workspace:** semantic project context, schemas, ontology mappings and explicit policies.
+**v3 — AI-ready workspace:** semantic project context, schemas, ontology mappings, and explicit policies.
 
 **v4 — Agentic workspace:** reusable provider-neutral skills plus thin Codex/Claude/Copilot adapters operating against the same project model.
+
+## Documentation development
+
+```bash
+python -m pip install -r docs/requirements.txt
+sphinx-build -b html docs docs/_build/html
+```
+
+Open `docs/_build/html/index.html` locally after the build.
 
 ## Non-goals
 
@@ -175,8 +159,8 @@ OpenResearchWorkspace is not intended to:
 
 ## Status
 
-Early specification and GitHub-template reference implementation design. Feedback and real-world research use cases are welcome.
+Early specification and GitHub-template reference implementation design. The documentation now defines the intended user journey; the self-initializing setup workflow itself remains part of the v0 implementation backlog.
 
 ## License
 
-Licensing of the ORW software/specification and licensing of scientific projects created with ORW are separate concerns. A project created from the template must explicitly choose licenses appropriate for its own code, data, documentation and other research outputs.
+Licensing of the ORW software/specification and licensing of scientific projects created with ORW are separate concerns. A project created from the template must explicitly choose licenses appropriate for its own code, data, documentation, and other research outputs.
