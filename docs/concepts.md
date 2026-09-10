@@ -20,6 +20,12 @@ ORW specification
 
 The scientist's repository is the project instance. ORW is the standard and tooling around it.
 
+## Licensing model
+
+**OpenResearchWorkspace itself is MIT licensed.** The MIT license covers the ORW software, template infrastructure, and reusable scaffolding in the ORW repository.
+
+A research project instantiated from the template is independent. Its scientific code, data, documentation, manuscripts, figures, and other outputs require their own explicit licensing choices and do not automatically inherit MIT.
+
 ## The canonical project model
 
 Project metadata belong in:
