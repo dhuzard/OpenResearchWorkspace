@@ -1,0 +1,10 @@
+orw:
+  spec_version: "0.1"
+  template_version: "0.1.0"
+  initialized: false
+  initialized_at: null
+
+implementation:
+  primary_reference: github-template
+  canonical_project_record: ".research/project.yml"
+  capabilities_record: ".research/capabilities.yml"
