@@ -1,0 +1,12 @@
+capabilities:
+  fair:
+    enabled: true
+  archive:
+    enabled: false
+    provider: null
+  reproducibility:
+    enabled: false
+  ai_ready:
+    enabled: false
+  agent_ready:
+    enabled: false
