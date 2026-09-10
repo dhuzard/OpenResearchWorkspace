@@ -1,10 +1,20 @@
-# Research Workspace Core Specification v0.1
+# OpenResearchWorkspace Core Specification v0.1
 
 Status: **Draft**
 
-## 1. Principle
+## 1. Product definition
 
-A Research Workspace has exactly one canonical project description:
+OpenResearchWorkspace (ORW) is a **workspace format/contract** plus one or more **reference implementations**.
+
+The specification defines what an ORW-compatible workspace is. It does not require a particular hosting provider, user interface, archive service, or AI system.
+
+The primary reference implementation is a self-initializing GitHub template. Other tools MAY generate conforming ORW workspaces directly.
+
+A normal research project created from the GitHub template is an independent repository. It is not expected to remain a fork or synchronized Git child of the ORW development repository.
+
+## 2. Canonical project description
+
+An ORW workspace has exactly one canonical scientific project description:
 
 ```text
 .research/project.yml
@@ -12,7 +22,19 @@ A Research Workspace has exactly one canonical project description:
 
 Human-facing documents, citation files, repository metadata, archival metadata and agent context SHOULD be generated from or synchronized with this record rather than maintained independently.
 
-## 2. Core entities
+Implementation/lifecycle metadata MUST NOT be mixed into the scientific project model. It belongs in:
+
+```text
+.research/workspace.yml
+```
+
+Optional capability state SHOULD be represented separately in:
+
+```text
+.research/capabilities.yml
+```
+
+## 3. Core entities
 
 ### `spec_version`
 Version of this specification.
@@ -59,30 +81,83 @@ Scientific outputs produced by the project: datasets, software, manuscripts, rep
 ### `related_identifiers`
 Persistent identifiers or canonical URLs connecting the project to external objects or predecessor systems.
 
-This is particularly important when migrating from OSF: existing OSF URLs/DOIs must not silently disappear.
+Existing identifiers from predecessor systems MUST NOT silently disappear during migration.
 
-## 3. Capabilities
+## 4. Workspace lifecycle metadata
+
+`.research/workspace.yml` describes the ORW implementation state rather than the science itself.
+
+Recommended fields include:
+
+```yaml
+orw:
+  spec_version: "0.1"
+  template_version: "0.1.0"
+  initialized: false
+  initialized_at: null
+```
+
+A conforming implementation SHOULD record enough version information to support later validation and explicit migrations.
+
+Template-derived projects SHOULD evolve independently after initialization. Future ORW upgrades SHOULD use explicit schema/workspace migrations rather than requiring researchers to merge upstream template history.
+
+## 5. Capabilities
 
 Capabilities are optional and MUST NOT redefine Core semantics.
 
-Examples:
+A capability MAY provide FAIR enrichment, archival publication, reproducibility tooling, AI-ready context or agent support.
+
+Example `.research/capabilities.yml`:
 
 ```yaml
 capabilities:
-  archive:
-    provider: zenodo
+  fair:
     enabled: true
+  archive:
+    enabled: false
+    provider: null
   reproducibility:
     enabled: false
-  ro_crate:
-    enabled: false
-  agents:
+  agent_ready:
     enabled: false
 ```
 
-The implementation of a capability SHOULD live outside the scientist's project whenever practical.
+The implementation of a capability SHOULD be reusable and SHOULD avoid copying unnecessary machinery into every scientist's workspace.
 
-## 4. Human interface
+## 6. Reference implementations
+
+A reference implementation is a practical mechanism for creating or emitting a conforming ORW workspace.
+
+Examples include:
+
+- the primary GitHub template;
+- an exporter from a scientific application;
+- a future lightweight setup interface;
+- a future CLI initializer.
+
+Reference implementations MUST preserve the semantics of the ORW specification and MUST NOT redefine core fields for provider-specific convenience.
+
+## 7. GitHub template reference implementation
+
+The primary v0 implementation is a GitHub template repository.
+
+The intended researcher workflow is:
+
+```text
+Use template
+→ create independent project repository
+→ run first-time setup
+→ fill short project form
+→ repository initializes itself
+→ collaborate/work
+→ publish intentionally
+```
+
+The template SHOULD hide Git-specific concepts from ordinary researchers wherever practical.
+
+The first-run workflow SHOULD collect core metadata and write `.research/project.yml`, `.research/workspace.yml`, and `.research/capabilities.yml` automatically.
+
+## 8. Human interface
 
 Implementations SHOULD NOT require ordinary researchers to understand:
 
@@ -107,13 +182,13 @@ Scientist-facing vocabulary SHOULD prefer:
 | tag | version |
 | CI check | project check |
 
-## 5. Publication
+## 9. Publication
 
 Publication MUST be an intentional action.
 
 Automated validation MAY determine whether a workspace is ready to publish, but a routine edit or merge SHOULD NOT automatically create a permanent scientific release.
 
-## 6. Extensibility
+## 10. Extensibility
 
 Extensions MAY add namespaced metadata under `extensions`.
 
@@ -123,13 +198,11 @@ Example:
 extensions:
   ro_crate:
     profile: "..."
-  hmco:
-    ontology_version: "..."
 ```
 
 Extensions MUST NOT alter the meaning of Core fields.
 
-## 7. Agent readiness
+## 11. Agent readiness
 
 Agent-specific instructions and skills are not part of Core v0.1.
 
@@ -142,11 +215,11 @@ An agent SHOULD nevertheless be able to inspect `.research/project.yml` and dete
 - what outputs exist;
 - which identifiers connect external objects.
 
-Later specifications can add explicit permissions, authoritative-resource declarations, provenance and skills.
+Later capabilities MAY add explicit permissions, authoritative-resource declarations, provenance, quality gates and skills.
 
-## 8. Validation
+## 12. Validation
 
-A conforming Core v0.1 record MUST validate against:
+A conforming Core v0.1 project record MUST validate against:
 
 ```text
 schema/project.schema.json
