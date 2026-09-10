@@ -163,4 +163,6 @@ Early specification and GitHub-template reference implementation design. The doc
 
 ## License
 
-Licensing of the ORW software/specification and licensing of scientific projects created with ORW are separate concerns. A project created from the template must explicitly choose licenses appropriate for its own code, data, documentation, and other research outputs.
+**OpenResearchWorkspace itself is MIT licensed.** This applies to the ORW software, template infrastructure, and reusable scaffolding in this repository; see [`LICENSE`](LICENSE).
+
+Scientific projects created from the ORW template are independent projects and do **not** automatically inherit MIT for their research outputs. Each project should explicitly choose licenses appropriate for its own code, data, documentation, manuscripts, figures, and other outputs.
