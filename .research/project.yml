@@ -1,0 +1,37 @@
+spec_version: "0.1"
+
+project:
+  title: "OpenResearchWorkspace"
+  description: "An open specification and reference implementation for simple, FAIR-oriented, machine-readable, reproducible, and agent-ready research workspaces."
+  status: active
+  keywords:
+    - open science
+    - FAIR
+    - reproducibility
+    - research software
+    - scientific AI
+
+contributors:
+  - name: "Damien Huzard"
+    role: "Project initiator"
+
+resources:
+  - name: "Core specification"
+    type: documentation
+    path: "SPEC.md"
+    access: open
+  - name: "Core JSON Schema"
+    type: schema
+    path: "schema/project.schema.json"
+    access: open
+
+outputs: []
+related_identifiers: []
+
+capabilities:
+  archive:
+    enabled: false
+  reproducibility:
+    enabled: false
+  agents:
+    enabled: false
