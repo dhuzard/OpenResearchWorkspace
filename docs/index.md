@@ -57,6 +57,10 @@ ORW aims to make every workspace:
 
 The canonical project metadata live in `.research/project.yml`, while implementation/version information and optional capabilities remain separate.
 
+## License
+
+**OpenResearchWorkspace itself is MIT licensed.** The MIT license applies to the ORW software, template infrastructure, and reusable scaffolding. Research projects created from the template are independent and should choose licenses appropriate for their own scientific outputs.
+
 ## Specification documents
 
 The normative and implementation-oriented documents remain in the repository root:
