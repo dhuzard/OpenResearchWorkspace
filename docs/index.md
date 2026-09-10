@@ -57,6 +57,14 @@ ORW aims to make every workspace:
 
 The canonical project metadata live in `.research/project.yml`, while implementation/version information and optional capabilities remain separate.
 
+## Specification documents
+
+The normative and implementation-oriented documents remain in the repository root:
+
+- `SPEC.md` — core specification;
+- `REFERENCE_IMPLEMENTATION.md` — scientist-facing reference implementation;
+- `TEMPLATE_WORKFLOW.md` — template lifecycle and initialization model.
+
 ```{toctree}
 :maxdepth: 2
 :hidden:
@@ -66,7 +74,4 @@ concepts
 capabilities
 AI_READY_WORKSPACE
 faq
-../SPEC
-../REFERENCE_IMPLEMENTATION
-../TEMPLATE_WORKFLOW
 ```
