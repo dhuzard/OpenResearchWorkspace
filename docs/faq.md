@@ -40,6 +40,12 @@ Yes, progressively. The intended architecture is provider-neutral: first define 
 
 No. Scientific context, policies, and skills should be provider-neutral. Provider-specific files should mainly help each agent discover and apply those shared rules.
 
+## What license does ORW use?
+
+**OpenResearchWorkspace itself is MIT licensed.** This applies to the ORW software, template infrastructure, and reusable scaffolding.
+
+A research project created from the ORW template is a separate project. Its scientific outputs do **not** automatically inherit the MIT license; researchers should choose appropriate licenses for their own code, data, documentation, manuscripts, figures, and other outputs.
+
 ## What is the main v0 success criterion?
 
 A scientist unfamiliar with Git should be able to create, initialize, understand, collaborate on, and eventually publish a research project without reading Git documentation.
