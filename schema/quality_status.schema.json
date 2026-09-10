@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/dhuzard/OpenResearchWorkspace/main/schema/quality_status.schema.json",
+  "title": "OpenResearchWorkspace Quality Status",
+  "type": "object",
+  "required": ["version", "dimensions"],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "dimensions": {
+      "type": "object",
+      "properties": {
+        "execution": {"$ref": "#/$defs/status"},
+        "completeness": {"$ref": "#/$defs/status"},
+        "data_quality": {"$ref": "#/$defs/status"},
+        "scientific_qualification": {"$ref": "#/$defs/status"}
+      },
+      "additionalProperties": {"$ref": "#/$defs/status"}
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "message"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "severity": {"type": "string", "enum": ["info", "warning", "error", "unknown"]},
+          "message": {"type": "string", "minLength": 1},
+          "affected_resources": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    },
+    "allowed_uses": {
+      "type": "object",
+      "additionalProperties": {"type": "boolean"}
+    }
+  },
+  "$defs": {
+    "status": {
+      "type": "object",
+      "required": ["state"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["pass", "warn", "fail", "unavailable", "not_assessed", "unknown"]
+        },
+        "summary": {"type": "string"},
+        "evidence": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
