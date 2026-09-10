@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/dhuzard/OpenResearchWorkspace/main/schema/data_dictionary.schema.json",
+  "title": "OpenResearchWorkspace Data Dictionary",
+  "type": "object",
+  "required": ["version", "resources"],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "role"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "role": {"type": "string", "minLength": 1},
+          "description": {"type": "string"},
+          "observational_unit": {"type": ["string", "null"]},
+          "experimental_unit": {"type": ["string", "null"]},
+          "primary_key": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": true
+          },
+          "columns": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "meaning": {"type": "string"},
+                "unit": {"type": ["string", "null"]},
+                "semantic_role": {"type": "string"},
+                "use_as_observation_unit": {"type": "boolean"},
+                "safe_for_grouping": {"type": "boolean"},
+                "safe_for_joining": {"type": "boolean"},
+                "missingness_semantics": {"type": "string"}
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
