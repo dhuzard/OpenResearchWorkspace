@@ -22,6 +22,13 @@ The repository remains owned by the scientist or lab. ORW provides the format, s
 Create a repository from the ORW template and initialize it with a short project setup flow.
 :::
 
+:::{grid-item-card} Project structure
+:link: project-structure
+:link-type: doc
+
+See exactly where data, analyses, results, protocols, references, and project context belong.
+:::
+
 :::{grid-item-card} Understand ORW
 :link: concepts
 :link-type: doc
@@ -55,7 +62,7 @@ ORW aims to make every workspace:
 - **reproducible**;
 - **agent ready**.
 
-The canonical project metadata live in `.research/project.yml`, while implementation/version information and optional capabilities remain separate.
+The canonical project metadata live in `.research/project.yml`, while implementation/version information, layout semantics, profiles, and optional capabilities remain separate.
 
 ## License
 
@@ -66,6 +73,7 @@ The canonical project metadata live in `.research/project.yml`, while implementa
 The normative and implementation-oriented documents remain in the repository root:
 
 - `SPEC.md` — core specification;
+- `PROJECT_STRUCTURE.md` — canonical scientific project skeleton;
 - `REFERENCE_IMPLEMENTATION.md` — scientist-facing reference implementation;
 - `TEMPLATE_WORKFLOW.md` — template lifecycle and initialization model.
 
@@ -74,6 +82,7 @@ The normative and implementation-oriented documents remain in the repository roo
 :hidden:
 
 getting-started
+project-structure
 concepts
 capabilities
 AI_READY_WORKSPACE
