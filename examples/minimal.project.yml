@@ -1,0 +1,40 @@
+spec_version: "0.1"
+
+project:
+  title: "Effects of environmental enrichment on mouse social behaviour"
+  description: "A preclinical study examining how environmental enrichment affects spontaneous social behaviour in mice."
+  status: active
+  keywords:
+    - animal behaviour
+    - home-cage monitoring
+
+contributors:
+  - name: "Researcher Name"
+    orcid: "0000-0000-0000-0000"
+    role: "Project lead"
+
+data:
+  - name: "Raw behavioural recordings"
+    type: dataset
+    location: "Institutional research storage"
+    access: private
+    description: "Raw video and tracking data; not stored in GitHub."
+
+resources:
+  - name: "Analysis code"
+    type: software
+    path: "analysis/"
+    access: private
+
+outputs: []
+
+related_identifiers: []
+
+capabilities:
+  archive:
+    provider: zenodo
+    enabled: false
+  reproducibility:
+    enabled: false
+  agents:
+    enabled: false
