@@ -6,29 +6,31 @@ It is a bootstrap mechanism, not a long-term synchronization relationship with t
 
 ## Before project creation
 
-The template contains generic infrastructure:
+The template contains two layers:
 
 ```text
-README.md
-.research/
-.github/
-schema/
-capabilities/
+scientist-facing skeleton
+├── data/
+├── analysis/
+├── results/
+├── protocols/
+├── references/
+└── project-docs/
+
+ORW infrastructure
+├── .research/
+├── .github/
+├── schema/
+└── capabilities/
 ```
 
-The repository is not yet a scientific project until initialization is completed.
+The folder semantics are defined in `PROJECT_STRUCTURE.md` and `.research/layout.yml`.
 
 ## Project creation
 
 The researcher selects **Use this template** and creates an independent repository.
 
-Recommended ownership options:
-
-- personal GitHub account;
-- laboratory organization;
-- institutional organization.
-
-The created repository is the canonical workspace for that project.
+Recommended ownership options include a personal GitHub account, laboratory organization, or institutional organization. The created repository is the canonical workspace for that project.
 
 ## First-run initialization
 
@@ -36,20 +38,30 @@ The repository should expose one obvious action:
 
 > **Set up this research project**
 
-The setup asks only information needed to create a useful project record:
+The setup should ask only for information needed to initialize the workspace:
 
-- title;
-- short description;
-- contributors;
-- ORCIDs where available;
-- keywords;
-- project status;
-- data location;
+- title and short description;
+- contributors and ORCIDs where available;
+- keywords and project status;
+- where authoritative data live;
 - whether data are sensitive/restricted;
 - licensing choices;
+- project profile;
 - optional capabilities.
 
-The setup process then generates/synchronizes the internal records.
+### Project profile
+
+The researcher should choose one initialization preset:
+
+- Experimental / wet lab
+- Computational / data analysis
+- Mixed experimental + computational
+- Literature / systematic review
+- Other
+
+Profiles are defined in `.research/profiles.yml`. They decide which parts of the canonical skeleton are useful at initialization; they do not create different ORW standards or redefine folder semantics.
+
+The setup process then generates/synchronizes internal records:
 
 ```text
 researcher form
@@ -57,84 +69,62 @@ researcher form
 .research/project.yml
 .research/workspace.yml
 .research/capabilities.yml
+.research/layout.yml
       ↓
-project README and later derived metadata
+project README + selected project skeleton
+      ↓
+later generated citation/archival/FAIR metadata
 ```
 
 The same information should not need to be entered separately into several metadata files.
 
-## Workspace state
+## Scientific skeleton
 
-`.research/workspace.yml` tracks ORW implementation state.
+The default mixed project profile is:
 
-Example before initialization:
-
-```yaml
-orw:
-  spec_version: "0.1"
-  template_version: "0.1.0"
-  initialized: false
-  initialized_at: null
+```text
+README.md
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── external/
+├── analysis/
+│   ├── notebooks/
+│   ├── scripts/
+│   └── workflows/
+├── results/
+│   ├── tables/
+│   ├── figures/
+│   └── reports/
+├── protocols/
+├── references/
+└── project-docs/
 ```
 
-After initialization, `initialized` becomes `true` and the initialization timestamp is recorded.
+The intended provenance direction is:
+
+```text
+raw/external data → processed data → analysis → results → publication/archive
+```
+
+Raw source evidence should not be silently overwritten. External data may remain outside GitHub and be represented by links, identifiers, manifests, checksums, or access metadata.
+
+## Workspace state
+
+`.research/workspace.yml` tracks ORW implementation state, including the specification/template version and initialization status.
+
+Once initialized, the research repository evolves independently from the ORW template. Researchers should not be expected to maintain a fork relationship, merge upstream template commits, or understand ORW's own Git history.
+
+Future ORW tooling may inspect recorded versions and offer explicit workspace/schema migrations when needed.
 
 ## Capabilities
 
-`.research/capabilities.yml` records optional functionality independently from the scientific project description.
+`.research/capabilities.yml` records optional functionality independently from the scientific project description. A project should not need a different template for each combination of features.
 
-A project should not need a different template for each combination of features.
-
-```text
-one ORW template
-      ↓
-initial setup
-      ↓
-capabilities enabled as required
-```
-
-Examples of later capabilities include:
-
-- archival publication / DOI;
-- FAIR enrichment;
-- reproducibility and provenance;
-- AI-ready context;
-- agent skills.
-
-## Independent evolution
-
-Once initialized, the research repository evolves independently from the ORW template.
-
-Researchers should not be expected to:
-
-- maintain a fork relationship;
-- merge upstream template commits;
-- understand ORW's own Git history.
-
-Future ORW tooling may inspect the recorded `spec_version` and `template_version` and offer an explicit migration when needed.
-
-## Migration principle
-
-Workspace upgrades should behave conceptually like schema migrations:
-
-```text
-ORW 0.1 workspace
-      ↓
-validate current state
-      ↓
-show migration changes
-      ↓
-human confirmation when consequential
-      ↓
-ORW 0.2 workspace
-```
-
-Scientific evidence and project history must not be silently rewritten merely because ORW infrastructure evolves.
+Examples include archival publication/DOI, FAIR enrichment, reproducibility/provenance, AI-ready context, and agent skills.
 
 ## Optional UI
 
 A future lightweight UI may provide forms for initialization, metadata editing, capability activation, and publication.
 
-The UI is a view/editor over the repository. It is not the authoritative project database.
-
-The repository remains usable without a central ORW service.
+The UI is a view/editor over the repository. It is not the authoritative project database. The repository remains usable without a central ORW service.
