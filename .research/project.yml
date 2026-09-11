@@ -1,11 +1,13 @@
 spec_version: "0.1"
 
-project:
+investigation:
+  identifier: "orw-development"
   title: "OpenResearchWorkspace"
   description: "An open research workspace specification with a self-initializing GitHub template as its primary reference implementation."
   status: active
   keywords:
     - open science
+    - ISA
     - FAIR
     - reproducibility
     - research software
@@ -15,18 +17,24 @@ contributors:
   - name: "Damien Huzard"
     role: "Project initiator"
 
+studies:
+  - identifier: "orw-core-development"
+    title: "ORW specification and reference implementation development"
+    description: "Development and evaluation of the OpenResearchWorkspace specification and its GitHub reference implementation."
+    assays: []
+
 resources:
   - name: "Core specification"
     type: documentation
     path: "SPEC.md"
     access: open
+  - name: "ISA rationale and mapping"
+    type: documentation
+    path: "docs/isa.md"
+    access: open
   - name: "Core JSON Schema"
     type: schema
     path: "schema/project.schema.json"
-    access: open
-  - name: "GitHub template reference implementation"
-    type: documentation
-    path: "REFERENCE_IMPLEMENTATION.md"
     access: open
 
 outputs: []
