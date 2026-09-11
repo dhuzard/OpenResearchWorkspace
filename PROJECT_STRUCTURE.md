@@ -1,132 +1,124 @@
 # OpenResearchWorkspace project structure
 
-This document defines the recommended human-facing skeleton for an ORW research project.
+This document defines the recommended human-facing skeleton for an ORW research project. The scientific hierarchy is based on **ISA: Investigation → Study → Assay**.
 
-The goal is simple: a scientist should immediately understand where inputs, analyses, outputs, methods, and project context belong, while machines and AI agents can rely on stable semantics underneath.
+## Normative mapping
+
+- The ORW workspace/repository represents an **Investigation**.
+- `studies/<study-id>/` represents a **Study**.
+- `studies/<study-id>/assays/<assay-id>/` represents an **Assay**.
+
+This is not merely a folder naming convention. ORW's machine-readable project model MUST preserve these relationships so that the workspace can interoperate with ISA representations and tools.
+
+## Why ISA
+
+ISA provides an established model for experimental metadata rather than forcing ORW to invent one. An Investigation captures the overall research context and groups Studies. A Study describes the subjects/sources, design, factors, treatments and protocols for a unit of research. An Assay describes a measurement/test, its technology and measurement type, processing provenance, and links to resulting data.
+
+That hierarchy is a better scientific model than a flat `data/analysis/results` repository because the latter becomes ambiguous as soon as one project contains several cohorts, experiments, interventions, modalities or measurement technologies.
 
 ## Default visible structure
 
 ```text
-my-research-project/
+my-research-project/                    # Investigation
 ├── README.md
-├── data/
-│   ├── README.md
-│   ├── raw/
-│   ├── processed/
-│   └── external/
-├── analysis/
-│   ├── README.md
-│   ├── notebooks/
-│   ├── scripts/
-│   └── workflows/
-├── results/
-│   ├── README.md
-│   ├── tables/
-│   ├── figures/
-│   └── reports/
-├── protocols/
-│   └── README.md
+├── studies/
+│   └── study-01/                       # Study
+│       ├── README.md
+│       ├── data/
+│       │   ├── raw/
+│       │   ├── processed/
+│       │   └── external/
+│       ├── assays/
+│       │   └── assay-01/               # Assay
+│       │       ├── README.md
+│       │       ├── data/
+│       │       ├── analysis/
+│       │       └── results/
+│       ├── analysis/
+│       ├── results/
+│       └── protocols/
 ├── references/
-│   └── README.md
 └── project-docs/
-    └── README.md
 ```
 
-ORW infrastructure lives separately in hidden or implementation-oriented locations such as `.research/` and `.github/`.
+ORW infrastructure lives separately in `.research/` and `.github/`.
 
-## Folder semantics
+## Investigation level
 
-### `data/`
-Scientific inputs and data products.
+The repository root provides context shared across the entire Investigation: title, description, contributors, publications, related identifiers, references, project-level decisions and the collection of Studies.
 
-- `raw/` contains authoritative source data when it is appropriate to keep them in the repository. Raw data SHOULD NOT be silently edited in place.
-- `processed/` contains data derived reproducibly from raw or external inputs.
-- `external/` contains manifests, links, checksums, access notes, or small reference files for data stored elsewhere.
+Investigation-wide material belongs in `references/` and `project-docs/`. Scientific data should normally be associated with a Study or Assay rather than placed ambiguously at the Investigation root.
 
-Large, sensitive, regulated, or discipline-specific datasets MAY remain outside GitHub. Their authoritative location should still be documented in the workspace.
+## Study level
 
-### `analysis/`
-Code and workflows that transform data into scientific results.
+Each Study is a coherent unit of research. Its metadata should describe the design, subjects/sources and samples, characteristics, factors/treatments and protocols relevant to its Assays.
 
-- `notebooks/` for exploratory or narrative computational work;
-- `scripts/` for reusable analysis scripts;
-- `workflows/` for pipeline definitions and reproducible execution logic.
+Study-level folders are:
 
-If the project develops reusable software, a separate `src/` package MAY be added later. ORW does not require one by default.
+- `data/` — Study inputs or data shared across multiple Assays;
+- `assays/` — measurements/tests performed within the Study;
+- `analysis/` — analyses integrating or comparing Study-level information;
+- `results/` — outputs produced at Study level;
+- `protocols/` — Study procedures and protocol references.
 
-### `results/`
-Derived outputs produced by analysis.
+## Assay level
 
-- `tables/` for machine-readable result tables;
-- `figures/` for plots and visual outputs;
-- `reports/` for generated reports or summaries.
+An Assay represents a measurement or test. Examples include behavioural tracking, microscopy, RNA sequencing, electrophysiology, mass spectrometry or a clinical measurement.
 
-Results should be traceable to the inputs and analysis that generated them.
+An Assay should record its measurement type, technology type, relevant protocol/process information and the data files or external data resources it produces.
 
-### `protocols/`
-Experimental, acquisition, preprocessing, or procedural methods used by the project.
+Assay-local `data/`, `analysis/` and `results/` keep modality-specific material together when that improves clarity. A simple project does not need to populate every possible subfolder.
 
-Protocols may be Markdown files, PDFs, links to repositories, or persistent identifiers. Whenever possible, record version or date information.
+## Data semantics
 
-### `references/`
-Literature, citation exports, bibliographies, and links to external scientific resources relevant to the project.
+Within a Study or Assay:
 
-### `project-docs/`
-Human project context that is not itself an input dataset or analysis result.
+- `data/raw/` contains authoritative source data when appropriate to keep them in GitHub;
+- `data/processed/` contains reproducibly derived data;
+- `data/external/` contains manifests, links, checksums, access notes or references to data stored elsewhere.
 
-Typical content includes:
-
-- decisions and rationale;
-- meeting/research notes;
-- methods development notes;
-- data-management notes;
-- interpretation caveats;
-- project history.
+Large, sensitive, regulated or discipline-specific datasets MAY remain outside GitHub. ORW records their authoritative location/PID rather than requiring duplication.
 
 ## Provenance direction
 
-The intended scientific flow is:
+The conceptual scientific flow is richer than a simple folder pipeline:
 
 ```text
-raw/external data
-       ↓
-processed data
-       ↓
+Investigation
+    ↓
+Study
+    ↓
+subjects / sources / samples
+    ↓
+processes + protocols + factors
+    ↓
+Assay / measurement
+    ↓
+data
+    ↓
 analysis
-       ↓
-results
-       ↓
-publication/archive package
+    ↓
+results / publication
 ```
 
-This direction should remain legible to both humans and software.
+ORW should preserve enough structure to later express this through ISA-compatible metadata and more detailed provenance capabilities.
 
-## Authority and mutability
+## Simple projects remain simple
 
-By default:
+ISA alignment must not make ORW harder for beginners. A small experiment can begin as:
 
-- source/raw inputs are authoritative and SHOULD be treated as read-only evidence;
-- processed data are derived and SHOULD be reproducible from documented inputs and methods;
-- analysis code is editable project logic;
-- results are derived outputs;
-- `.research/` contains machine-readable project context, capability state, and provenance metadata.
+```text
+My project (Investigation)
+└── Main study (Study)
+    └── Main measurement (Assay)
+```
 
-AI/agent capabilities may later impose stricter read/write boundaries through an explicit agent contract.
+The setup interface can create these defaults automatically. Researchers only add additional Studies or Assays when their experimental design requires them.
 
 ## Profiles
 
-ORW uses one template but may initialize different subsets of this skeleton according to project type.
-
-Recommended profiles:
-
-- `experimental` — data, analysis, results, protocols, project-docs, references;
-- `computational` — data, analysis, results, project-docs, references;
-- `mixed` — full default skeleton;
-- `literature` — references, analysis, results, project-docs;
-- `other` — user-selected structure with the same folder semantics.
-
-Profiles are convenience presets. They MUST NOT redefine the meaning of the standard folders.
+Profiles remain convenience presets, but they MUST NOT replace or redefine ISA semantics. Experimental and mixed projects use Investigation → Study → Assay explicitly. Computational or literature projects may use the closest meaningful subset while retaining an Investigation-level project context; ORW should not invent fake assays when no assay exists.
 
 ## Design rule
 
-ORW should prefer a small number of stable, semantically clear top-level folders over discipline-specific folder proliferation. Domain-specific detail belongs inside the canonical folders or in optional capabilities/profiles.
+ORW uses ISA for scientific hierarchy and stable semantics, while its folder structure remains a pragmatic human interface. ISA-JSON/ISA-Tab are interoperability targets, not files that ordinary researchers must manually maintain.
