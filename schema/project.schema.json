@@ -1,15 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/dhuzard/OpenResearchWorkspace/blob/main/schema/project.schema.json",
-  "title": "OpenResearchWorkspace Core Project",
+  "title": "OpenResearchWorkspace ISA-aligned Core Project",
   "type": "object",
-  "required": ["spec_version", "project"],
+  "required": ["spec_version", "investigation"],
   "properties": {
     "spec_version": {"type": "string", "const": "0.1"},
-    "project": {
+    "investigation": {
       "type": "object",
       "required": ["title", "description", "status"],
       "properties": {
+        "identifier": {"type": "string"},
         "title": {"type": "string", "minLength": 1},
         "description": {"type": "string", "minLength": 1},
         "status": {"type": "string", "enum": ["active", "paused", "completed", "archived"]},
@@ -19,19 +20,13 @@
     },
     "contributors": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-          "name": {"type": "string", "minLength": 1},
-          "orcid": {"type": "string", "pattern": "^(https://orcid\\.org/)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"},
-          "role": {"type": "string"}
-        },
-        "additionalProperties": true
-      }
+      "items": {"$ref": "#/$defs/contributor"}
+    },
+    "studies": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/study"}
     },
     "resources": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
-    "data": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
     "outputs": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
     "related_identifiers": {
       "type": "array",
@@ -45,18 +40,57 @@
         "additionalProperties": true
       }
     },
-    "capabilities": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {"enabled": {"type": "boolean"}},
-        "additionalProperties": true
-      }
-    },
     "extensions": {"type": "object", "additionalProperties": true}
   },
   "additionalProperties": true,
   "$defs": {
+    "contributor": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "orcid": {"type": "string", "pattern": "^(https://orcid\\.org/)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"},
+        "role": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "study": {
+      "type": "object",
+      "required": ["identifier", "title"],
+      "properties": {
+        "identifier": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string"},
+        "design_descriptors": {"type": "array", "items": {"$ref": "#/$defs/ontologyAnnotation"}},
+        "factors": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+        "protocols": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+        "materials": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+        "assays": {"type": "array", "items": {"$ref": "#/$defs/assay"}}
+      },
+      "additionalProperties": true
+    },
+    "assay": {
+      "type": "object",
+      "required": ["identifier", "title"],
+      "properties": {
+        "identifier": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "measurement_type": {"$ref": "#/$defs/ontologyAnnotation"},
+        "technology_type": {"$ref": "#/$defs/ontologyAnnotation"},
+        "protocols": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+        "data": {"type": "array", "items": {"$ref": "#/$defs/resource"}}
+      },
+      "additionalProperties": true
+    },
+    "ontologyAnnotation": {
+      "type": "object",
+      "properties": {
+        "term": {"type": "string"},
+        "term_source": {"type": "string"},
+        "term_accession": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
     "resource": {
       "type": "object",
       "required": ["name"],
