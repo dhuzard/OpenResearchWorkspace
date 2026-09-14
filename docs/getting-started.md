@@ -5,6 +5,7 @@ This guide is for researchers who have **never used Git or GitHub before**.
 At the end, you will understand how to create your own research workspace, where your research material belongs, how collaborators fit in, and how publication will work.
 
 > **You need:** a free GitHub account, about 5–10 minutes, and no programming or Git experience.
+> **recommended:** an ORCID number. Create your here: https://orcid.org/register
 
 The basic workflow is:
 
