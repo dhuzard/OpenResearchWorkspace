@@ -64,9 +64,8 @@ To create your account, follow those instuctions: https://docs.github.com/en/acc
 
 **Something went wrong?** If you cannot see **Use this template**, the ORW repository may not yet have been enabled as a GitHub template. If you cannot create a private repository in the intended organization, ask the organization's administrator about your permissions.
 
-:::{important}
-**OpenResearchWorkspace itself is MIT licensed**, but your new research project is independent. Its scientific outputs do not automatically inherit MIT. Your project should choose appropriate licenses for its own code, data, documentation, manuscripts, figures, and other outputs.
-:::
+> [!IMPORTANT]
+> **OpenResearchWorkspace itself is MIT licensed**, but your new research project is independent. Its scientific outputs do not automatically inherit MIT. Your project should choose appropriate licenses for its own code, data, documentation, manuscripts, figures, and other outputs.
 
 ---
 
@@ -98,9 +97,8 @@ ORW will write the structured `.research/` information behind the scenes. Normal
 
 > **✓ Done:** Your project overview should show the information you supplied, and ORW should report that the basic project information is complete.
 
-:::{note}
-The self-service setup form is still part of the v0 implementation backlog. The current repository defines the target structure and metadata contract, but this step is not yet fully automated. This guide describes the intended beginner workflow rather than pretending the unfinished setup is already available.
-:::
+> [!NOTE]
+> The self-service setup form is still part of the v0 implementation backlog. The current repository defines the target structure and metadata contract, but this step is not yet fully automated. This guide describes the intended beginner workflow rather than pretending the unfinished setup is already available.
 
 ---
 
@@ -261,9 +259,8 @@ The initial archival integration is planned around Zenodo/GitHub, while the arch
 
 > **✓ Done:** After this capability is implemented and configured, ORW should show the published version and its DOI/PID without requiring you to understand Git tags or GitHub release mechanics.
 
-:::{note}
-The one-action publication workflow is part of the v0 implementation backlog. Do not interpret this section as saying that the complete automated publication interface already exists.
-:::
+> [!NOTE]
+> The one-action publication workflow is part of the v0 implementation backlog. Do not interpret this section as saying that the complete automated publication interface already exists.
 
 ---
 
