@@ -41,6 +41,13 @@ Replace these example values with information from your own study.
 
 ---
 
+## Step 0 — Create your Github account
+
+**Why?** because you cannot use Github otherwise.
+To create your account, follow those instuctions: https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github
+
+---
+
 ## Step 1 — Create your research project
 
 **Why?** This creates your own independent workspace from the ORW template.
