@@ -1,4 +1,4 @@
-"""Initialize an ORW project from GitHub Actions form inputs.
+"""Initialize an ORW project from the beginner setup form.
 
 Uses only Python's standard library so initialization has no package-install step.
 """
@@ -39,15 +39,24 @@ def validate_orcid(value: str) -> None:
         raise SystemExit("ORCID must look like 0000-0000-0000-0000 (final character may be X).")
 
 
+def ensure_readme(path: Path, title: str, text: str) -> None:
+    directory = ROOT / path
+    directory.mkdir(parents=True, exist_ok=True)
+    readme = directory / "README.md"
+    if not readme.exists():
+        readme.write_text(f"# {title}\n\n{text}\n", encoding="utf-8")
+
+
 project_title = env("PROJECT_TITLE")
 description = env("PROJECT_DESCRIPTION")
+creator_name = env("CREATOR_NAME")
 study_title = env("STUDY_TITLE")
 assay_title = env("ASSAY_TITLE")
 data_location = env("DATA_LOCATION")
 data_access = env("DATA_ACCESS")
 keywords = [x.strip() for x in env("KEYWORDS", False).split(",") if x.strip()]
 orcid = env("ORCID", False)
-actor = env("ACTOR")
+github_login = env("GITHUB_LOGIN", False)
 validate_orcid(orcid)
 
 study_slug = slug(study_title, "study-01")
@@ -55,40 +64,43 @@ assay_slug = slug(assay_title, "assay-01")
 study_root = Path("studies") / study_slug
 assay_root = study_root / "assays" / assay_slug
 
-for path in [
-    study_root / "data" / "raw",
-    study_root / "data" / "processed",
-    study_root / "data" / "external",
-    study_root / "protocols",
-    study_root / "analysis",
-    study_root / "results",
-    assay_root / "data" / "raw",
-    assay_root / "data" / "processed",
-    assay_root / "analysis",
-    assay_root / "results",
-    Path("references"),
-    Path("project-docs"),
-    Path(".research"),
-]:
-    (ROOT / path).mkdir(parents=True, exist_ok=True)
+# Create the ISA-aligned tree. Each visible leaf gets a README because Git does
+# not retain empty directories.
+(ROOT / study_root).mkdir(parents=True, exist_ok=True)
+(ROOT / assay_root).mkdir(parents=True, exist_ok=True)
+(ROOT / ".research").mkdir(parents=True, exist_ok=True)
 
-# Git does not retain empty directories, so add small explanatory READMEs.
 (ROOT / study_root / "README.md").write_text(
-    f"# {study_title}\n\nThis directory represents an ISA **Study** within the investigation **{project_title}**.\n",
+    f"# {study_title}\n\nThis directory represents an ISA **Study** within the Investigation **{project_title}**.\n",
     encoding="utf-8",
 )
 (ROOT / assay_root / "README.md").write_text(
     f"# {assay_title}\n\nThis directory represents an ISA **Assay** within **{study_title}**.\n",
     encoding="utf-8",
 )
-for path in [study_root / "data", study_root / "protocols", study_root / "analysis", study_root / "results",
-             assay_root / "data", assay_root / "analysis", assay_root / "results", Path("references"), Path("project-docs")]:
-    p = ROOT / path / "README.md"
-    if not p.exists():
-        p.write_text(f"# {path.name.replace('-', ' ').title()}\n\nAdd or document project material belonging to this area here.\n", encoding="utf-8")
+
+folders = {
+    study_root / "data": ("Study data", "Study-level data and references to authoritative data locations."),
+    study_root / "data" / "raw": ("Raw data", "Authoritative source data when appropriate to store them in GitHub. Do not silently overwrite raw evidence."),
+    study_root / "data" / "processed": ("Processed data", "Data derived reproducibly from raw or external inputs."),
+    study_root / "data" / "external": ("External data", "Links, identifiers, manifests, checksums, or access notes for data stored elsewhere."),
+    study_root / "protocols": ("Protocols", "Study-level procedures, designs, and protocols."),
+    study_root / "analysis": ("Study analysis", "Analyses that apply across assays or interpret the Study as a whole."),
+    study_root / "results": ("Study results", "Study-level derived outputs and summaries."),
+    assay_root / "data": ("Assay data", "Data belonging specifically to this measurement or assay."),
+    assay_root / "data" / "raw": ("Raw assay data", "Authoritative source data for this assay when appropriate to store them here."),
+    assay_root / "data" / "processed": ("Processed assay data", "Data derived reproducibly from this assay's raw or external inputs."),
+    assay_root / "analysis": ("Assay analysis", "Analysis code, notebooks, and workflows specific to this assay."),
+    assay_root / "results": ("Assay results", "Derived tables, figures, reports, and outputs specific to this assay."),
+    Path("references"): ("References", "Literature, citation exports, and stable identifiers relevant to the Investigation."),
+    Path("project-docs"): ("Project documentation", "Investigation-wide notes, decisions, rationale, history, and data-management context."),
+}
+for path, (title, text) in folders.items():
+    ensure_readme(path, title, text)
 
 kw_lines = "\n".join(f"    - {yaml_string(k)}" for k in keywords) if keywords else "    []"
 orcid_line = f"\n    orcid: {yaml_string(orcid)}" if orcid else ""
+github_line = f"\n    github_login: {yaml_string(github_login)}" if github_login else ""
 project_yml = f'''spec_version: "0.1"
 
 project:
@@ -111,8 +123,8 @@ investigation:
           path: {yaml_string(str(assay_root))}
 
 contributors:
-  - name: {yaml_string(actor)}
-    role: "Project creator"{orcid_line}
+  - name: {yaml_string(creator_name)}
+    role: "Project creator"{orcid_line}{github_line}
 
 data:
   - name: "Authoritative/raw research data"
@@ -139,6 +151,10 @@ This workspace uses the ISA scientific hierarchy:
 - **Study:** [{study_title}]({study_root.as_posix()}/)
 - **Assay:** [{assay_title}]({assay_root.as_posix()}/)
 
+## Project creator
+
+{creator_name}
+
 ## Data
 
 Authoritative/raw data location: **{data_location}**  
@@ -146,9 +162,15 @@ Access: **{data_access}**
 
 ## Where to work
 
-Open the Study folder above. Put study-wide protocols and context at Study level; put measurement-specific data, analysis and results inside the relevant Assay.
+Open the Study folder above. Put study-wide protocols and context at Study level; put measurement-specific data, analysis, and results inside the relevant Assay.
 
 The machine-readable project description is maintained in `.research/project.yml`. You normally do not need to edit it directly.
+
+## ORW help
+
+- [Getting started](docs/getting-started.md)
+- [Project structure](docs/project-structure.md)
+- [Why ORW uses ISA](docs/isa.md)
 '''
 (ROOT / "README.md").write_text(readme, encoding="utf-8")
 print(f"Initialized {project_title}: {study_slug} / {assay_slug}")

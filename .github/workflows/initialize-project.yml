@@ -1,62 +1,42 @@
 name: Initialize research project
 
 on:
-  workflow_dispatch:
-    inputs:
-      project_title:
-        description: "Project title"
-        required: true
-        type: string
-      project_description:
-        description: "Short description of the research project"
-        required: true
-        type: string
-      study_title:
-        description: "First study title"
-        required: true
-        default: "Main study"
-        type: string
-      assay_title:
-        description: "First assay or measurement (for example Behaviour, RNA-seq, Imaging)"
-        required: true
-        default: "Main assay"
-        type: string
-      data_location:
-        description: "Where are the authoritative/raw data stored?"
-        required: true
-        type: string
-      data_access:
-        description: "Data access level"
-        required: true
-        default: "private"
-        type: choice
-        options:
-          - private
-          - restricted
-          - embargoed
-          - open
-          - unknown
-      keywords:
-        description: "Keywords separated by commas (optional)"
-        required: false
-        type: string
-      orcid:
-        description: "Your ORCID, if available (optional)"
-        required: false
-        type: string
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
-  group: initialize-project
+  group: initialize-project-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
   initialize:
     name: Create project structure and metadata
+    if: >-
+      contains(github.event.issue.body, '### Project title') &&
+      contains(github.event.issue.body, '### Ready to initialize') &&
+      github.repository != 'dhuzard/OpenResearchWorkspace'
     runs-on: ubuntu-latest
+
     steps:
+      - name: Check who submitted the setup form
+        shell: bash
+        env:
+          ASSOCIATION: ${{ github.event.issue.author_association }}
+        run: |
+          case "$ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR)
+              echo "Setup submitted by an authorized repository participant ($ASSOCIATION)."
+              ;;
+            *)
+              echo "::error::Project initialization must be submitted by the repository owner or an authorized collaborator."
+              exit 1
+              ;;
+          esac
+
       - name: Check out project
         uses: actions/checkout@v4
 
@@ -68,17 +48,22 @@ jobs:
             exit 1
           fi
 
+      - name: Read and validate setup form
+        id: setup
+        run: python scripts/parse_setup_issue.py
+
       - name: Create ISA-aligned project files
         env:
-          PROJECT_TITLE: ${{ inputs.project_title }}
-          PROJECT_DESCRIPTION: ${{ inputs.project_description }}
-          STUDY_TITLE: ${{ inputs.study_title }}
-          ASSAY_TITLE: ${{ inputs.assay_title }}
-          DATA_LOCATION: ${{ inputs.data_location }}
-          DATA_ACCESS: ${{ inputs.data_access }}
-          KEYWORDS: ${{ inputs.keywords }}
-          ORCID: ${{ inputs.orcid }}
-          ACTOR: ${{ github.actor }}
+          PROJECT_TITLE: ${{ steps.setup.outputs.project_title }}
+          PROJECT_DESCRIPTION: ${{ steps.setup.outputs.project_description }}
+          CREATOR_NAME: ${{ steps.setup.outputs.researcher_name }}
+          STUDY_TITLE: ${{ steps.setup.outputs.study_title }}
+          ASSAY_TITLE: ${{ steps.setup.outputs.assay_title }}
+          DATA_LOCATION: ${{ steps.setup.outputs.data_location }}
+          DATA_ACCESS: ${{ steps.setup.outputs.data_access }}
+          KEYWORDS: ${{ steps.setup.outputs.keywords }}
+          ORCID: ${{ steps.setup.outputs.orcid }}
+          GITHUB_LOGIN: ${{ github.event.issue.user.login }}
         run: python scripts/initialize_project.py
 
       - name: Commit initialized workspace
@@ -94,8 +79,28 @@ jobs:
           git commit -m "Initialize research workspace"
           git push
 
-      - name: Summary
+      - name: Confirm setup in the form thread
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "✅ **Your OpenResearchWorkspace project is initialized.**\n\nORW created your first ISA Study/Assay structure and updated the project metadata and README.\n\n➡️ **[Open your initialized workspace](https://github.com/$REPO)**\n\nThis setup form is now complete and will be closed automatically."
+          gh issue close "$ISSUE_NUMBER" --repo "$REPO" --reason completed
+
+      - name: Workflow summary
         run: |
           echo "## Research workspace initialized" >> "$GITHUB_STEP_SUMMARY"
-          echo "Your project metadata and first ISA Study/Assay structure were created." >> "$GITHUB_STEP_SUMMARY"
-          echo "Return to the **Code** tab to start working." >> "$GITHUB_STEP_SUMMARY"
+          echo "The setup form was validated and the ISA-aligned workspace was created." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Explain a failed setup
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "❌ **ORW could not finish initialization.**\n\nThe setup form has been left open so you can ask for help or correct the problem.\n\nTechnical details: $RUN_URL\n\nIf you are a beginner, you do not need to understand that log yourself—share the link when asking for help."

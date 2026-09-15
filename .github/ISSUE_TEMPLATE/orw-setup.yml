@@ -1,0 +1,106 @@
+name: Set up my research project
+description: Initialize this new OpenResearchWorkspace project without using Git or editing YAML.
+title: "[ORW Setup] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Set up your research project
+
+        Fill this form once after creating a new repository from the OpenResearchWorkspace template.
+
+        When you submit it, ORW will automatically create your first **Investigation → Study → Assay** structure and the machine-readable project metadata.
+
+        **Do not enter passwords, access tokens, participant identifiers, confidential clinical information, or other secrets.**
+
+  - type: input
+    id: project_title
+    attributes:
+      label: Project title
+      description: The human-readable title of the overall research project (the ISA Investigation).
+      placeholder: Effects of light exposure on mouse activity
+    validations:
+      required: true
+
+  - type: textarea
+    id: project_description
+    attributes:
+      label: Short project description
+      description: One or two sentences describing the research question or objective.
+      placeholder: Study of how altered light exposure affects spontaneous mouse activity.
+    validations:
+      required: true
+
+  - type: input
+    id: researcher_name
+    attributes:
+      label: Your name
+      description: Your scientific/professional name as you want it recorded in the project metadata.
+      placeholder: Jane Researcher
+    validations:
+      required: true
+
+  - type: input
+    id: study_title
+    attributes:
+      label: First study title
+      description: The first Study within the project. You can add more studies later.
+      placeholder: Light exposure study
+    validations:
+      required: true
+
+  - type: input
+    id: assay_title
+    attributes:
+      label: What will you measure first?
+      description: The first ISA Assay or measurement type, for example Behaviour, Imaging, Electrophysiology, RNA-seq, or Metabolomics.
+      placeholder: Behaviour
+    validations:
+      required: true
+
+  - type: input
+    id: data_location
+    attributes:
+      label: Where are the authoritative/raw data stored?
+      description: A high-level location is enough. Do not enter passwords, credentials, or sensitive access details.
+      placeholder: Institutional research server
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data_access
+    attributes:
+      label: Data access level
+      description: Choose the current access status of the authoritative/raw data.
+      options:
+        - private
+        - restricted
+        - embargoed
+        - open
+        - unknown
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: keywords
+    attributes:
+      label: Keywords (optional)
+      description: Separate several keywords with commas.
+      placeholder: behaviour, circadian rhythm, mouse
+
+  - type: input
+    id: orcid
+    attributes:
+      label: Your ORCID (optional)
+      description: Enter an ORCID such as 0000-0000-0000-0000. You can add contributors later.
+      placeholder: 0000-0000-0000-0000
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Ready to initialize
+      description: This setup is intended to run once on a new ORW project.
+      options:
+        - label: I understand that submitting this form will initialize this repository as my research workspace.
+          required: true
