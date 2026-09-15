@@ -80,15 +80,13 @@ Do not use full-screen screenshots with many unrelated controls.
 You do **not** need to find or run a GitHub Action. ORW uses automation behind the scenes, but the beginner interface is just a form.
 
 ### 2.1 Open the setup form
-Click on *Issues* > *New Issue* > *Set up my research project* <br>
-OR <br>
-Stay on the main page of **your new project repository**.
 
-Near the top of the README, find:
+Either:
 
-> **→ Set up my research project**
+1. stay on the main page of **your new project repository**;
+2. near the top of the README, click **→ Set up my research project**.
 
-Click it.
+Or open **Issues** → **New issue** → **Set up my research project**.
 
 GitHub opens a form titled **Set up my research project**.
 
@@ -130,13 +128,13 @@ Do **not** enter passwords, access tokens, participant identifiers, confidential
 
 The wording **Submit new issue** comes from GitHub. In ORW, this simply means **send the setup form**.
 
-After submission, stay on the page for a moment. ORW initializes the repository automatically in the background.
+After submission, stay on the page briefly while ORW initializes the repository in the background.
 
-When initialization succeeds, ORW posts a message beginning:
+When initialization succeeds, ORW posts:
 
 > ✅ **Your OpenResearchWorkspace project is initialized.**
 
-The message contains a direct **Open your initialized workspace** link, and the setup form is then closed automatically.
+The message contains a direct **Open your initialized workspace** link, and the setup form is closed automatically.
 
 Click **Open your initialized workspace**.
 
@@ -178,13 +176,15 @@ Use three small screenshots from a disposable project created from the template:
 
 ### Something went wrong?
 
-**I cannot see `Set up my research project`.** Make sure you created the repository from the current ORW template and are looking at the README of your new repository, not the ORW development repository.
+**I cannot see `Set up my research project`.** Make sure you created the repository from the current ORW template and are looking at your new repository, not the ORW development repository.
 
-**I submitted the form but nothing happened.** Wait briefly and refresh the page. If the setup fails, ORW leaves the form open and posts a failure message with a technical link that you can share when asking for help.
+**I submitted the form but nothing happened.** Wait briefly and refresh the page. If ORW starts but cannot complete setup, it leaves the form open and posts a failure message with a technical link that you can share when asking for help.
 
-**GitHub says Actions are disabled or the setup cannot write files.** Some institutional GitHub organizations restrict automation. If the repository belongs to such an organization, an administrator may need to allow repository Actions and write permissions. A personal GitHub repository is useful for the first test because it avoids many organization-specific policies.
+**The form says ORW could not finish initialization.** The repository may restrict GitHub automation or write permissions, or setup may have detected invalid/incomplete information. You do not need to interpret the technical log yourself; share the provided link with your repository owner/administrator or ORW support.
 
-**I accidentally submitted setup twice.** ORW deliberately refuses to initialize an already initialized workspace rather than silently overwrite it.
+**My account or organization does not allow GitHub Actions.** ORW's current v0 initializer uses GitHub Actions behind the form. Repository/account/organization policy must therefore allow Actions and permit the workflow token to write repository contents and issue comments.
+
+**I accidentally submitted setup twice.** ORW deliberately refuses to initialize an already initialized workspace rather than silently overwrite it. The second setup form remains open with a failure message; your existing initialized project is unchanged.
 
 ---
 
@@ -292,7 +292,7 @@ Routine edits should never accidentally create a permanent scientific release.
 
 ## What is implemented vs planned?
 
-**Implemented in this setup-form branch:** one-click access to a browser form from the README; automatic initialization after form submission; ISA Investigation/Study/Assay structure; researcher identity capture; project README generation; canonical `.research/project.yml`; data-location/access capture; success/failure feedback in the form thread; protection against accidental re-initialization.
+**Implemented and E2E-tested:** browser setup form; automatic initialization after form submission; repository write-permission check for the submitter; ISA Investigation/Study/Assay structure; researcher identity capture; generated project README; canonical `.research/project.yml`; data-location/access capture; success/failure feedback in the form thread; automatic closure on success; protection against accidental re-initialization.
 
 **Still planned:** adding additional Studies/Assays through equally simple forms; collaborator simplification beyond GitHub's UI; richer metadata editing; license selection; validation dashboard; one-action archive/DOI publication; FAIR/reproducibility/AI/agent capabilities.
 
@@ -304,7 +304,7 @@ Give this guide to at least three researchers who have never used GitHub and pro
 
 ## Video companion
 
-Record the actual E2E sequence after the setup-form workflow is merged and tested:
+Record the actual E2E sequence:
 
 **OpenResearchWorkspace from zero: creating and initializing my first research project**
 

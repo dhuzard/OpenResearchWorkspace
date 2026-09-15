@@ -25,14 +25,17 @@ jobs:
       - name: Check who submitted the setup form
         shell: bash
         env:
-          ASSOCIATION: ${{ github.event.issue.author_association }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          USER: ${{ github.event.issue.user.login }}
         run: |
-          case "$ASSOCIATION" in
-            OWNER|MEMBER|COLLABORATOR)
-              echo "Setup submitted by an authorized repository participant ($ASSOCIATION)."
+          permission=$(gh api "repos/$REPO/collaborators/$USER/permission" --jq '.permission')
+          case "$permission" in
+            admin|maintain|write)
+              echo "Setup submitted by authorized repository participant $USER ($permission)."
               ;;
             *)
-              echo "::error::Project initialization must be submitted by the repository owner or an authorized collaborator."
+              echo "::error::Project initialization must be submitted by a repository owner or collaborator with write access."
               exit 1
               ;;
           esac
@@ -86,7 +89,16 @@ jobs:
           REPO: ${{ github.repository }}
         shell: bash
         run: |
-          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "✅ **Your OpenResearchWorkspace project is initialized.**\n\nORW created your first ISA Study/Assay structure and updated the project metadata and README.\n\n➡️ **[Open your initialized workspace](https://github.com/$REPO)**\n\nThis setup form is now complete and will be closed automatically."
+          cat > /tmp/orw-success.md <<EOF
+          ✅ **Your OpenResearchWorkspace project is initialized.**
+
+          ORW created your first ISA Study/Assay structure and updated the project metadata and README.
+
+          ➡️ **[Open your initialized workspace](https://github.com/$REPO)**
+
+          This setup form is now complete and will be closed automatically.
+          EOF
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body-file /tmp/orw-success.md
           gh issue close "$ISSUE_NUMBER" --repo "$REPO" --reason completed
 
       - name: Workflow summary
@@ -103,4 +115,13 @@ jobs:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
-          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "❌ **ORW could not finish initialization.**\n\nThe setup form has been left open so you can ask for help or correct the problem.\n\nTechnical details: $RUN_URL\n\nIf you are a beginner, you do not need to understand that log yourself—share the link when asking for help."
+          cat > /tmp/orw-failure.md <<EOF
+          ❌ **ORW could not finish initialization.**
+
+          The setup form has been left open so you can ask for help or correct the problem.
+
+          Technical details: $RUN_URL
+
+          If you are a beginner, you do not need to understand that log yourself—share the link when asking for help.
+          EOF
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body-file /tmp/orw-failure.md
