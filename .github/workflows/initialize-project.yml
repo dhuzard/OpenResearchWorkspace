@@ -1,0 +1,101 @@
+name: Initialize research project
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_title:
+        description: "Project title"
+        required: true
+        type: string
+      project_description:
+        description: "Short description of the research project"
+        required: true
+        type: string
+      study_title:
+        description: "First study title"
+        required: true
+        default: "Main study"
+        type: string
+      assay_title:
+        description: "First assay or measurement (for example Behaviour, RNA-seq, Imaging)"
+        required: true
+        default: "Main assay"
+        type: string
+      data_location:
+        description: "Where are the authoritative/raw data stored?"
+        required: true
+        type: string
+      data_access:
+        description: "Data access level"
+        required: true
+        default: "private"
+        type: choice
+        options:
+          - private
+          - restricted
+          - embargoed
+          - open
+          - unknown
+      keywords:
+        description: "Keywords separated by commas (optional)"
+        required: false
+        type: string
+      orcid:
+        description: "Your ORCID, if available (optional)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: initialize-project
+  cancel-in-progress: false
+
+jobs:
+  initialize:
+    name: Create project structure and metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Refuse accidental re-initialization
+        shell: bash
+        run: |
+          if [ -f .research/initialized ]; then
+            echo "::error::This project has already been initialized."
+            exit 1
+          fi
+
+      - name: Create ISA-aligned project files
+        env:
+          PROJECT_TITLE: ${{ inputs.project_title }}
+          PROJECT_DESCRIPTION: ${{ inputs.project_description }}
+          STUDY_TITLE: ${{ inputs.study_title }}
+          ASSAY_TITLE: ${{ inputs.assay_title }}
+          DATA_LOCATION: ${{ inputs.data_location }}
+          DATA_ACCESS: ${{ inputs.data_access }}
+          KEYWORDS: ${{ inputs.keywords }}
+          ORCID: ${{ inputs.orcid }}
+          ACTOR: ${{ github.actor }}
+        run: python scripts/initialize_project.py
+
+      - name: Commit initialized workspace
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md .research studies project-docs references
+          if git diff --cached --quiet; then
+            echo "::error::Initialization produced no changes."
+            exit 1
+          fi
+          git commit -m "Initialize research workspace"
+          git push
+
+      - name: Summary
+        run: |
+          echo "## Research workspace initialized" >> "$GITHUB_STEP_SUMMARY"
+          echo "Your project metadata and first ISA Study/Assay structure were created." >> "$GITHUB_STEP_SUMMARY"
+          echo "Return to the **Code** tab to start working." >> "$GITHUB_STEP_SUMMARY"

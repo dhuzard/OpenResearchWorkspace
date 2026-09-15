@@ -2,50 +2,46 @@
 
 This guide is for researchers who have **never used Git or GitHub before**.
 
-At the end, you will understand how to create your own research workspace, where your research material belongs, how collaborators fit in, and how publication will work.
+At the end, you will have your own initialized research workspace with a first **Study** and **Assay**, without installing Git or editing YAML.
 
-> **You need:** a free GitHub account, about 5–10 minutes, and no programming or Git experience. <br>
-> **recommended:** an ORCID number. Create your here: https://orcid.org/register
+> **You need:** a free GitHub account and about 10 minutes. No programming or Git experience is required.  
+> **Recommended:** an ORCID. You can register at https://orcid.org/register.
 
-The basic workflow is:
+The beginner workflow is:
 
 ```text
-Create project → Describe it → Add collaborators → Add/reference data → Work → Publish
+Create project → Initialize it → Add collaborators → Add/reference data → Work → Publish
 ```
 
-## Before you start: what you are creating
+## Before you start: three words you will see
 
-OpenResearchWorkspace (ORW) uses GitHub as infrastructure, but you can think of the repository simply as your **research project**.
+GitHub calls your project a **repository**. In this guide, we simply call it your **project**.
 
-GitHub may use unfamiliar words. You only need a few translations:
+ORW organizes the science using the ISA model:
 
-| GitHub says | Think of it as |
-|---|---|
-| Repository | Your research project |
-| Commit | A saved change |
-| Issue | A task or discussion |
-| Release | A published project version |
+- **Investigation** — the overall research project;
+- **Study** — one study/design within that project;
+- **Assay** — one measurement or test within a study, such as behaviour, imaging, electrophysiology, RNA-seq, or another measurement type.
 
-You do **not** need to learn branches, command-line Git, CI/CD, tags, YAML, or GitHub Actions to follow this guide.
+You do not need to know ISA-JSON or ISA-Tab to start. ORW creates the structure for you.
 
-### Example used throughout this guide
+### Example used throughout
 
-We will use one fictional project so that every step is concrete:
+- Project: `light-exposure-mouse-activity`
+- Project title: Effects of light exposure on mouse activity
+- First study: Light exposure study
+- First assay: Behaviour
+- Data location: Institutional research server
 
-- **Project:** `light-exposure-mouse-activity`
-- **Title:** Effects of light exposure on mouse activity
-- **Description:** Study of how altered light exposure affects spontaneous mouse activity.
-- **Data:** Raw videos stored on an institutional research server
-- **Analysis:** Activity-analysis notebooks and scripts
-
-Replace these example values with information from your own study.
+Replace these values with your own study.
 
 ---
 
-## Step 0 — Create your Github account
+## Step 0 — Create a GitHub account
 
-**Why?** because you cannot use Github otherwise.
-To create your account, follow those instuctions: https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github
+If you do not already have one, follow GitHub's account-creation instructions: https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github
+
+> **✓ Done:** You can sign in to GitHub.
 
 ---
 
@@ -56,288 +52,243 @@ To create your account, follow those instuctions: https://docs.github.com/en/acc
 1. Open the OpenResearchWorkspace repository on GitHub.
 2. Click **Use this template**.
 3. Choose **Create a new repository**.
-4. Under **Repository name**, enter a short project name. For our example: `light-exposure-mouse-activity`.
-5. Add a short description if you want.
-6. Choose the project visibility appropriate for your work. For ongoing or unpublished research, **Private** is usually the safer starting point unless your team has decided otherwise.
-7. Click **Create repository**.
+4. Under **Repository name**, enter a short project name. Example: `light-exposure-mouse-activity`.
+5. Choose **Private** for ongoing/unpublished work unless your team has decided otherwise.
+6. Click **Create repository**.
 
-> **✓ Done:** GitHub should now show a new repository under your account or organization, with the project name you chose. This is your research workspace. Changes you make here do **not** modify OpenResearchWorkspace itself.
-
-**Something went wrong?** If you cannot see **Use this template**, the ORW repository may not yet have been enabled as a GitHub template. If you cannot create a private repository in the intended organization, ask the organization's administrator about your permissions.
+> **✓ Done:** GitHub now shows a new repository under your account or organization. This is your project. It is independent from OpenResearchWorkspace.
 
 > [!IMPORTANT]
-> **OpenResearchWorkspace itself is MIT licensed**, but your new research project is independent. Its scientific outputs do not automatically inherit MIT. Your project should choose appropriate licenses for its own code, data, documentation, manuscripts, figures, and other outputs.
+> ORW itself is MIT licensed, but your scientific outputs do not automatically inherit MIT. You will choose appropriate licenses for your own research outputs later.
+
+### Screenshot to add
+
+Add a tightly cropped screenshot showing **Use this template → Create a new repository**, and a second crop showing the repository name/visibility form. Do not use a full-screen screenshot with many unrelated controls.
 
 ---
 
-## Step 2 — Describe your research
+## Step 2 — Initialize your project
 
-**Why?** ORW keeps a structured description of the project so the same information can later support citation, FAIR metadata, archiving, and other tools without asking you to enter it repeatedly.
+**Why?** The repository you created is still a copy of the generic template. Initialization turns it into **your study workspace** by asking a few questions and creating the appropriate ISA Investigation → Study → Assay structure automatically.
 
-The planned first-run setup will ask for:
+In this guide, **run** only means "ask GitHub to execute this setup form for you." You do not run a program on your computer.
 
-- project title;
-- short description;
-- contributors;
-- ORCIDs, where available;
-- keywords;
-- where the project's data live;
-- whether any data are sensitive or restricted;
-- initial licensing choices.
+### 2.1 Open the setup form
 
-For our example, you might enter:
+From **your new project repository**:
+
+1. Click the **Actions** tab near the top of the GitHub page.
+2. In the left-hand list, click **Initialize research project**.
+3. Click **Run workflow** on the right.
+
+A small form opens directly on GitHub.
+
+### 2.2 Fill the form
+
+Enter:
+
+- **Project title** — the human-readable name of the whole Investigation;
+- **Short description** — one or two sentences describing the research;
+- **First study title** — the first Study inside the Investigation;
+- **First assay or measurement** — the first Assay, for example `Behaviour`, `Imaging`, or `RNA-seq`;
+- **Data location** — where the authoritative/raw data are stored;
+- **Data access level** — private, restricted, embargoed, open, or unknown;
+- **Keywords** — optional, separated by commas;
+- **ORCID** — optional.
+
+For our example:
 
 ```text
-Title: Effects of light exposure on mouse activity
-Description: Study of how altered light exposure affects spontaneous mouse activity.
+Project title: Effects of light exposure on mouse activity
+Short description: Study of how altered light exposure affects spontaneous mouse activity.
+First study title: Light exposure study
+First assay or measurement: Behaviour
 Data location: Institutional research server
-Sensitive/restricted data: No
+Data access level: private
+Keywords: behaviour, circadian rhythm, mouse
 ```
 
-ORW will write the structured `.research/` information behind the scenes. Normal users should not need to edit YAML files.
+### 2.3 Start initialization
 
-> **✓ Done:** Your project overview should show the information you supplied, and ORW should report that the basic project information is complete.
+1. Click the green **Run workflow** button at the bottom of the form.
+2. GitHub returns to the workflow page. A new run named **Initialize research project** should appear.
+3. Wait for it to finish. Refresh the page if necessary.
+4. A **green check mark** means initialization succeeded.
+5. Click the **Code** tab to return to your project.
 
-> [!NOTE]
-> The self-service setup form is still part of the v0 implementation backlog. The current repository defines the target structure and metadata contract, but this step is not yet fully automated. This guide describes the intended beginner workflow rather than pretending the unfinished setup is already available.
+ORW will have created/updated the files for you. You do **not** need to edit `.research/project.yml` yourself.
+
+> **✓ Done:** Your repository README now displays your project title, first Study and first Assay. A `studies/` folder exists, and `.research/project.yml` contains the machine-readable project description.
+
+### What initialization actually did
+
+For the example above, ORW creates approximately:
+
+```text
+light-exposure-mouse-activity/          Investigation
+│
+├── studies/
+│   └── light-exposure-study/           Study
+│       ├── data/
+│       ├── protocols/
+│       ├── analysis/
+│       ├── results/
+│       └── assays/
+│           └── behaviour/              Assay
+│               ├── data/
+│               ├── analysis/
+│               └── results/
+│
+├── references/
+├── project-docs/
+└── .research/project.yml
+```
+
+### Screenshot sequence to add
+
+Use four small screenshots, each immediately beside the relevant instruction:
+
+1. the **Actions** tab;
+2. **Initialize research project** in the left sidebar;
+3. the opened **Run workflow** form with example values;
+4. the successful run with the **green check mark**.
+
+These screenshots should be taken from a repository created from the template, not from the ORW development repository.
+
+### Something went wrong?
+
+**I cannot see `Initialize research project`.** Confirm that you created your repository from the ORW template and that the workflow exists under `.github/workflows/initialize-project.yml`.
+
+**GitHub asks me to enable Actions.** Enable repository Actions if your account/organization policy allows it. In an institution-managed organization, an administrator may control this setting.
+
+**The run has a red X.** Click the failed run, then **Create project structure and metadata** to see which step failed. Do not repeatedly initialize the project: the workflow deliberately refuses to overwrite an already initialized workspace.
 
 ---
 
-## Step 3 — Know where your work belongs
+## Step 3 — Understand where your work belongs
 
-**Why?** A predictable structure makes the project understandable to collaborators, future-you, software tools, and later AI agents.
-
-A normal ORW project uses these main areas:
+You now have an ISA-aligned scientific hierarchy rather than one flat folder tree.
 
 ```text
-data/           research data or references to authoritative data
-analysis/       notebooks, scripts, and computational workflows
-results/        derived tables, figures, reports, and other outputs
-protocols/      experimental or analytical protocols
-references/     literature and reference material
-project-docs/   project notes, decisions, rationale, and history
+Investigation
+└── Study
+    ├── study-wide data/protocols/analysis/results
+    └── Assays
+        └── measurement-specific data/analysis/results
 ```
 
-For the example project:
+Use **Study level** for material that applies to the study as a whole. Use **Assay level** for material specific to one measurement/test.
 
-```text
-data/           documents where the raw videos are stored
-analysis/       activity-analysis notebooks/scripts
-results/        activity tables and figures
-protocols/      light-exposure and recording procedures
-project-docs/   study decisions and meeting notes
-```
+Example: a behavioural recording protocol and its tracking outputs can live in the Behaviour assay, while randomization/design information that applies to all measurements belongs at Study level.
 
-You will also see `.research/` and `.github/`. These are ORW/GitHub infrastructure. **You can ignore them during normal day-to-day research work.**
+You will also see `.research/` and `.github/`. These are ORW/GitHub infrastructure. You can ignore them during ordinary research work.
 
-> **✓ Done:** You can identify where a new dataset reference, analysis script, figure, protocol, or project note belongs without needing to understand the technical infrastructure.
+> **✓ Done:** You can identify your Study and Assay folders and understand which level a new research item belongs to.
 
-For the detailed folder semantics, see [Project structure](project-structure.md).
+For details, see [Project structure](project-structure.md) and [Why ORW uses ISA](isa.md).
 
 ---
 
 ## Step 4 — Add your first file
 
-**Why?** This verifies that you can use the workspace for ordinary research material without installing Git.
+1. Open the appropriate Study or Assay folder.
+2. Open the relevant subfolder, for example `project-docs/`, `protocols/`, `analysis/`, or `results/`.
+3. Click **Add file** → **Upload files**.
+4. Drag in a small, non-sensitive test file.
+5. Save the change using GitHub's proposed defaults.
 
-Using the GitHub website:
+GitHub may call the saved change a **commit**. You can simply think of it as a saved, versioned change.
 
-1. Open the folder where the file belongs, for example `project-docs/`.
-2. Click **Add file**.
-3. Choose **Upload files**.
-4. Drag a small non-sensitive test file into the page, or choose it from your computer.
-5. Scroll to the bottom and save the change using GitHub's proposed defaults.
+> **✓ Done:** The file appears in the chosen folder and GitHub keeps its change history.
 
-GitHub may call the saved change a **commit**. For normal ORW use, you can simply think of it as saving a versioned change to your project.
-
-> **✓ Done:** The file should now appear in the folder. GitHub also keeps a history of the saved change automatically.
-
-**Something went wrong?** Do not use this test to upload confidential participant information, credentials, very large raw data, or files that your institution does not permit you to store on GitHub.
+Do not use this test to upload confidential participant information, credentials, or very large raw datasets.
 
 ---
 
 ## Step 5 — Invite a collaborator
 
-**Why?** Collaboration is one of the main reasons to use a shared research workspace.
-
-1. Open your project on GitHub.
+1. Open your project.
 2. Click **Settings**.
-3. Find the repository access/collaborator settings. GitHub's exact label can vary depending on whether the project belongs to a personal account or an organization.
-4. Choose the option to add a collaborator or person.
+3. Open the repository access/collaborator settings.
+4. Choose the option to add a collaborator/person.
 5. Search for their GitHub account and send the invitation.
 
-> **✓ Done:** The collaborator should appear as invited or added, and GitHub will send them an invitation. They must accept it before they can access a private project.
-
-**Can't find them?** Confirm that they have a GitHub account and that you have permission to add people to the repository or organization.
-
-ORW treats them as **project collaborators**; you do not need to learn GitHub's wider organization model unless your lab needs more advanced permission management.
+> **✓ Done:** They appear as invited/added. They must accept the invitation before accessing a private project.
 
 ---
 
-## Step 6 — Add or reference your data responsibly
+## Step 6 — Add or reference data responsibly
 
-**Why?** Your project should say what data exist and where the authoritative data live, without assuming that every scientific file belongs on GitHub.
+GitHub is appropriate for code, notebooks, documentation, schemas, configuration, and small research artifacts when appropriate. It is not the default storage system for large, sensitive, regulated, or discipline-specific datasets.
 
-GitHub is appropriate for things such as:
+If authoritative data remain on institutional storage, a domain repository, Zenodo, DANDI, or another system, keep them there and record their location/PID in ORW rather than duplicating them unnecessarily.
 
-- code and scripts;
-- notebooks;
-- text and documentation;
-- schemas and configuration;
-- small research artifacts when appropriate.
-
-GitHub is **not** the default storage location for large, sensitive, regulated, or discipline-specific scientific datasets.
-
-For our example, the raw behavioural videos remain on institutional research storage. The ORW project records their location and contains the analysis that uses them.
-
-```text
-ORW project
-├── data/        → description/reference to raw videos
-├── analysis/    → analysis code
-└── results/     → derived results
-
-Institutional storage
-└── raw videos   → authoritative large data
-```
-
-When data are eventually deposited in Zenodo, DANDI, another domain repository, or an institutional repository, ORW can record the persistent identifier rather than duplicating the data unnecessarily.
-
-> **✓ Done:** Someone reading the project can determine what data the study uses and where the authoritative data can be found or requested.
+> **✓ Done:** Someone inspecting the project can determine what data the study uses and where the authoritative data live.
 
 ---
 
 ## Step 7 — Continue working
 
-You can now use the project for day-to-day research.
-
-The simple mental model is:
+The normal scientific mental model is now:
 
 ```text
-Project overview
-│
-├── Data
-├── Analysis
-├── Results
-├── Protocols
-├── References
-├── Project notes
-└── Collaborators
+Investigation
+├── Study 1
+│   ├── Assay A
+│   └── Assay B
+└── Study 2
+    └── Assay A
 ```
 
-You do not need to interact with ORW's machine-readable metadata on every visit. The long-term design is that forms and lightweight tooling update the canonical project record and generate downstream metadata automatically.
-
-> **✓ Done:** If you can add material, find it again, understand where it belongs, and collaborate with your team, the workspace is already doing its basic job.
+You do not need to interact with machine-readable metadata on every visit. ORW's purpose is to capture structured context without making metadata infrastructure your daily interface.
 
 ---
 
-## Step 8 — Publish when the project is ready
+## Step 8 — Publish when ready
 
-**Why?** Publication creates an intentional, citable snapshot rather than making every routine edit a permanent scientific release.
-
-The target ORW publication experience is:
+The target publication experience is:
 
 ```text
 Publish project
-      ↓
-Check project information
-      ↓
-Check what will become public
-      ↓
-Warn about sensitive/restricted material
-      ↓
-You explicitly confirm
-      ↓
-Create a version
-      ↓
-Archive it in the configured repository
-      ↓
-Receive DOI/PID
+→ validate project
+→ preview what becomes public
+→ explicit human confirmation
+→ create version
+→ archive
+→ DOI/PID
 ```
 
-Routine edits should **never** accidentally publish a permanent scientific record.
-
-The initial archival integration is planned around Zenodo/GitHub, while the architecture remains open to domain repositories.
-
-> **✓ Done:** After this capability is implemented and configured, ORW should show the published version and its DOI/PID without requiring you to understand Git tags or GitHub release mechanics.
+Routine edits should never accidentally create a permanent scientific release.
 
 > [!NOTE]
-> The one-action publication workflow is part of the v0 implementation backlog. Do not interpret this section as saying that the complete automated publication interface already exists.
+> The one-action publication workflow is still part of the v0 implementation backlog. Unlike Step 2, this part is not yet implemented end-to-end.
 
 ---
 
-## What you need to do now vs later
+## What is implemented vs planned?
 
-### During normal project setup and work
+**Implemented by the initialization workflow in this branch:** browser-based project form; ISA Investigation/Study/Assay initialization; project README generation; canonical `.research/project.yml`; data-location/access capture; protection against accidental re-initialization.
 
-1. Create the project.
-2. Describe it.
-3. Add collaborators.
-4. Add files and/or document where data live.
-5. Work normally.
-
-### When you are ready to publish
-
-Complete contributor information, ORCIDs where available, licensing, required metadata, publication checks, and archival configuration.
-
-### Optional capabilities later
-
-RO-Crate, DataCite export, FAIR Signposting, computational environments, detailed provenance, AI-ready context, and agent skills are optional capability layers. You do **not** need them to start using an ORW project.
-
----
-
-## Frequently asked beginner questions
-
-**Do I need to install Git?**  
-No for the beginner workflow. You can perform the basic steps through the GitHub website.
-
-**Do I need to know how to program?**  
-No. ORW is intended for research projects, not only computational projects.
-
-**Is my project automatically public?**  
-No. Visibility depends on the repository settings you choose. For unpublished work, starting private is often appropriate.
-
-**Can I break the original OpenResearchWorkspace template?**  
-No. A project created with **Use this template** is an independent repository.
-
-**Should I upload all my raw data to GitHub?**  
-No. Large, sensitive, regulated, or domain-specific data often belong in appropriate research storage or repositories. ORW should document where those authoritative data live.
-
-**What if I make a mistake?**  
-GitHub records the history of saved changes. The beginner workflow should make common changes recoverable without requiring you to understand Git internals.
-
-**What are Zenodo and a DOI?**  
-Zenodo is one possible archival repository. A DOI is a persistent identifier that makes a published research object easier to cite and find. ORW's publication layer is designed to hide most of the technical release mechanics.
-
----
+**Still planned:** adding additional Studies/Assays through equally simple forms; collaborator simplification beyond GitHub's UI; richer metadata editing; license selection; validation dashboard; one-action archive/DOI publication; FAIR/reproducibility/AI/agent capabilities.
 
 ## Beginner usability test
 
-The release criterion for this guide should not be "the documentation looks clear to us." It should be tested.
+Give this guide to at least three researchers who have never used GitHub and provide no additional instruction. Record every hesitation, unknown term, uncertain success state, and place where outside help is required.
 
-Give this guide to at least three researchers who have never used GitHub and provide no additional instruction. Observe:
-
-- where they hesitate;
-- words they do not understand;
-- places where they are unsure what to click;
-- places where they cannot tell whether a step succeeded;
-- questions they ask;
-- steps where they need outside help.
-
-Each repeated point of confusion should become a documentation or product issue.
-
-**Target:** a GitHub-naive researcher can go from the ORW homepage to a functioning private research workspace using only this guide, without assistance.
+**Target:** a GitHub-naive researcher can create and initialize a private ORW project using only this guide.
 
 ## Video companion
 
-A short video should complement rather than duplicate this guide. Record the complete process from the ORW homepage with a fresh beginner-style project:
+Record the actual E2E sequence after this workflow is merged:
 
-> **OpenResearchWorkspace from zero: creating my first research project**
+**OpenResearchWorkspace from zero: creating and initializing my first research project**
 
-Aim for roughly 5–8 minutes. Show the real clicks and the complete flow. The video answers *"What does the whole process look like?"*; this written guide answers *"I am on Step 4 — exactly what do I do now?"*
+Show the real sequence: ORW → Use this template → new repository → Actions → Initialize research project → fill form → Run workflow → green check → Code → generated Study/Assay structure. The video should use the same example as this guide.
 
 ## Next
 
-- Read [Project structure](project-structure.md) to understand where research material belongs.
-- Read [Concepts](concepts.md) if you want to understand the ORW architecture.
-- Read [Capabilities](capabilities.md) for the later FAIR, reproducibility, AI-ready, and agent-ready layers.
-- Read [FAQ](faq.md) for practical questions.
+- [Project structure](project-structure.md)
+- [Why ORW uses ISA](isa.md)
+- [Concepts](concepts.md)
+- [Capabilities](capabilities.md)
+- [FAQ](faq.md)
