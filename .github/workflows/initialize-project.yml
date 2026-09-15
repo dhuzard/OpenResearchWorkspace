@@ -84,7 +84,7 @@ jobs:
           REPO: ${{ github.repository }}
         shell: bash
         run: |
-          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "✅ **Your OpenResearchWorkspace project is initialized.**\n\nORW created the first ISA Study/Assay structure and updated the project metadata and README.\n\nReturn to the **Code** tab to start working. This setup thread will now be closed automatically."
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "✅ **Your OpenResearchWorkspace project is initialized.**\n\nORW created your first ISA Study/Assay structure and updated the project metadata and README.\n\n➡️ **[Open your initialized workspace](https://github.com/$REPO)**\n\nThis setup form is now complete and will be closed automatically."
           gh issue close "$ISSUE_NUMBER" --repo "$REPO" --reason completed
 
       - name: Workflow summary
@@ -101,4 +101,4 @@ jobs:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
-          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "❌ **ORW could not finish initialization.**\n\nThe setup thread has been left open so you can correct the problem. Details are available in the automated setup log: $RUN_URL\n\nIf you are a beginner, you do not need to understand the log yourself—share this link when asking for help."
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body "❌ **ORW could not finish initialization.**\n\nThe setup form has been left open so you can ask for help or correct the problem.\n\nTechnical details: $RUN_URL\n\nIf you are a beginner, you do not need to understand that log yourself—share the link when asking for help."
