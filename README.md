@@ -6,11 +6,25 @@ OpenResearchWorkspace (ORW) defines a portable format/contract for research work
 
 The normal researcher does **not** fork ORW and does not use a central ORW application.
 
-> **Use template → initialize project → collaborate → work → publish**
+> **Use template → set up project → collaborate → work → publish**
 
 Each researcher or lab creates an independent repository from the ORW GitHub template. That repository becomes the canonical project workspace and remains owned by the researcher/lab.
 
-GitHub is infrastructure, not the user model. Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or release mechanics to use the workspace.
+GitHub is infrastructure, not the user model. Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
+
+## New project? Set it up here
+
+If you are reading this README **inside a new repository that you just created from the ORW template**, use the setup form below:
+
+### [→ Set up my research project](../../issues/new?template=orw-setup.yml)
+
+The form asks for your project title, first Study, first measurement/Assay, data location, and a few optional metadata fields. After you submit it, ORW initializes the workspace automatically and replies when it is ready.
+
+You do **not** need to open GitHub Actions, run code, install Git, or edit YAML.
+
+> GitHub calls the setup form an **issue** and the final button says **Submit new issue**. In ORW this is simply the project setup form. It is closed automatically after successful initialization.
+
+If you are viewing the **OpenResearchWorkspace development repository itself**, do not submit the setup form here. First use **Use this template** to create your own repository.
 
 ## ORW uses the ISA Investigation–Study–Assay model
 
@@ -24,7 +38,7 @@ ISA is an established metadata framework for life-science, environmental and bio
 
 This matters for ORW because ISA already provides semantics for the relationships that ORW would otherwise have to invent: project → study → measurement, subjects/samples → processes → data, protocols, factors, technologies and ontology annotations. ISA also has established ISA-Tab and ISA-JSON serializations and an existing tooling ecosystem.
 
-ORW therefore **uses ISA semantics as the scientific backbone while keeping the beginner interface simpler than ISA itself**. Researchers should see understandable project/study/assay concepts and forms; ORW infrastructure can generate or interoperate with ISA-compatible representations behind the scenes.
+ORW therefore **uses ISA semantics as the scientific backbone while keeping the beginner interface simpler than ISA itself**. Researchers should see understandable project/study/measurement concepts and forms; ORW infrastructure can generate or interoperate with ISA-compatible representations behind the scenes.
 
 ORW does not equate a GitHub repository with an ISA Assay. The repository is the workspace/container. In the normal case, one ORW workspace represents one **Investigation**, containing one or more **Studies**, each containing one or more **Assays**.
 
@@ -52,20 +66,20 @@ Use this template
       ↓
 Create my research repository (Investigation)
       ↓
-Run first-time setup
+Click “Set up my research project”
       ↓
-Describe the Investigation
+Fill a short form
       ↓
-Add one or more Studies
+ORW initializes automatically
       ↓
-Add Assays/measurements where relevant
+First Study + first Assay are created
       ↓
 Collaborate and work
       ↓
 Publish when ready
 ```
 
-A very simple project can still start with one Investigation, one Study and one Assay. Complexity is added only when the science requires it.
+A very simple project can start with one Investigation, one Study and one Assay. Complexity is added only when the science requires it.
 
 ## Default scientific project skeleton
 
@@ -115,7 +129,7 @@ Every ORW-compatible workspace should be:
 .research/profiles.yml      initialization presets
 ```
 
-Normal researchers should not need to edit these files directly once first-run setup exists. ISA-JSON and ISA-Tab should be treated as interoperable representations/exports rather than additional metadata that scientists must maintain manually.
+Normal researchers should not need to edit these files directly. ISA-JSON and ISA-Tab should be treated as interoperable representations/exports rather than additional metadata that scientists must maintain manually.
 
 ## Project profiles
 
@@ -135,7 +149,7 @@ ORW uses one standard and one template, with initialization presets rather than 
 
 ## Roadmap
 
-**v0 — Self-initializing ISA-aligned GitHub template:** create Investigation, setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
+**v0 — Self-initializing ISA-aligned GitHub template:** create Investigation, beginner setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
 
 **v1 — FAIR + ISA interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, RO-Crate, FAIR Signposting.
 
@@ -151,7 +165,7 @@ ORW is not intended to become a required central hosted application, require sci
 
 ## Status
 
-Early specification and GitHub-template reference implementation design. **ISA Investigation–Study–Assay is now the required scientific organizational model.** The schema and reference implementation will continue to be tightened toward ISA interoperability while preserving the beginner-first UX.
+Early specification and GitHub-template reference implementation. **ISA Investigation–Study–Assay is the required scientific organizational model.** The beginner initialization path is being implemented as a GitHub setup form whose automation remains hidden from the normal user.
 
 ## License
 
