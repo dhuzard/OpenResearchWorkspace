@@ -29,6 +29,7 @@ You do not need to know ISA-JSON or ISA-Tab to start. ORW creates the structure 
 
 - Project: `light-exposure-mouse-activity`
 - Project title: Effects of light exposure on mouse activity
+- Researcher: Jane Researcher
 - First study: Light exposure study
 - First measurement/assay: Behaviour
 - Data location: Institutional research server
@@ -98,6 +99,7 @@ The form asks for:
 
 - **Project title** — the human-readable name of the whole Investigation;
 - **Short project description** — one or two sentences describing the research;
+- **Your name** — your scientific/professional name as it should appear in project metadata;
 - **First study title** — the first Study inside the Investigation;
 - **What will you measure first?** — the first Assay/measurement, for example `Behaviour`, `Imaging`, `Electrophysiology`, or `RNA-seq`;
 - **Where are the authoritative/raw data stored?** — a high-level location only;
@@ -110,6 +112,7 @@ For our example:
 ```text
 Project title: Effects of light exposure on mouse activity
 Short project description: Study of how altered light exposure affects spontaneous mouse activity.
+Your name: Jane Researcher
 First study title: Light exposure study
 What will you measure first?: Behaviour
 Where are the authoritative/raw data stored?: Institutional research server
@@ -288,7 +291,7 @@ Routine edits should never accidentally create a permanent scientific release.
 
 ## What is implemented vs planned?
 
-**Implemented in this setup-form branch:** one-click access to a browser form from the README; automatic initialization after form submission; ISA Investigation/Study/Assay structure; project README generation; canonical `.research/project.yml`; data-location/access capture; success/failure feedback in the form thread; protection against accidental re-initialization.
+**Implemented in this setup-form branch:** one-click access to a browser form from the README; automatic initialization after form submission; ISA Investigation/Study/Assay structure; researcher identity capture; project README generation; canonical `.research/project.yml`; data-location/access capture; success/failure feedback in the form thread; protection against accidental re-initialization.
 
 **Still planned:** adding additional Studies/Assays through equally simple forms; collaborator simplification beyond GitHub's UI; richer metadata editing; license selection; validation dashboard; one-action archive/DOI publication; FAIR/reproducibility/AI/agent capabilities.
 
