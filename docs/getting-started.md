@@ -80,9 +80,10 @@ Do not use full-screen screenshots with many unrelated controls.
 You do **not** need to find or run a GitHub Action. ORW uses automation behind the scenes, but the beginner interface is just a form.
 
 ### 2.1 Open the setup form
-Click on *Issues* > *New Issue* > *Set up my research project*
-OR
+Click on *Issues* > *New Issue* > *Set up my research project* <br>
+OR <br>
 Stay on the main page of **your new project repository**.
+
 Near the top of the README, find:
 
 > **→ Set up my research project**
