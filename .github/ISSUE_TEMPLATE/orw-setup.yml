@@ -32,6 +32,15 @@ body:
       required: true
 
   - type: input
+    id: researcher_name
+    attributes:
+      label: Your name
+      description: Your scientific/professional name as you want it recorded in the project metadata.
+      placeholder: Jane Researcher
+    validations:
+      required: true
+
+  - type: input
     id: study_title
     attributes:
       label: First study title
