@@ -55,13 +55,14 @@ jobs:
         env:
           PROJECT_TITLE: ${{ steps.setup.outputs.project_title }}
           PROJECT_DESCRIPTION: ${{ steps.setup.outputs.project_description }}
+          CREATOR_NAME: ${{ steps.setup.outputs.researcher_name }}
           STUDY_TITLE: ${{ steps.setup.outputs.study_title }}
           ASSAY_TITLE: ${{ steps.setup.outputs.assay_title }}
           DATA_LOCATION: ${{ steps.setup.outputs.data_location }}
           DATA_ACCESS: ${{ steps.setup.outputs.data_access }}
           KEYWORDS: ${{ steps.setup.outputs.keywords }}
           ORCID: ${{ steps.setup.outputs.orcid }}
-          ACTOR: ${{ github.event.issue.user.login }}
+          GITHUB_LOGIN: ${{ github.event.issue.user.login }}
         run: python scripts/initialize_project.py
 
       - name: Commit initialized workspace
