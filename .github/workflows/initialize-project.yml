@@ -16,7 +16,8 @@ jobs:
   initialize:
     name: Create project structure and metadata
     if: >-
-      startsWith(github.event.issue.title, '[ORW Setup]') &&
+      contains(github.event.issue.body, '### Project title') &&
+      contains(github.event.issue.body, '### Ready to initialize') &&
       github.repository != 'dhuzard/OpenResearchWorkspace'
     runs-on: ubuntu-latest
 
