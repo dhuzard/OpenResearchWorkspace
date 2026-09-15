@@ -2,7 +2,7 @@
 
 This guide is for researchers who have **never used Git or GitHub before**.
 
-At the end, you will have your own initialized research workspace with a first **Study** and **Assay**, without installing Git or editing YAML.
+At the end, you will have your own initialized research workspace with a first **Study** and **Assay**, without installing Git, opening GitHub Actions, or editing YAML.
 
 > **You need:** a free GitHub account and about 10 minutes. No programming or Git experience is required.  
 > **Recommended:** an ORCID. You can register at https://orcid.org/register.
@@ -10,10 +10,10 @@ At the end, you will have your own initialized research workspace with a first *
 The beginner workflow is:
 
 ```text
-Create project → Initialize it → Add collaborators → Add/reference data → Work → Publish
+Create project → Fill setup form → ORW initializes it → Add collaborators → Work
 ```
 
-## Before you start: three words you will see
+## Before you start: three scientific levels
 
 GitHub calls your project a **repository**. In this guide, we simply call it your **project**.
 
@@ -30,7 +30,7 @@ You do not need to know ISA-JSON or ISA-Tab to start. ORW creates the structure 
 - Project: `light-exposure-mouse-activity`
 - Project title: Effects of light exposure on mouse activity
 - First study: Light exposure study
-- First assay: Behaviour
+- First measurement/assay: Behaviour
 - Data location: Institutional research server
 
 Replace these values with your own study.
@@ -63,35 +63,44 @@ If you do not already have one, follow GitHub's account-creation instructions: h
 
 ### Screenshot to add
 
-Add a tightly cropped screenshot showing **Use this template → Create a new repository**, and a second crop showing the repository name/visibility form. Do not use a full-screen screenshot with many unrelated controls.
+Use two tightly cropped screenshots:
+
+1. **Use this template → Create a new repository**;
+2. the repository name/visibility form.
+
+Do not use full-screen screenshots with many unrelated controls.
 
 ---
 
-## Step 2 — Initialize your project
+## Step 2 — Set up your project
 
-**Why?** The repository you created is still a copy of the generic template. Initialization turns it into **your study workspace** by asking a few questions and creating the appropriate ISA Investigation → Study → Assay structure automatically.
+**Why?** The repository you just created is still a generic ORW template. The setup form turns it into **your research workspace**.
 
-In this guide, **run** only means "ask GitHub to execute this setup form for you." You do not run a program on your computer.
+You do **not** need to find or run a GitHub Action. ORW uses automation behind the scenes, but the beginner interface is just a form.
 
 ### 2.1 Open the setup form
 
-From **your new project repository**:
+Stay on the main page of **your new project repository**.
 
-1. Click the **Actions** tab near the top of the GitHub page.
-2. In the left-hand list, click **Initialize research project**.
-3. Click **Run workflow** on the right.
+Near the top of the README, find:
 
-A small form opens directly on GitHub.
+> **→ Set up my research project**
+
+Click it.
+
+GitHub opens a form titled **Set up my research project**.
+
+> GitHub technically calls this form an **issue**. You do not need to use GitHub Issues or understand issue tracking. ORW is simply using GitHub's built-in form interface so that no separate website or account is required.
 
 ### 2.2 Fill the form
 
-Enter:
+The form asks for:
 
 - **Project title** — the human-readable name of the whole Investigation;
-- **Short description** — one or two sentences describing the research;
+- **Short project description** — one or two sentences describing the research;
 - **First study title** — the first Study inside the Investigation;
-- **First assay or measurement** — the first Assay, for example `Behaviour`, `Imaging`, or `RNA-seq`;
-- **Data location** — where the authoritative/raw data are stored;
+- **What will you measure first?** — the first Assay/measurement, for example `Behaviour`, `Imaging`, `Electrophysiology`, or `RNA-seq`;
+- **Where are the authoritative/raw data stored?** — a high-level location only;
 - **Data access level** — private, restricted, embargoed, open, or unknown;
 - **Keywords** — optional, separated by commas;
 - **ORCID** — optional.
@@ -100,27 +109,36 @@ For our example:
 
 ```text
 Project title: Effects of light exposure on mouse activity
-Short description: Study of how altered light exposure affects spontaneous mouse activity.
+Short project description: Study of how altered light exposure affects spontaneous mouse activity.
 First study title: Light exposure study
-First assay or measurement: Behaviour
-Data location: Institutional research server
+What will you measure first?: Behaviour
+Where are the authoritative/raw data stored?: Institutional research server
 Data access level: private
 Keywords: behaviour, circadian rhythm, mouse
 ```
 
-### 2.3 Start initialization
+Do **not** enter passwords, access tokens, participant identifiers, confidential clinical information, or other secrets in this form.
 
-1. Click the green **Run workflow** button at the bottom of the form.
-2. GitHub returns to the workflow page. A new run named **Initialize research project** should appear.
-3. Wait for it to finish. Refresh the page if necessary.
-4. A **green check mark** means initialization succeeded.
-5. Click the **Code** tab to return to your project.
+### 2.3 Submit the form
 
-ORW will have created/updated the files for you. You do **not** need to edit `.research/project.yml` yourself.
+1. Tick the confirmation box at the bottom.
+2. Click **Submit new issue**.
 
-> **✓ Done:** Your repository README now displays your project title, first Study and first Assay. A `studies/` folder exists, and `.research/project.yml` contains the machine-readable project description.
+The wording **Submit new issue** comes from GitHub. In ORW, this simply means **send the setup form**.
 
-### What initialization actually did
+After submission, stay on the page for a moment. ORW initializes the repository automatically in the background.
+
+When initialization succeeds, ORW posts a message beginning:
+
+> ✅ **Your OpenResearchWorkspace project is initialized.**
+
+The message contains a direct **Open your initialized workspace** link, and the setup form is then closed automatically.
+
+Click **Open your initialized workspace**.
+
+> **✓ Done:** Your project README now shows your own project title, Study and Assay. A `studies/` folder exists and `.research/project.yml` contains the machine-readable project description.
+
+### What setup created
 
 For the example above, ORW creates approximately:
 
@@ -144,24 +162,25 @@ light-exposure-mouse-activity/          Investigation
 └── .research/project.yml
 ```
 
+You do **not** need to edit `.research/project.yml` yourself.
+
 ### Screenshot sequence to add
 
-Use four small screenshots, each immediately beside the relevant instruction:
+Use three small screenshots from a disposable project created from the template:
 
-1. the **Actions** tab;
-2. **Initialize research project** in the left sidebar;
-3. the opened **Run workflow** form with example values;
-4. the successful run with the **green check mark**.
-
-These screenshots should be taken from a repository created from the template, not from the ORW development repository.
+1. the **Set up my research project** link in the new repository README;
+2. the setup form with example values;
+3. the success message with **Open your initialized workspace**.
 
 ### Something went wrong?
 
-**I cannot see `Initialize research project`.** Confirm that you created your repository from the ORW template and that the workflow exists under `.github/workflows/initialize-project.yml`.
+**I cannot see `Set up my research project`.** Make sure you created the repository from the current ORW template and are looking at the README of your new repository, not the ORW development repository.
 
-**GitHub asks me to enable Actions.** Enable repository Actions if your account/organization policy allows it. In an institution-managed organization, an administrator may control this setting.
+**I submitted the form but nothing happened.** Wait briefly and refresh the page. If the setup fails, ORW leaves the form open and posts a failure message with a technical link that you can share when asking for help.
 
-**The run has a red X.** Click the failed run, then **Create project structure and metadata** to see which step failed. Do not repeatedly initialize the project: the workflow deliberately refuses to overwrite an already initialized workspace.
+**GitHub says Actions are disabled or the setup cannot write files.** Some institutional GitHub organizations restrict automation. If the repository belongs to such an organization, an administrator may need to allow repository Actions and write permissions. A personal GitHub repository is useful for the first test because it avoids many organization-specific policies.
+
+**I accidentally submitted setup twice.** ORW deliberately refuses to initialize an already initialized workspace rather than silently overwrite it.
 
 ---
 
@@ -172,14 +191,14 @@ You now have an ISA-aligned scientific hierarchy rather than one flat folder tre
 ```text
 Investigation
 └── Study
-    ├── study-wide data/protocols/analysis/results
+    ├── study-wide data / protocols / analysis / results
     └── Assays
-        └── measurement-specific data/analysis/results
+        └── measurement-specific data / analysis / results
 ```
 
 Use **Study level** for material that applies to the study as a whole. Use **Assay level** for material specific to one measurement/test.
 
-Example: a behavioural recording protocol and its tracking outputs can live in the Behaviour assay, while randomization/design information that applies to all measurements belongs at Study level.
+Example: study design and randomization information can live at Study level, while behavioural recordings and their measurement-specific analyses can live inside the Behaviour Assay.
 
 You will also see `.research/` and `.github/`. These are ORW/GitHub infrastructure. You can ignore them during ordinary research work.
 
@@ -192,7 +211,7 @@ For details, see [Project structure](project-structure.md) and [Why ORW uses ISA
 ## Step 4 — Add your first file
 
 1. Open the appropriate Study or Assay folder.
-2. Open the relevant subfolder, for example `project-docs/`, `protocols/`, `analysis/`, or `results/`.
+2. Open the relevant subfolder, for example `protocols/`, `analysis/`, `results/`, or `project-docs/`.
 3. Click **Add file** → **Upload files**.
 4. Drag in a small, non-sensitive test file.
 5. Save the change using GitHub's proposed defaults.
@@ -229,7 +248,7 @@ If authoritative data remain on institutional storage, a domain repository, Zeno
 
 ## Step 7 — Continue working
 
-The normal scientific mental model is now:
+The normal scientific mental model is:
 
 ```text
 Investigation
@@ -242,9 +261,11 @@ Investigation
 
 You do not need to interact with machine-readable metadata on every visit. ORW's purpose is to capture structured context without making metadata infrastructure your daily interface.
 
+At this point your workspace is usable for active research.
+
 ---
 
-## Step 8 — Publish when ready
+## Coming next — publish and receive a DOI
 
 The target publication experience is:
 
@@ -261,13 +282,13 @@ Publish project
 Routine edits should never accidentally create a permanent scientific release.
 
 > [!NOTE]
-> The one-action publication workflow is still part of the v0 implementation backlog. Unlike Step 2, this part is not yet implemented end-to-end.
+> The one-action publication/DOI workflow is **not yet implemented end-to-end**. It is intentionally presented here as a coming capability rather than as a step you can already execute.
 
 ---
 
 ## What is implemented vs planned?
 
-**Implemented by the initialization workflow in this branch:** browser-based project form; ISA Investigation/Study/Assay initialization; project README generation; canonical `.research/project.yml`; data-location/access capture; protection against accidental re-initialization.
+**Implemented in this setup-form branch:** one-click access to a browser form from the README; automatic initialization after form submission; ISA Investigation/Study/Assay structure; project README generation; canonical `.research/project.yml`; data-location/access capture; success/failure feedback in the form thread; protection against accidental re-initialization.
 
 **Still planned:** adding additional Studies/Assays through equally simple forms; collaborator simplification beyond GitHub's UI; richer metadata editing; license selection; validation dashboard; one-action archive/DOI publication; FAIR/reproducibility/AI/agent capabilities.
 
@@ -275,15 +296,29 @@ Routine edits should never accidentally create a permanent scientific release.
 
 Give this guide to at least three researchers who have never used GitHub and provide no additional instruction. Record every hesitation, unknown term, uncertain success state, and place where outside help is required.
 
-**Target:** a GitHub-naive researcher can create and initialize a private ORW project using only this guide.
+**Target:** a GitHub-naive researcher can create and initialize a private ORW project using only this guide and the setup form, without ever opening the GitHub Actions interface.
 
 ## Video companion
 
-Record the actual E2E sequence after this workflow is merged:
+Record the actual E2E sequence after the setup-form workflow is merged and tested:
 
 **OpenResearchWorkspace from zero: creating and initializing my first research project**
 
-Show the real sequence: ORW → Use this template → new repository → Actions → Initialize research project → fill form → Run workflow → green check → Code → generated Study/Assay structure. The video should use the same example as this guide.
+Show the real sequence:
+
+```text
+ORW
+→ Use this template
+→ create repository
+→ Set up my research project
+→ fill form
+→ Submit new issue
+→ success message
+→ Open your initialized workspace
+→ generated Study/Assay structure
+```
+
+The video should use the same example as this guide.
 
 ## Next
 
