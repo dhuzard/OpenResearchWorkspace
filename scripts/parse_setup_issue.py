@@ -27,6 +27,7 @@ for heading, value in pattern.findall(body):
 mapping = {
     "project_title": "Project title",
     "project_description": "Short project description",
+    "researcher_name": "Your name",
     "study_title": "First study title",
     "assay_title": "What will you measure first?",
     "data_location": "Where are the authoritative/raw data stored?",
@@ -38,6 +39,7 @@ mapping = {
 required = {
     "project_title",
     "project_description",
+    "researcher_name",
     "study_title",
     "assay_title",
     "data_location",
