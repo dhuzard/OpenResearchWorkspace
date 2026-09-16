@@ -3,15 +3,17 @@
 
 This is documentation tooling, not permanent CI infrastructure.
 
-It deliberately performs GitHub login in a separate, unrecorded browser context
-so credentials / 2FA are never included in the documentation video. The
-authenticated storage state is kept only in a temporary directory and deleted
-when the script exits.
+Authentication deliberately uses a persistent local Chrome profile. This avoids
+copying GitHub cookies between Playwright contexts and is more reliable for
+GitHub login/2FA/passkey flows than a fresh bundled Chromium session.
 
 Usage:
     python -m pip install playwright
-    python -m playwright install chromium
     python scripts/capture_getting_started.py --owner Neuronautix
+
+By default the script uses the installed Google Chrome browser and stores the
+one-shot browser profile in ~/.orw-playwright-github. The profile remains local
+and MUST NOT be committed or shared.
 
 The script creates a disposable private repository from the ORW template,
 submits the real setup form, waits for the real ORW initialization workflow,
@@ -26,7 +28,6 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
-import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,6 +56,17 @@ def parse_args() -> argparse.Namespace:
         help="Where screenshots and the video are written.",
     )
     parser.add_argument(
+        "--profile-dir",
+        default=str(Path.home() / ".orw-playwright-github"),
+        help="Persistent local browser profile used only for this documentation capture.",
+    )
+    parser.add_argument(
+        "--browser",
+        choices=("chrome", "chromium"),
+        default="chrome",
+        help="Browser to use. 'chrome' uses installed Google Chrome and is recommended for GitHub login.",
+    )
+    parser.add_argument(
         "--timeout-seconds",
         type=int,
         default=180,
@@ -69,15 +81,36 @@ def screenshot(page: Page, path: Path, *, full_page: bool = False) -> None:
     print(f"Saved screenshot: {path}")
 
 
-def select_owner(page: Page, owner: str) -> None:
-    """Best-effort selection of the repository owner on GitHub's new-repo page.
+def get_page(context) -> Page:
+    pages = context.pages
+    return pages[0] if pages else context.new_page()
 
-    GitHub occasionally changes this control. If the automated selectors stop
-    matching, the script pauses and lets the user select the owner manually.
-    """
+
+def ensure_github_login(page: Page) -> None:
+    """Verify that the persistent browser profile is authenticated to GitHub."""
+    page.goto("https://github.com/settings/profile", wait_until="domcontentloaded")
+
+    if "/login" in page.url or page.get_by_label(re.compile(r"username|email", re.I)).count():
+        print("\nGitHub is not authenticated in the documentation browser profile.")
+        print("Log into GitHub in the opened *Google Chrome* window, including 2FA/passkey if needed.")
+        print("This login is NOT recorded. The authenticated profile stays only on this computer.")
+        input("When GitHub login is complete and you can see a normal GitHub page, press Enter... ")
+        page.goto("https://github.com/settings/profile", wait_until="domcontentloaded")
+
+    if "/login" in page.url:
+        raise RuntimeError(
+            "GitHub is still not authenticated. Do not keep retrying credentials in an automated browser. "
+            "Close the script, open the persistent profile with system Chrome, sign in once, then rerun. "
+            "See docs/CAPTURE_GETTING_STARTED.md for the fallback command."
+        )
+
+    print("GitHub authentication confirmed.")
+
+
+def select_owner(page: Page, owner: str) -> None:
+    """Best-effort selection of the repository owner on GitHub's new-repo page."""
     body = page.locator("body")
     if re.search(rf"\b{re.escape(owner)}\b", body.inner_text(), flags=re.IGNORECASE):
-        # The requested owner may already be selected.
         selected_candidates = [
             page.locator("button").filter(has_text=re.compile(rf"^{re.escape(owner)}$", re.I)),
             page.locator("summary").filter(has_text=re.compile(rf"^{re.escape(owner)}$", re.I)),
@@ -114,8 +147,6 @@ def fill_repo_creation(page: Page, owner: str, repo_name: str) -> None:
         name_input = page.locator("input[name='repository[name]'], input#repository_name")
     name_input.first.fill(repo_name)
 
-    # Prefer private for the documentation path because that is the intended
-    # default for ongoing / unpublished research.
     private_radio = page.get_by_label(re.compile(r"private", re.I))
     if private_radio.count():
         private_radio.first.check()
@@ -154,13 +185,32 @@ def fill_setup_form(page: Page) -> None:
     ready.check()
 
 
+def launch_persistent(p, profile_dir: Path, *, record_video_dir: Path | None = None):
+    kwargs = {
+        "user_data_dir": str(profile_dir),
+        "headless": False,
+        "viewport": {"width": 1440, "height": 1000},
+    }
+    if record_video_dir is not None:
+        kwargs["record_video_dir"] = str(record_video_dir)
+        kwargs["record_video_size"] = {"width": 1440, "height": 1000}
+
+    if ARGS.browser == "chrome":
+        kwargs["channel"] = "chrome"
+
+    return p.chromium.launch_persistent_context(**kwargs)
+
+
 def main() -> int:
-    args = parse_args()
-    repo_name = args.repo_name or (
+    global ARGS
+    ARGS = parse_args()
+    repo_name = ARGS.repo_name or (
         "ORW-doc-demo-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     )
-    output_dir = Path(args.output_dir).resolve()
+    output_dir = Path(ARGS.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    profile_dir = Path(ARGS.profile_dir).expanduser().resolve()
+    profile_dir.mkdir(parents=True, exist_ok=True)
 
     screenshots = {
         "template": output_dir / "01-use-template.png",
@@ -170,118 +220,119 @@ def main() -> int:
         "workspace": output_dir / "05-initialized-workspace.png",
     }
     final_video = output_dir / "orw-getting-started.webm"
+    video_dir = output_dir / ".capture-video-tmp"
+    if video_dir.exists():
+        shutil.rmtree(video_dir)
+    video_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Disposable repository: {args.owner}/{repo_name}")
+    print(f"Disposable repository: {ARGS.owner}/{repo_name}")
     print(f"Output directory: {output_dir}")
+    print(f"Persistent GitHub browser profile: {profile_dir}")
 
-    with tempfile.TemporaryDirectory(prefix="orw-playwright-") as tmpdir:
-        tmp = Path(tmpdir)
-        storage_state = tmp / "github-auth.json"
-        video_dir = tmp / "video"
-        video_dir.mkdir(parents=True, exist_ok=True)
-
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-
-            # Login happens outside the recorded documentation session.
-            login_context = browser.new_context(viewport={"width": 1440, "height": 1000})
-            login_page = login_context.new_page()
-            login_page.goto("https://github.com/login", wait_until="domcontentloaded")
-            print("\nLog into GitHub in the opened browser window (including 2FA if needed).")
-            input("When GitHub login is complete, return here and press Enter... ")
-            login_context.storage_state(path=str(storage_state))
-            login_context.close()
-
-            # Start a fresh authenticated context. Only this context is recorded.
-            context = browser.new_context(
-                storage_state=str(storage_state),
-                viewport={"width": 1440, "height": 1000},
-                record_video_dir=str(video_dir),
-                record_video_size={"width": 1440, "height": 1000},
-            )
-            page = context.new_page()
-            video = page.video
-
-            # 1. Template entry point.
-            page.goto(TEMPLATE_REPO, wait_until="networkidle")
-            page.get_by_text("OpenResearchWorkspace", exact=True).first.wait_for(state="visible")
-            screenshot(page, screenshots["template"])
-            time.sleep(1.0)
-
-            # Use direct template-new URL after capturing the real template page;
-            # this avoids depending on GitHub's transient dropdown implementation.
-            page.goto(TEMPLATE_NEW, wait_until="domcontentloaded")
-            fill_repo_creation(page, args.owner, repo_name)
-            page.wait_for_load_state("networkidle")
-
-            # 2. Setup entry point in the newly-created repository README.
-            setup_link = page.get_by_role("link", name=re.compile(r"Set up my research project", re.I))
-            setup_link.wait_for(state="visible", timeout=60_000)
-            screenshot(page, screenshots["setup_entry"])
-            time.sleep(1.0)
-            setup_link.click()
-
-            # 3. Real GitHub Issue Form.
-            page.get_by_text("Set up your research project", exact=True).first.wait_for(
-                state="visible", timeout=30_000
-            )
-            fill_setup_form(page)
-            screenshot(page, screenshots["form"], full_page=True)
-            time.sleep(1.0)
-
-            submit = page.get_by_role("button", name=re.compile(r"Submit new issue", re.I))
-            submit.click()
-            page.wait_for_url(re.compile(r"/issues/\d+$"), timeout=30_000)
-
-            # 4. Wait for the real ORW workflow to finish and post its success message.
-            success = page.get_by_text(
-                re.compile(r"Your OpenResearchWorkspace project is initialized", re.I)
-            )
-            try:
-                success.wait_for(state="visible", timeout=args.timeout_seconds * 1000)
-            except PlaywrightTimeoutError:
-                screenshot(page, output_dir / "ERROR-initialization-timeout.png", full_page=True)
+    with sync_playwright() as p:
+        # Phase 1: authenticate in a normal installed Chrome profile. Nothing is recorded.
+        try:
+            auth_context = launch_persistent(p, profile_dir)
+        except Exception as exc:
+            if ARGS.browser == "chrome":
                 raise RuntimeError(
-                    "ORW initialization did not report success within the timeout. "
-                    "A diagnostic screenshot was saved."
-                )
+                    "Could not launch installed Google Chrome. Install Chrome or rerun with --browser chromium "
+                    "after `python -m playwright install chromium`."
+                ) from exc
+            raise
 
-            screenshot(page, screenshots["success"], full_page=True)
-            time.sleep(1.0)
+        auth_page = get_page(auth_context)
+        ensure_github_login(auth_page)
+        auth_context.close()
 
-            open_workspace = page.get_by_role(
-                "link", name=re.compile(r"Open your initialized workspace", re.I)
+        # Phase 2: reopen the exact same authenticated profile and start recording.
+        context = launch_persistent(p, profile_dir, record_video_dir=video_dir)
+        page = get_page(context)
+        video = page.video
+
+        page.goto(TEMPLATE_REPO, wait_until="networkidle")
+        page.get_by_text("OpenResearchWorkspace", exact=True).first.wait_for(state="visible")
+        screenshot(page, screenshots["template"])
+        time.sleep(1.0)
+
+        page.goto(TEMPLATE_NEW, wait_until="domcontentloaded")
+        fill_repo_creation(page, ARGS.owner, repo_name)
+        page.wait_for_load_state("networkidle")
+
+        setup_link = page.get_by_role("link", name=re.compile(r"Set up my research project", re.I))
+        setup_link.wait_for(state="visible", timeout=60_000)
+        screenshot(page, screenshots["setup_entry"])
+        time.sleep(1.0)
+        setup_link.click()
+
+        page.get_by_text("Set up your research project", exact=True).first.wait_for(
+            state="visible", timeout=30_000
+        )
+        fill_setup_form(page)
+        screenshot(page, screenshots["form"], full_page=True)
+        time.sleep(1.0)
+
+        submit = page.get_by_role("button", name=re.compile(r"Submit new issue", re.I))
+        submit.click()
+        page.wait_for_url(re.compile(r"/issues/\d+$"), timeout=30_000)
+
+        success = page.get_by_text(
+            re.compile(r"Your OpenResearchWorkspace project is initialized", re.I)
+        )
+        try:
+            success.wait_for(state="visible", timeout=ARGS.timeout_seconds * 1000)
+        except PlaywrightTimeoutError:
+            screenshot(page, output_dir / "ERROR-initialization-timeout.png", full_page=True)
+            raise RuntimeError(
+                "ORW initialization did not report success within the timeout. "
+                "A diagnostic screenshot was saved."
             )
-            open_workspace.click()
-            page.wait_for_url(
-                re.compile(rf"github\.com/{re.escape(args.owner)}/{re.escape(repo_name)}(?:/)?$"),
-                timeout=30_000,
-            )
-            page.get_by_text("Research structure", exact=True).wait_for(state="visible")
 
-            # 5. Final initialized workspace.
-            screenshot(page, screenshots["workspace"], full_page=True)
-            time.sleep(2.0)
+        screenshot(page, screenshots["success"], full_page=True)
+        time.sleep(1.0)
 
-            page.close()
-            context.close()
-            browser.close()
+        open_workspace = page.get_by_role(
+            "link", name=re.compile(r"Open your initialized workspace", re.I)
+        )
+        open_workspace.click()
+        page.wait_for_url(
+            re.compile(rf"github\.com/{re.escape(ARGS.owner)}/{re.escape(repo_name)}(?:/)?$"),
+            timeout=30_000,
+        )
+        page.get_by_text("Research structure", exact=True).wait_for(state="visible")
 
-            # Save the single documentation video under a stable name.
-            if video is not None:
+        screenshot(page, screenshots["workspace"], full_page=True)
+        time.sleep(2.0)
+
+        page.close()
+        context.close()
+
+        recorded = list(video_dir.glob("*.webm"))
+        if video is not None:
+            try:
                 video.save_as(str(final_video))
-                print(f"Saved video: {final_video}")
-            else:
-                recorded = list(video_dir.glob("*.webm"))
+            except Exception:
                 if recorded:
                     shutil.copy2(recorded[0], final_video)
-                    print(f"Saved video: {final_video}")
+        elif recorded:
+            shutil.copy2(recorded[0], final_video)
+
+        if final_video.exists():
+            print(f"Saved video: {final_video}")
+        else:
+            print("Warning: no final WebM was found; screenshots were still captured.")
+
+    shutil.rmtree(video_dir, ignore_errors=True)
 
     print("\nCapture complete.")
-    print(f"Disposable repository left in place for review: https://github.com/{args.owner}/{repo_name}")
+    print(f"Disposable repository left in place for review: https://github.com/{ARGS.owner}/{repo_name}")
     print("Delete it manually after you have reviewed the screenshots/video.")
+    print(f"Local browser profile retained at: {profile_dir}")
+    print("Delete that profile directory after the documentation capture if you no longer need it.")
     return 0
 
+
+ARGS: argparse.Namespace
 
 if __name__ == "__main__":
     raise SystemExit(main())
