@@ -11,4 +11,5 @@ Expected outputs:
 - `05-initialized-workspace.png`
 - `orw-getting-started.webm`
 
-The browser login itself is never recorded.
+The interactive browser login itself is never recorded. The raw video may begin
+with a brief GitHub profile-settings visit while the saved session is verified.

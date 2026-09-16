@@ -29,11 +29,19 @@ docs/assets/getting-started/
 └── orw-getting-started.webm
 ```
 
+The WebM is an instructional recording. Before each automated interaction it
+shows a numbered caption and highlights the relevant GitHub control in yellow.
+These temporary guides are burned into the video but removed from the clean
+documentation screenshots.
+
 ## Authentication: use installed Google Chrome
 
 The first version of this helper used Playwright's fresh bundled Chromium session and transferred its storage state into the recorded browser. GitHub login can fail or behave differently in that environment, especially with 2FA, passkeys, device verification, or browser checks.
 
 The current helper therefore uses **installed Google Chrome with a persistent local profile**.
+When authentication is required, it closes Playwright and opens Chrome as a normal,
+non-automated process. This is important for accounts that use Google as their GitHub
+sign-in method: Google may refuse a browser carrying automation flags.
 
 The default profile is:
 
@@ -44,15 +52,18 @@ The default profile is:
 The flow is:
 
 ```text
-open installed Chrome with dedicated local profile
+check dedicated local profile
+→ if needed, close Playwright and open normal Chrome
 → log into GitHub normally
-→ close that browser context
+→ close Chrome completely
 → reopen the SAME authenticated profile
 → start video capture
 → run the ORW documentation flow
 ```
 
-The login phase itself is not recorded.
+The interactive login phase itself is not recorded. The raw video may begin with
+a brief visit to GitHub's profile settings while the helper verifies the saved
+session; the documentation screenshots begin at the ORW template.
 
 Do not commit, upload, or share the browser profile directory. It contains authenticated browser state. Delete it after the documentation capture if you no longer need it.
 
@@ -83,10 +94,10 @@ Chrome is recommended for GitHub authentication.
 
 ## During the run
 
-1. Google Chrome opens using the dedicated ORW capture profile.
-2. If that profile is not yet logged into GitHub, sign in normally, including 2FA/passkey/device verification if GitHub asks for it.
-3. Return to the terminal and press **Enter** only after GitHub is visibly logged in.
-4. The unrecorded login context closes.
+1. The helper checks the dedicated ORW capture profile.
+2. If that profile is not yet logged into GitHub, the Playwright window closes and a normal Chrome window opens.
+3. Sign in normally, including 2FA/passkey/device verification if GitHub asks for it.
+4. **Close that Chrome window completely**, then return to the terminal and press **Enter**.
 5. The same profile reopens and recording begins.
 6. Playwright creates the disposable repository and runs the real ORW setup flow.
 7. If GitHub changes an owner-selector control and the script cannot select `Neuronautix`, select it manually in the browser and press **Enter** in the terminal.
@@ -117,7 +128,12 @@ Remove-Item -Recurse -Force "$HOME\.orw-playwright-github"
 
 Then rerun the script and complete GitHub login in the opened Google Chrome window.
 
-If GitHub still refuses sign-in specifically in the automated Chrome window, stop there rather than weakening browser security. For a one-time documentation capture, the practical fallback is to complete that login/setup interaction manually in your normal browser and capture those few screens manually.
+Do not attempt Google sign-in in a window showing an automation warning such as
+`You are using an unsupported command-line flag: --no-sandbox`. Close that window and
+let the helper open the separate normal Chrome authentication window. That window is
+not controlled or recorded by Playwright.
+
+If GitHub still refuses sign-in in the normal authentication window, stop there rather than weakening browser security. For a one-time documentation capture, the practical fallback is to complete that login/setup interaction manually in your usual browser and capture those few screens manually.
 
 ## Optional arguments
 
@@ -128,6 +144,17 @@ python scripts/capture_getting_started.py \
   --owner Neuronautix \
   --repo-name ORW-doc-demo
 ```
+
+Resume a capture after the repository was created but a later browser step failed:
+
+```bash
+python scripts/capture_getting_started.py \
+  --owner Neuronautix \
+  --repo-name ORW-doc-demo-20260916-061025 \
+  --resume-existing
+```
+
+`--resume-existing` requires `--repo-name` and skips repository creation.
 
 Use another local browser profile directory:
 

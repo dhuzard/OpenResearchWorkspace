@@ -22,7 +22,7 @@ The form asks for your project title, first Study, first measurement/Assay, data
 
 You do **not** need to open GitHub Actions, run code, install Git, or edit YAML.
 
-> GitHub calls the setup form an **issue** and the final button says **Submit new issue**. In ORW this is simply the project setup form. It is closed automatically after successful initialization.
+> GitHub calls the setup form an **issue** and may label the final button **Create** or **Submit new issue**. In ORW this simply means sending the project setup form. It is closed automatically after successful initialization.
 
 If you are viewing the **OpenResearchWorkspace development repository itself**, do not submit the setup form here. First use **Use this template** to create your own repository.
 
@@ -47,6 +47,18 @@ See [`docs/isa.md`](docs/isa.md) for the rationale and mapping.
 ## Start here
 
 If you are a researcher, begin with the step-by-step guide in [`docs/getting-started.md`](docs/getting-started.md) and the project skeleton in [`docs/project-structure.md`](docs/project-structure.md).
+
+### Visual walkthrough
+
+[▶ Watch the annotated setup walkthrough (WebM)](docs/assets/getting-started/orw-getting-started.webm)
+
+The recording provides numbered instructions and highlights each GitHub control before it is used.
+
+| Create a project from the template | Complete the guided setup form |
+| --- | --- |
+| ![The OpenResearchWorkspace template page with the Use this template button visible](docs/assets/getting-started/01-use-template.png) | ![The ORW setup form filled with example research-project values](docs/assets/getting-started/03-setup-form.png) |
+
+![The initialized workspace showing its generated Study and Assay structure](docs/assets/getting-started/05-initialized-workspace.png)
 
 If you want to understand the architecture, read [`docs/concepts.md`](docs/concepts.md), [`docs/isa.md`](docs/isa.md), and [`SPEC.md`](SPEC.md).
 

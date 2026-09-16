@@ -13,6 +13,12 @@ The beginner workflow is:
 Create project → Fill setup form → ORW initializes it → Add collaborators → Work
 ```
 
+## Watch the complete walkthrough
+
+[▶ Watch the annotated step-by-step video (WebM)](assets/getting-started/orw-getting-started.webm)
+
+The video displays numbered instructions and highlights each control before it is used. The screenshots below show the same workflow without requiring video playback.
+
 ## Before you start: three scientific levels
 
 GitHub calls your project a **repository**. In this guide, we simply call it your **project**.
@@ -62,14 +68,15 @@ If you do not already have one, follow GitHub's account-creation instructions: h
 > [!IMPORTANT]
 > ORW itself is MIT licensed, but your scientific outputs do not automatically inherit MIT. You will choose appropriate licenses for your own research outputs later.
 
-### Screenshot to add
+### What you will see
 
-Use two tightly cropped screenshots:
+Open the template and select **Use this template**:
 
-1. **Use this template → Create a new repository**;
-2. the repository name/visibility form.
+![The OpenResearchWorkspace template repository with the Use this template button visible](assets/getting-started/01-use-template.png)
 
-Do not use full-screen screenshots with many unrelated controls.
+GitHub then creates your independent private project repository:
+
+![A newly created private ORW project repository](assets/getting-started/02-setup-project.png)
 
 ---
 
@@ -119,14 +126,16 @@ Data access level: private
 Keywords: behaviour, circadian rhythm, mouse
 ```
 
+![The ORW setup form completed with the example project details](assets/getting-started/03-setup-form.png)
+
 Do **not** enter passwords, access tokens, participant identifiers, confidential clinical information, or other secrets in this form.
 
 ### 2.3 Submit the form
 
 1. Tick the confirmation box at the bottom.
-2. Click **Submit new issue**.
+2. Click **Create**. Some GitHub versions label this button **Submit new issue**.
 
-The wording **Submit new issue** comes from GitHub. In ORW, this simply means **send the setup form**.
+GitHub treats this setup form as an issue internally. In ORW, **Create** or **Submit new issue** simply means **send the setup form**.
 
 After submission, stay on the page briefly while ORW initializes the repository in the background.
 
@@ -138,7 +147,11 @@ The message contains a direct **Open your initialized workspace** link, and the 
 
 Click **Open your initialized workspace**.
 
+![The completed setup thread with the Open your initialized workspace link](assets/getting-started/04-initialized-success.png)
+
 > **✓ Done:** Your project README now shows your own project title, Study and Assay. A `studies/` folder exists and `.research/project.yml` contains the machine-readable project description.
+
+![The initialized workspace with its generated Study and Assay structure](assets/getting-started/05-initialized-workspace.png)
 
 ### What setup created
 
@@ -165,14 +178,6 @@ light-exposure-mouse-activity/          Investigation
 ```
 
 You do **not** need to edit `.research/project.yml` yourself.
-
-### Screenshot sequence to add
-
-Use three small screenshots from a disposable project created from the template:
-
-1. the **Set up my research project** link in the new repository README;
-2. the setup form with example values;
-3. the success message with **Open your initialized workspace**.
 
 ### Something went wrong?
 
