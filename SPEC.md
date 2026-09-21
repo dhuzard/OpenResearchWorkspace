@@ -40,7 +40,28 @@ A future conforming ISA interoperability capability SHOULD provide validated exp
 
 ORW-specific metadata outside ISA's scope MAY coexist with the ISA-aligned scientific model but MUST NOT alter ISA semantics.
 
-## 5. Workspace layout semantics
+## 5. RO-Crate interoperability and export
+
+ORW treats **RO-Crate as an interoperability, packaging, and publication/export layer**, not as a second editable project model.
+
+The canonical scientific source of truth remains `.research/project.yml`. A conforming implementation MAY generate `ro-crate-metadata.json` and an RO-Crate package from the canonical ORW record, workspace layout, and selected local or external resources. Researchers SHOULD NOT be required to maintain generated RO-Crate metadata manually.
+
+The first ORW exporter SHOULD target RO-Crate 1.3 and MUST declare the RO-Crate version it supports. Generated crates MUST satisfy the supported RO-Crate specification before being presented as valid exports.
+
+An ORW → RO-Crate export SHOULD:
+
+- represent the ORW Investigation as the exported research object/root dataset;
+- preserve Studies and Assays explicitly rather than flattening scientific structure into filenames;
+- map contributors and persistent identifiers where available;
+- represent included files as data entities when appropriate;
+- preserve links/PIDs to authoritative external data without requiring duplication;
+- include the canonical ORW project record so the package remains identifiable as an ORW export.
+
+ORW MUST NOT claim conformance to a dedicated ORW RO-Crate profile until that profile has a documented, versioned mapping and validated implementation evidence.
+
+See `docs/ro-crate.md` for the export design and planned validation strategy.
+
+## 6. Workspace layout semantics
 
 The primary GitHub implementation maps the scientific hierarchy to:
 
@@ -56,7 +77,7 @@ Study and Assay folders MAY contain pragmatic workspace subfolders such as data,
 
 Authoritative data MAY live outside GitHub and be referenced by location or persistent identifier.
 
-## 6. Core entities
+## 7. Core entities
 
 ### `spec_version`
 ORW specification version.
@@ -73,7 +94,7 @@ Measurements/tests belonging to a Study. Each Assay SHOULD identify what is meas
 ### `resources` and `outputs`
 ORW MAY describe workspace resources and outputs not fully represented by ISA, including software, documentation, manuscripts, models and workflows. These MUST be related to the relevant Investigation, Study or Assay when scientifically applicable.
 
-## 7. Provenance
+## 8. Provenance
 
 ORW SHOULD progressively preserve ISA-compatible subject/sample/process/data relationships. A simplified conceptual flow is:
 
@@ -90,19 +111,21 @@ Investigation
 
 Source evidence SHOULD NOT be silently overwritten. Derived data and outputs SHOULD be traceable to their inputs and methods as reproducibility capabilities mature.
 
-## 8. Profiles
+## 9. Profiles
 
 Profiles are initialization conveniences, not alternate scientific models. Experimental and mixed profiles MUST preserve ISA hierarchy. Other profiles MAY use a meaningful subset and MUST NOT invent fake ISA entities.
 
-## 9. Workspace lifecycle and capabilities
+## 10. Workspace lifecycle and capabilities
 
 `.research/workspace.yml` records ORW implementation/version state. `.research/capabilities.yml` records optional capabilities such as archival publication, FAIR enrichment, reproducibility, AI-ready context or agent support.
 
 Capabilities MUST NOT redefine ISA or Core semantics.
 
-## 10. GitHub reference implementation
+## 11. Reference implementations and forge adapters
 
-The intended workflow is:
+ORW implementations MUST NOT require a specific forge. A valid ORW workspace remains valid without Git, GitHub, GitLab, or any hosted collaboration service.
+
+The current GitHub template is a supported reference implementation and adapter. Its intended workflow is:
 
 ```text
 Use template
@@ -117,18 +140,20 @@ Use template
 
 The beginner UI SHOULD automatically create a sensible one-Investigation/one-Study structure and ask about Assays only in scientifically understandable language such as "What measurements or tests are you performing?".
 
-## 11. Human interface
+Provider-neutral implementations SHOULD converge on one normalized generation contract so that CLI, browser, and forge adapters produce semantically equivalent canonical project records. The planned CLI and browser generator are described in `docs/portable-implementations.md`.
+
+## 12. Human interface
 
 Implementations SHOULD NOT require ordinary researchers to understand Git, YAML, ISA-Tab, ISA-JSON, CI/CD, tags or GitHub Actions. ISA semantics should be captured through researcher-facing language and forms.
 
-## 12. Publication
+## 13. Publication
 
 Publication MUST be intentional. Automated validation MAY determine readiness, but routine edits MUST NOT automatically create permanent scientific releases.
 
-## 13. Extensibility and agent readiness
+## 14. Extensibility and agent readiness
 
 Extensions and agents MUST consume the canonical ISA-aligned project model rather than create parallel scientific truth. Agent-specific instructions are not part of Core v0.1, but agents should eventually be able to distinguish Investigation, Study, Assay, subjects/samples, processes, data and derived outputs explicitly.
 
-## 14. Validation
+## 15. Validation
 
 A conforming project record MUST validate against `schema/project.schema.json`. The schema will evolve from the current draft toward stronger ISA alignment and validated ISA import/export. Until that mapping is complete, ORW MUST describe itself as ISA-aligned rather than claiming full ISA serialization conformance.

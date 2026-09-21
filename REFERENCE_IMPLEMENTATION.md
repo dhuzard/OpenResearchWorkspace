@@ -1,5 +1,7 @@
 # GitHub template reference implementation
 
+> **Scope:** this document describes the current GitHub adapter. GitHub is not required by the ORW specification. Provider-neutral core/CLI/browser architecture is defined in [docs/portable-implementations.md](docs/portable-implementations.md), and RO-Crate export is defined in [docs/ro-crate.md](docs/ro-crate.md).
+
 The primary OpenResearchWorkspace reference implementation is a **self-initializing GitHub template** designed for a scientist who has never used Git.
 
 The researcher should create an independent project repository from the template. They should not need to fork OpenResearchWorkspace or keep their project synchronized with the ORW development repository.
