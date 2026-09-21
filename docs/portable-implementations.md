@@ -353,19 +353,23 @@ The application must not depend on the hostname on which it is served.
 
 ## Proposed delivery order
 
-### Milestone A — Core extraction
+### Milestone A — Core extraction — implemented
 
 - normalized setup schema;
 - pure workspace generator;
 - tests;
 - GitHub workflow migrated to core.
 
-### Milestone B — CLI MVP
+### Milestone B — CLI MVP — implemented
 
 - `orw init`;
 - `orw validate`;
-- installable Python package;
-- CLI E2E test.
+- installable Python package metadata;
+- non-interactive JSON/stdin setup;
+- machine-readable validation reports;
+- installed-command E2E test outside the source checkout.
+
+The package is not yet published to PyPI; see `docs/cli.md`.
 
 ### Milestone C — RO-Crate export
 

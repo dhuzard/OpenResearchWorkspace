@@ -1,0 +1,23 @@
+{
+  "project_title": "Effects of light exposure on mouse activity",
+  "project_description": "Study of how altered light exposure affects spontaneous mouse activity.",
+  "creator": {
+    "name": "Jane Researcher",
+    "orcid": null
+  },
+  "first_study": {
+    "title": "Light exposure study"
+  },
+  "first_assay": {
+    "title": "Behaviour"
+  },
+  "data": {
+    "location": "Institutional research server",
+    "access": "private"
+  },
+  "keywords": [
+    "behaviour",
+    "circadian rhythm",
+    "mouse"
+  ]
+}

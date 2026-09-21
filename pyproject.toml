@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openresearchworkspace"
+version = "0.1.0"
+description = "Portable tools for creating and validating OpenResearchWorkspace projects"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+  { name = "OpenResearchWorkspace contributors" }
+]
+dependencies = [
+  "PyYAML>=6.0,<7",
+  "jsonschema>=4.22,<5"
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only"
+]
+
+[project.scripts]
+orw = "orw.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+orw = ["schemas/*.json"]

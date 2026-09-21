@@ -1,0 +1,19 @@
+{
+  "project_title": "Invalid ORCID fixture",
+  "project_description": "Fixture used to verify setup validation.",
+  "creator": {
+    "name": "Researcher",
+    "orcid": "1234-not-an-orcid"
+  },
+  "first_study": {
+    "title": "Study"
+  },
+  "first_assay": {
+    "title": "Assay"
+  },
+  "data": {
+    "location": "Local storage",
+    "access": "private"
+  },
+  "keywords": []
+}

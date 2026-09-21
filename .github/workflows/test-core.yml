@@ -1,0 +1,64 @@
+name: Test ORW core and CLI
+
+on:
+  push:
+    paths:
+      - "src/orw/**"
+      - "tests/**"
+      - "scripts/**"
+      - "schema/**"
+      - "pyproject.toml"
+      - ".github/workflows/test-core.yml"
+  pull_request:
+    paths:
+      - "src/orw/**"
+      - "tests/**"
+      - "scripts/**"
+      - "schema/**"
+      - "pyproject.toml"
+      - ".github/workflows/test-core.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Core, CLI, and installed-command tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install ORW package
+        run: python -m pip install .
+
+      - name: Run unit and contract tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Test installed CLI outside checkout
+        shell: bash
+        run: |
+          workdir="$(mktemp -d)"
+          cd "$workdir"
+
+          orw --version
+          orw init study --config "$GITHUB_WORKSPACE/tests/fixtures/setup/basic.json"
+          orw validate study
+          orw validate study --json > validation.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("validation.json").read_text())
+          assert payload["valid"] is True, payload
+          assert payload["issues"] == [], payload
+          assert Path("study/.research/project.yml").is_file()
+          PY
