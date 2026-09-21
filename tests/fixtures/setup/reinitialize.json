@@ -1,0 +1,21 @@
+{
+  "project_title": "Reinitialization guard",
+  "project_description": "Fixture used to verify that initialized workspaces are not overwritten.",
+  "creator": {
+    "name": "Researcher",
+    "orcid": null
+  },
+  "first_study": {
+    "title": "Study one"
+  },
+  "first_assay": {
+    "title": "Behaviour"
+  },
+  "data": {
+    "location": "Local storage",
+    "access": "private"
+  },
+  "keywords": [
+    "guard"
+  ]
+}
