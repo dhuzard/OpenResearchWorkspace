@@ -1,8 +1,8 @@
-"""Parse the GitHub Issue Form used to initialize an ORW workspace.
+"""Parse the GitHub Issue Form into the provider-neutral ORW setup payload.
 
-GitHub renders Issue Form fields into Markdown sections. This script reads the
-issue body from the Actions event payload and exposes validated values as step
-outputs for the trusted initializer.
+GitHub renders Issue Form fields into Markdown sections. This adapter reads the
+issue body from the Actions event payload and emits one normalized JSON payload
+consumed by the provider-neutral ORW core.
 """
 
 from __future__ import annotations
@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import secrets
 from pathlib import Path
 
 EVENT_PATH = Path(os.environ["GITHUB_EVENT_PATH"])
@@ -36,6 +35,9 @@ mapping = {
     "orcid": "Your ORCID (optional)",
 }
 
+# The current GitHub form still asks for an initial Assay. The ORW core itself
+# allows first_assay=null so future CLI/browser interfaces can represent
+# projects for which an Assay is not scientifically applicable.
 required = {
     "project_title",
     "project_description",
@@ -55,14 +57,32 @@ for key, heading in mapping.items():
         raise SystemExit(f"Missing required setup field: {heading}")
     values[key] = value
 
-allowed_access = {"private", "restricted", "embargoed", "open", "unknown"}
-if values["data_access"] not in allowed_access:
-    raise SystemExit(f"Unexpected data access level: {values['data_access']}")
+keywords = [item.strip() for item in values["keywords"].split(",") if item.strip()]
 
-# Write multiline-safe GitHub Actions outputs.
+normalized = {
+    "project_title": values["project_title"],
+    "project_description": values["project_description"],
+    "creator": {
+        "name": values["researcher_name"],
+        "orcid": values["orcid"] or None,
+    },
+    "first_study": {
+        "title": values["study_title"],
+    },
+    "first_assay": {
+        "title": values["assay_title"],
+    },
+    "data": {
+        "location": values["data_location"],
+        "access": values["data_access"],
+    },
+    "keywords": keywords,
+}
+
+# Compact JSON stays on one GITHUB_OUTPUT line; embedded newlines in user text
+# are escaped by json.dumps and are reconstructed by the initializer.
+serialized = json.dumps(normalized, ensure_ascii=False, separators=(",", ":"))
 with OUTPUT_PATH.open("a", encoding="utf-8") as out:
-    for key, value in values.items():
-        delimiter = f"ORW_{secrets.token_hex(12)}"
-        out.write(f"{key}<<{delimiter}\n{value}\n{delimiter}\n")
+    out.write(f"setup_payload={serialized}\n")
 
-print("Validated ORW setup form.")
+print("Normalized ORW setup form.")
