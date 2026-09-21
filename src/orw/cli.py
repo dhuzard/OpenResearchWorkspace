@@ -58,9 +58,16 @@ def _prompt_access() -> str:
 
 
 def _interactive_payload() -> dict[str, Any]:
+    project_title = _nonempty("Project title: ")
+    project_description = _nonempty("Short description: ")
+    creator_name = _nonempty("Your name: ")
+    orcid = _optional("ORCID (optional): ")
+    study_title = _nonempty("First study title: ")
     assay = _optional(
         "First measurement/assay (optional; leave blank if not applicable): "
     )
+    data_location = _nonempty("Authoritative data location: ")
+    data_access = _prompt_access()
     keywords_text = _optional("Keywords (comma-separated, optional): ")
     keywords = (
         [item.strip() for item in keywords_text.split(",") if item.strip()]
@@ -69,19 +76,19 @@ def _interactive_payload() -> dict[str, Any]:
     )
 
     return {
-        "project_title": _nonempty("Project title: "),
-        "project_description": _nonempty("Short description: "),
+        "project_title": project_title,
+        "project_description": project_description,
         "creator": {
-            "name": _nonempty("Your name: "),
-            "orcid": _optional("ORCID (optional): "),
+            "name": creator_name,
+            "orcid": orcid,
         },
         "first_study": {
-            "title": _nonempty("First study title: "),
+            "title": study_title,
         },
         "first_assay": {"title": assay} if assay else None,
         "data": {
-            "location": _nonempty("Authoritative data location: "),
-            "access": _prompt_access(),
+            "location": data_location,
+            "access": data_access,
         },
         "keywords": keywords,
     }
