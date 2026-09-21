@@ -1,0 +1,23 @@
+{
+  "project_title": "Étude comportementale – souris âgées",
+  "project_description": "Évaluation longitudinale de l’activité spontanée et du comportement social.",
+  "creator": {
+    "name": "Élodie Müller",
+    "orcid": null
+  },
+  "first_study": {
+    "title": "Étude été 2026"
+  },
+  "first_assay": {
+    "title": "Comportement vidéo"
+  },
+  "data": {
+    "location": "Serveur institutionnel – Montpellier",
+    "access": "private"
+  },
+  "keywords": [
+    "comportement",
+    "souris",
+    "activité"
+  ]
+}
