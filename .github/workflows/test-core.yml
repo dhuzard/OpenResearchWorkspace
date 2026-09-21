@@ -52,6 +52,7 @@ jobs:
           orw init study --config "$GITHUB_WORKSPACE/tests/fixtures/setup/basic.json"
           orw validate study
           orw validate study --json > validation.json
+          orw export study --format ro-crate --output crate
 
           python - <<'PY'
           import json
@@ -61,4 +62,11 @@ jobs:
           assert payload["valid"] is True, payload
           assert payload["issues"] == [], payload
           assert Path("study/.research/project.yml").is_file()
+
+          crate = json.loads(Path("crate/ro-crate-metadata.json").read_text())
+          assert crate["@context"] == "https://w3id.org/ro/crate/1.3/context"
+          by_id = {entity["@id"]: entity for entity in crate["@graph"]}
+          assert by_id["ro-crate-metadata.json"]["conformsTo"]["@id"] == "https://w3id.org/ro/crate/1.3"
+          assert by_id["./"]["@type"] == "Dataset"
+          assert Path("crate/.research/project.yml").is_file()
           PY
