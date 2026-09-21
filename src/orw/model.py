@@ -14,6 +14,15 @@ class SetupValidationError(ValueError):
     """Raised when normalized ORW setup input is invalid."""
 
 
+def _reject_unknown_keys(
+    mapping: Mapping[str, Any], allowed: set[str], label: str
+) -> None:
+    unknown = set(mapping) - allowed
+    if unknown:
+        names = ", ".join(sorted(unknown))
+        raise SetupValidationError(f"Unexpected {label} field(s): {names}.")
+
+
 def _required_text(mapping: Mapping[str, Any], key: str, label: str) -> str:
     value = mapping.get(key)
     if not isinstance(value, str) or not value.strip():
@@ -69,6 +78,20 @@ class SetupConfig:
         if not isinstance(payload, Mapping):
             raise SetupValidationError("Setup payload must be an object.")
 
+        _reject_unknown_keys(
+            payload,
+            {
+                "project_title",
+                "project_description",
+                "creator",
+                "first_study",
+                "first_assay",
+                "data",
+                "keywords",
+            },
+            "setup",
+        )
+
         project_title = _required_text(payload, "project_title", "Project title")
         project_description = _required_text(
             payload, "project_description", "Project description"
@@ -77,6 +100,7 @@ class SetupConfig:
         creator_raw = payload.get("creator")
         if not isinstance(creator_raw, Mapping):
             raise SetupValidationError("creator must be an object.")
+        _reject_unknown_keys(creator_raw, {"name", "orcid"}, "creator")
         creator_name = _required_text(creator_raw, "name", "Creator name")
         orcid = _optional_text(creator_raw.get("orcid"), "ORCID")
         if orcid and not ORCID_RE.fullmatch(orcid):
@@ -88,6 +112,7 @@ class SetupConfig:
         study_raw = payload.get("first_study")
         if not isinstance(study_raw, Mapping):
             raise SetupValidationError("first_study must be an object.")
+        _reject_unknown_keys(study_raw, {"title"}, "first_study")
         study_title = _required_text(study_raw, "title", "First study title")
 
         assay_raw = payload.get("first_assay")
@@ -95,6 +120,7 @@ class SetupConfig:
         if assay_raw is None:
             first_assay = None
         elif isinstance(assay_raw, Mapping):
+            _reject_unknown_keys(assay_raw, {"title"}, "first_assay")
             assay_title = _optional_text(assay_raw.get("title"), "First assay title")
             first_assay = AssaySeed(assay_title) if assay_title else None
         else:
@@ -103,6 +129,7 @@ class SetupConfig:
         data_raw = payload.get("data")
         if not isinstance(data_raw, Mapping):
             raise SetupValidationError("data must be an object.")
+        _reject_unknown_keys(data_raw, {"location", "access"}, "data")
         data_location = _required_text(data_raw, "location", "Data location")
         data_access = _required_text(data_raw, "access", "Data access")
         if data_access not in ACCESS_LEVELS:
@@ -121,8 +148,10 @@ class SetupConfig:
             if not isinstance(raw, str):
                 raise SetupValidationError("Each keyword must be a string.")
             keyword = raw.strip()
-            if not keyword or keyword in seen:
-                continue
+            if not keyword:
+                raise SetupValidationError("Keywords must not be empty strings.")
+            if keyword in seen:
+                raise SetupValidationError(f"Duplicate keyword: {keyword}.")
             keywords.append(keyword)
             seen.add(keyword)
 
