@@ -371,12 +371,15 @@ The application must not depend on the hostname on which it is served.
 
 The package is not yet published to PyPI; see `docs/cli.md`.
 
-### Milestone C — RO-Crate export
+### Milestone C — RO-Crate export — implemented
 
 - ORW → RO-Crate 1.3 mapping;
 - `orw export --format ro-crate`;
-- RO-Crate validation;
-- representative fixtures.
+- source-workspace and generated-crate validation;
+- conservative access-aware attachment policy;
+- representative and golden mapping fixtures.
+
+A dedicated ORW RO-Crate Profile remains a later step after broader mapping evidence.
 
 ### Milestone D — Browser generator
 
