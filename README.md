@@ -1,16 +1,18 @@
 # OpenResearchWorkspace
 
-**A research workspace specification with a GitHub template as its primary reference implementation.**
+**A portable research workspace specification with GitHub as one supported reference implementation.**
 
 OpenResearchWorkspace (ORW) defines a portable format/contract for research workspaces that are **human usable, FAIR-oriented, machine readable, reproducible, and agent ready**.
 
-The normal researcher does **not** fork ORW and does not use a central ORW application.
+ORW is **forge-agnostic by design**. A valid workspace does not require GitHub, GitLab, Git, or any central ORW service.
+
+The current implemented beginner path uses the GitHub template:
 
 > **Use template → set up project → collaborate → work → publish**
 
-Each researcher or lab creates an independent repository from the ORW GitHub template. That repository becomes the canonical project workspace and remains owned by the researcher/lab.
+That path remains supported, but GitHub is an adapter rather than part of the scientific format. The next portable implementations are a small local CLI and a browser generator that can create the same workspace without a forge account.
 
-GitHub is infrastructure, not the user model. Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
+Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
 
 ## New project? Set it up here
 
@@ -70,6 +72,38 @@ ORW has two distinct layers:
 2. **Reference implementations** — practical ways to create or emit a conforming workspace.
 
 The primary reference implementation is this GitHub template. Other software can produce ORW-compatible workspaces without using the template.
+
+## Portable implementation architecture
+
+ORW separates the scientific contract from the interface used to create a workspace:
+
+```text
+                    ORW specification
+                           │
+                           ▼
+              canonical generation contract
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+           ORW CLI    Browser generator  Forge adapter
+              │            │            │
+              └────────────┼────────────┘
+                           ▼
+                    ORW workspace
+                           │
+                           ▼
+                  interoperability export
+                           │
+                           ▼
+                       RO-Crate
+```
+
+The canonical scientific record remains `.research/project.yml`. GitHub-specific automation must not become a separate scientific implementation.
+
+- [Portable CLI/browser architecture](docs/portable-implementations.md)
+- [RO-Crate interoperability and export](docs/ro-crate.md)
+
+The browser generator is planned as a static, local-first interface: fill the scientific form, preview the ISA structure, and download a workspace ZIP without requiring a Git provider account or server-side persistence. The CLI is planned around `orw init`, `orw validate`, and `orw export --format ro-crate`.
 
 ## Researcher-facing workflow
 
@@ -161,9 +195,11 @@ ORW uses one standard and one template, with initialization presets rather than 
 
 ## Roadmap
 
-**v0 — Self-initializing ISA-aligned GitHub template:** create Investigation, beginner setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
+**v0 — ISA-aligned workspace + current GitHub adapter:** create Investigation, beginner setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
 
-**v1 — FAIR + ISA interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, RO-Crate, FAIR Signposting.
+**v0.x — Portable creation layer:** extract the provider-neutral generator, add `orw init` / `orw validate`, and add a static browser generator that downloads a conforming workspace ZIP.
+
+**v1 — FAIR + interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, validated RO-Crate 1.3 export, FAIR Signposting.
 
 **v2 — Reproducible workspace:** ISA process/provenance links plus environments, workflows and automated QA.
 
@@ -177,7 +213,7 @@ ORW is not intended to become a required central hosted application, require sci
 
 ## Status
 
-Early specification and GitHub-template reference implementation. **ISA Investigation–Study–Assay is the required scientific organizational model.** The beginner initialization path is being implemented as a GitHub setup form whose automation remains hidden from the normal user.
+Early specification with a working GitHub-template adapter. **ISA Investigation–Study–Assay is the required scientific organizational model.** The current beginner initialization path is a GitHub setup form; provider-neutral CLI and browser creation paths are planned so that GitHub is optional infrastructure rather than a requirement.
 
 ## License
 
