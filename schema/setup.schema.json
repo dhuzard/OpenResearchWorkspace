@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dhuzard/OpenResearchWorkspace/blob/main/schema/setup.schema.json",
+  "title": "OpenResearchWorkspace normalized setup payload",
+  "type": "object",
+  "required": [
+    "project_title",
+    "project_description",
+    "creator",
+    "first_study",
+    "data"
+  ],
+  "properties": {
+    "project_title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "creator": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "orcid": {
+          "type": ["string", "null"],
+          "pattern": "^(https://orcid\\.org/)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "first_study": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "first_assay": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["title"],
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "data": {
+      "type": "object",
+      "required": ["location", "access"],
+      "properties": {
+        "location": {
+          "type": "string",
+          "minLength": 1
+        },
+        "access": {
+          "type": "string",
+          "enum": ["private", "restricted", "embargoed", "open", "unknown"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}
