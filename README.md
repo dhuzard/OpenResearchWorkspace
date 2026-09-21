@@ -19,84 +19,6 @@ GitHub remains an adapter rather than part of the scientific format.
 
 Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
 
-## What works today
-
-| Capability | Status | Current implementation |
-| --- | --- | --- |
-| Portable ORW scientific model | **Implemented** | ISA-aligned `.research/project.yml` plus provider-neutral schemas/core |
-| GitHub beginner setup | **Implemented** | Template + guided setup form + automatic initialization |
-| Local workspace creation | **Implemented** | `orw init`, interactive or JSON/stdin-driven |
-| Local validation | **Implemented** | `orw validate` with JSON Schema, path, relationship, and initialization checks |
-| Machine-readable validation | **Implemented** | `orw validate --json` with stable exit codes |
-| RO-Crate interoperability | **Implemented** | Validated RO-Crate 1.3 directory export with `orw export --format ro-crate` |
-| Restricted-data protection during export | **Implemented** | Local content is attached only when explicitly marked `access: open`; restricted/private/embargoed resources stay metadata-only |
-| Forge-independent use | **Implemented** | Core, CLI, validation, and export work without GitHub/GitLab/Git |
-| Browser workspace generator | **Planned next** | Static local-first form + ZIP download, no account/backend required ([#23](https://github.com/dhuzard/OpenResearchWorkspace/issues/23)) |
-| Intentional publish/DOI workflow | **Planned** | Validate → preview → explicit confirmation → archive/PID ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)) |
-| FAIR capability layer | **Planned** | CITATION.cff, DataCite, PID/license checks, FAIR Signposting, FAIR-readiness reporting ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
-| Reproducibility/provenance | **Planned** | Environments, workflows, checksums, provenance, reproducibility reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)) |
-| AI-ready workspace model | **Planned** | Structured semantic context, authoritative-resource declarations, agent-readable constraints ([#6](https://github.com/dhuzard/OpenResearchWorkspace/issues/6)) |
-| Agent Contract + portable Skill | **Planned** | Provider-neutral rules and data-steward skill ([#25](https://github.com/dhuzard/OpenResearchWorkspace/issues/25)) |
-| Deterministic MCP operations | **Planned** | Constrained local ORW operations for agents; no unrestricted filesystem/shell access ([#26](https://github.com/dhuzard/OpenResearchWorkspace/issues/26)) |
-| Agent-conformance benchmark | **Planned** | Test whether agents obey ORW data-management constraints ([#27](https://github.com/dhuzard/OpenResearchWorkspace/issues/27)) |
-| Provider-specific LLM packaging | **Planned later** | Thin OpenAI/Anthropic/other adapters over the same contract + MCP layer ([#28](https://github.com/dhuzard/OpenResearchWorkspace/issues/28)) |
-
-The distinction matters: **implemented** means the capability exists in the repository and is covered by automated tests; **planned** means the design direction exists but should not yet be described as available to users.
-
-## What is coming next
-
-The current implementation order is:
-
-```text
-DONE
-  provider-neutral core
-        ↓
-  CLI init + validate
-        ↓
-  RO-Crate 1.3 export
-
-NEXT
-  static browser generator (#23)
-        ↓
-  richer FAIR / publication capabilities
-        ↓
-  reproducibility + provenance
-        ↓
-  AI-ready context
-        ↓
-  Agent Contract / Skill (#25)
-        ↓
-  deterministic MCP execution layer (#26)
-        ↓
-  agent-conformance benchmark (#27)
-        ↓
-  provider-specific packaging/adapters (#28)
-```
-
-The architectural rule remains the same throughout: **scientific rules live in the ORW specification/core; browser, forge, MCP, and LLM-provider integrations are adapters around the same canonical model.**
-
-## Local CLI
-
-The local CLI is now implemented for researchers, automation, and agents that do not want to depend on GitHub:
-
-```bash
-python -m pip install .
-orw init my-study
-orw validate my-study
-orw export my-study --format ro-crate --output dist/my-study-ro-crate
-```
-
-Non-interactive initialization uses the same normalized setup contract as the GitHub adapter:
-
-```bash
-orw init my-study --config setup.json
-orw validate my-study --json
-```
-
-The Python package is prepared but is **not yet published to PyPI**, so the installation command above refers to a local/downloaded ORW source release.
-
-See [CLI usage](docs/cli.md).
-
 ## New project? Set it up here
 
 If you are reading this README **inside a new repository that you just created from the ORW template**, use the setup form below:
@@ -210,6 +132,28 @@ Publish when ready
 
 A very simple project can start with one Investigation, one Study and one Assay. Complexity is added only when the science requires it.
 
+## Local CLI
+
+The local CLI is now implemented for researchers, automation, and agents that do not want to depend on GitHub:
+
+```bash
+python -m pip install .
+orw init my-study
+orw validate my-study
+orw export my-study --format ro-crate --output dist/my-study-ro-crate
+```
+
+Non-interactive initialization uses the same normalized setup contract as the GitHub adapter:
+
+```bash
+orw init my-study --config setup.json
+orw validate my-study --json
+```
+
+The Python package is prepared but is **not yet published to PyPI**, so the installation command above refers to a local/downloaded ORW source release.
+
+See [CLI usage](docs/cli.md).
+
 ## Default scientific project skeleton
 
 ```text
@@ -278,6 +222,62 @@ ORW uses one standard and one template, with initialization presets rather than 
 - [`docs/cli.md`](docs/cli.md) — local CLI installation, initialization, validation, JSON output, and exit codes.
 - [`SPEC.md`](SPEC.md) — Research Workspace Core v0.1 draft specification.
 - [`schema/project.schema.json`](schema/project.schema.json) — machine-readable project schema.
+
+## What works today
+
+| Capability | Status | Current implementation |
+| --- | --- | --- |
+| Portable ORW scientific model | **Implemented** | ISA-aligned `.research/project.yml` plus provider-neutral schemas/core |
+| GitHub beginner setup | **Implemented** | Template + guided setup form + automatic initialization |
+| Local workspace creation | **Implemented** | `orw init`, interactive or JSON/stdin-driven |
+| Local validation | **Implemented** | `orw validate` with JSON Schema, path, relationship, and initialization checks |
+| Machine-readable validation | **Implemented** | `orw validate --json` with stable exit codes |
+| RO-Crate interoperability | **Implemented** | Validated RO-Crate 1.3 directory export with `orw export --format ro-crate` |
+| Restricted-data protection during export | **Implemented** | Local content is attached only when explicitly marked `access: open`; restricted/private/embargoed resources stay metadata-only |
+| Forge-independent use | **Implemented** | Core, CLI, validation, and export work without GitHub/GitLab/Git |
+| Browser workspace generator | **Planned next** | Static local-first form + ZIP download, no account/backend required ([#23](https://github.com/dhuzard/OpenResearchWorkspace/issues/23)) |
+| Intentional publish/DOI workflow | **Planned** | Validate → preview → explicit confirmation → archive/PID ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)) |
+| FAIR capability layer | **Planned** | CITATION.cff, DataCite, PID/license checks, FAIR Signposting, FAIR-readiness reporting ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
+| Reproducibility/provenance | **Planned** | Environments, workflows, checksums, provenance, reproducibility reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)) |
+| AI-ready workspace model | **Planned** | Structured semantic context, authoritative-resource declarations, agent-readable constraints ([#6](https://github.com/dhuzard/OpenResearchWorkspace/issues/6)) |
+| Agent Contract + portable Skill | **Planned** | Provider-neutral rules and data-steward skill ([#25](https://github.com/dhuzard/OpenResearchWorkspace/issues/25)) |
+| Deterministic MCP operations | **Planned** | Constrained local ORW operations for agents; no unrestricted filesystem/shell access ([#26](https://github.com/dhuzard/OpenResearchWorkspace/issues/26)) |
+| Agent-conformance benchmark | **Planned** | Test whether agents obey ORW data-management constraints ([#27](https://github.com/dhuzard/OpenResearchWorkspace/issues/27)) |
+| Provider-specific LLM packaging | **Planned later** | Thin OpenAI/Anthropic/other adapters over the same contract + MCP layer ([#28](https://github.com/dhuzard/OpenResearchWorkspace/issues/28)) |
+
+The distinction matters: **implemented** means the capability exists in the repository and is covered by automated tests; **planned** means the design direction exists but should not yet be described as available to users.
+
+## What is coming next
+
+The current implementation order is:
+
+```text
+DONE
+  provider-neutral core
+        ↓
+  CLI init + validate
+        ↓
+  RO-Crate 1.3 export
+
+NEXT
+  static browser generator (#23)
+        ↓
+  richer FAIR / publication capabilities
+        ↓
+  reproducibility + provenance
+        ↓
+  AI-ready context
+        ↓
+  Agent Contract / Skill (#25)
+        ↓
+  deterministic MCP execution layer (#26)
+        ↓
+  agent-conformance benchmark (#27)
+        ↓
+  provider-specific packaging/adapters (#28)
+```
+
+The architectural rule remains the same throughout: **scientific rules live in the ORW specification/core; browser, forge, MCP, and LLM-provider integrations are adapters around the same canonical model.**
 
 ## Roadmap
 
