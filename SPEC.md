@@ -40,7 +40,28 @@ A future conforming ISA interoperability capability SHOULD provide validated exp
 
 ORW-specific metadata outside ISA's scope MAY coexist with the ISA-aligned scientific model but MUST NOT alter ISA semantics.
 
-## 5. Workspace layout semantics
+## 5. RO-Crate interoperability and export
+
+ORW treats **RO-Crate as an interoperability, packaging, and publication/export layer**, not as a second editable project model.
+
+The canonical scientific source of truth remains `.research/project.yml`. A conforming implementation MAY generate `ro-crate-metadata.json` and an RO-Crate package from the canonical ORW record, workspace layout, and selected local or external resources. Researchers SHOULD NOT be required to maintain generated RO-Crate metadata manually.
+
+The first ORW exporter SHOULD target RO-Crate 1.3 and MUST declare the RO-Crate version it supports. Generated crates MUST satisfy the supported RO-Crate specification before being presented as valid exports.
+
+An ORW → RO-Crate export SHOULD:
+
+- represent the ORW Investigation as the exported research object/root dataset;
+- preserve Studies and Assays explicitly rather than flattening scientific structure into filenames;
+- map contributors and persistent identifiers where available;
+- represent included files as data entities when appropriate;
+- preserve links/PIDs to authoritative external data without requiring duplication;
+- include the canonical ORW project record so the package remains identifiable as an ORW export.
+
+ORW MUST NOT claim conformance to a dedicated ORW RO-Crate profile until that profile has a documented, versioned mapping and validated implementation evidence.
+
+See `docs/ro-crate.md` for the export design and planned validation strategy.
+
+## 6. Workspace layout semantics
 
 The primary GitHub implementation maps the scientific hierarchy to:
 
@@ -116,6 +137,8 @@ Use template
 ```
 
 The beginner UI SHOULD automatically create a sensible one-Investigation/one-Study structure and ask about Assays only in scientifically understandable language such as "What measurements or tests are you performing?".
+
+Provider-neutral implementations SHOULD converge on one normalized generation contract so that CLI, browser, and forge adapters produce semantically equivalent canonical project records. The planned CLI and browser generator are described in `docs/portable-implementations.md`.
 
 ## 11. Human interface
 
