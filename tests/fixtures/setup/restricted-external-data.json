@@ -1,0 +1,21 @@
+{
+  "project_title": "Restricted imaging dataset",
+  "project_description": "Metadata-only workspace referencing restricted authoritative data.",
+  "creator": {
+    "name": "Data Steward",
+    "orcid": null
+  },
+  "first_study": {
+    "title": "Imaging cohort"
+  },
+  "first_assay": {
+    "title": "Microscopy"
+  },
+  "data": {
+    "location": "s3://institutional-restricted/imaging",
+    "access": "restricted"
+  },
+  "keywords": [
+    "imaging"
+  ]
+}

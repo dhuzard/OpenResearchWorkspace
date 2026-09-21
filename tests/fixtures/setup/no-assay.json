@@ -1,0 +1,20 @@
+{
+  "project_title": "Protocol development project",
+  "project_description": "A project for which no analytical assay is scientifically applicable at initialization.",
+  "creator": {
+    "name": "Protocol Researcher",
+    "orcid": null
+  },
+  "first_study": {
+    "title": "Protocol design study"
+  },
+  "first_assay": null,
+  "data": {
+    "location": "Institutional project folder",
+    "access": "private"
+  },
+  "keywords": [
+    "protocol",
+    "methods"
+  ]
+}

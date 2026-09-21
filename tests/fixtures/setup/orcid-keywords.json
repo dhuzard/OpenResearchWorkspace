@@ -1,0 +1,23 @@
+{
+  "project_title": "Cardiac physiology study",
+  "project_description": "A study with persistent researcher identity and multiple keywords.",
+  "creator": {
+    "name": "Alex Scientist",
+    "orcid": "0000-0002-1825-0097"
+  },
+  "first_study": {
+    "title": "Baseline physiology"
+  },
+  "first_assay": {
+    "title": "ECG"
+  },
+  "data": {
+    "location": "Institutional storage",
+    "access": "private"
+  },
+  "keywords": [
+    "ECG",
+    "HRV",
+    "mouse"
+  ]
+}

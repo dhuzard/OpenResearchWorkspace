@@ -57,16 +57,9 @@ jobs:
 
       - name: Create ISA-aligned project files
         env:
-          PROJECT_TITLE: ${{ steps.setup.outputs.project_title }}
-          PROJECT_DESCRIPTION: ${{ steps.setup.outputs.project_description }}
-          CREATOR_NAME: ${{ steps.setup.outputs.researcher_name }}
-          STUDY_TITLE: ${{ steps.setup.outputs.study_title }}
-          ASSAY_TITLE: ${{ steps.setup.outputs.assay_title }}
-          DATA_LOCATION: ${{ steps.setup.outputs.data_location }}
-          DATA_ACCESS: ${{ steps.setup.outputs.data_access }}
-          KEYWORDS: ${{ steps.setup.outputs.keywords }}
-          ORCID: ${{ steps.setup.outputs.orcid }}
-          GITHUB_LOGIN: ${{ github.event.issue.user.login }}
+          ORW_SETUP_JSON: ${{ steps.setup.outputs.setup_payload }}
+          ORW_PROVIDER: github
+          ORW_PROVIDER_USER: ${{ github.event.issue.user.login }}
         run: python scripts/initialize_project.py
 
       - name: Commit initialized workspace
