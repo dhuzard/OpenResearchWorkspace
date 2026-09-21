@@ -1,0 +1,38 @@
+name: Test provider-neutral ORW core
+
+on:
+  push:
+    paths:
+      - "src/orw/**"
+      - "tests/**"
+      - "scripts/**"
+      - "schema/**"
+      - ".github/workflows/test-core.yml"
+  pull_request:
+    paths:
+      - "src/orw/**"
+      - "tests/**"
+      - "scripts/**"
+      - "schema/**"
+      - ".github/workflows/test-core.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Offline core contract tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run unit and contract tests
+        run: python -m unittest discover -s tests -v
