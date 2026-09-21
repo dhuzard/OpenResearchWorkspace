@@ -19,6 +19,62 @@ GitHub remains an adapter rather than part of the scientific format.
 
 Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
 
+## What works today
+
+| Capability | Status | Current implementation |
+| --- | --- | --- |
+| Portable ORW scientific model | **Implemented** | ISA-aligned `.research/project.yml` plus provider-neutral schemas/core |
+| GitHub beginner setup | **Implemented** | Template + guided setup form + automatic initialization |
+| Local workspace creation | **Implemented** | `orw init`, interactive or JSON/stdin-driven |
+| Local validation | **Implemented** | `orw validate` with JSON Schema, path, relationship, and initialization checks |
+| Machine-readable validation | **Implemented** | `orw validate --json` with stable exit codes |
+| RO-Crate interoperability | **Implemented** | Validated RO-Crate 1.3 directory export with `orw export --format ro-crate` |
+| Restricted-data protection during export | **Implemented** | Local content is attached only when explicitly marked `access: open`; restricted/private/embargoed resources stay metadata-only |
+| Forge-independent use | **Implemented** | Core, CLI, validation, and export work without GitHub/GitLab/Git |
+| Browser workspace generator | **Planned next** | Static local-first form + ZIP download, no account/backend required ([#23](https://github.com/dhuzard/OpenResearchWorkspace/issues/23)) |
+| Intentional publish/DOI workflow | **Planned** | Validate → preview → explicit confirmation → archive/PID ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)) |
+| FAIR capability layer | **Planned** | CITATION.cff, DataCite, PID/license checks, FAIR Signposting, FAIR-readiness reporting ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
+| Reproducibility/provenance | **Planned** | Environments, workflows, checksums, provenance, reproducibility reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)) |
+| AI-ready workspace model | **Planned** | Structured semantic context, authoritative-resource declarations, agent-readable constraints ([#6](https://github.com/dhuzard/OpenResearchWorkspace/issues/6)) |
+| Agent Contract + portable Skill | **Planned** | Provider-neutral rules and data-steward skill ([#25](https://github.com/dhuzard/OpenResearchWorkspace/issues/25)) |
+| Deterministic MCP operations | **Planned** | Constrained local ORW operations for agents; no unrestricted filesystem/shell access ([#26](https://github.com/dhuzard/OpenResearchWorkspace/issues/26)) |
+| Agent-conformance benchmark | **Planned** | Test whether agents obey ORW data-management constraints ([#27](https://github.com/dhuzard/OpenResearchWorkspace/issues/27)) |
+| Provider-specific LLM packaging | **Planned later** | Thin OpenAI/Anthropic/other adapters over the same contract + MCP layer ([#28](https://github.com/dhuzard/OpenResearchWorkspace/issues/28)) |
+
+The distinction matters: **implemented** means the capability exists in the repository and is covered by automated tests; **planned** means the design direction exists but should not yet be described as available to users.
+
+## What is coming next
+
+The current implementation order is:
+
+```text
+DONE
+  provider-neutral core
+        ↓
+  CLI init + validate
+        ↓
+  RO-Crate 1.3 export
+
+NEXT
+  static browser generator (#23)
+        ↓
+  richer FAIR / publication capabilities
+        ↓
+  reproducibility + provenance
+        ↓
+  AI-ready context
+        ↓
+  Agent Contract / Skill (#25)
+        ↓
+  deterministic MCP execution layer (#26)
+        ↓
+  agent-conformance benchmark (#27)
+        ↓
+  provider-specific packaging/adapters (#28)
+```
+
+The architectural rule remains the same throughout: **scientific rules live in the ORW specification/core; browser, forge, MCP, and LLM-provider integrations are adapters around the same canonical model.**
+
 ## Local CLI
 
 The local CLI is now implemented for researchers, automation, and agents that do not want to depend on GitHub:
@@ -225,17 +281,19 @@ ORW uses one standard and one template, with initialization presets rather than 
 
 ## Roadmap
 
-**v0 — ISA-aligned workspace + current GitHub adapter:** create Investigation, beginner setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
+**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; validated RO-Crate 1.3 directory export; shared contract/golden fixtures.
 
-**v0.x — Portable creation layer:** provider-neutral generator, `orw init` / `orw validate`, and validated RO-Crate 1.3 directory export implemented; static browser generator remains planned.
+**Next — browser-first portability:** static local-first workspace generator with form validation, ISA structure preview, local ZIP download, and no required account/backend ([#23](https://github.com/dhuzard/OpenResearchWorkspace/issues/23)).
 
-**v1 — FAIR + interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, maturation of RO-Crate mappings/profile requirements, FAIR Signposting.
+**V0 completion — scientist-facing project lifecycle:** simplify adding Studies/Assays, collaboration and file/data-reference workflows; add intentional publication/archive/DOI flow with validation, preview, and explicit confirmation ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)).
 
-**v2 — Reproducible workspace:** ISA process/provenance links plus environments, workflows and automated QA.
+**V1 — FAIR + interoperability:** richer metadata and ontology annotations; ISA-JSON/ISA-Tab interoperability; CITATION.cff/DataCite; persistent identifiers and licenses; FAIR Signposting/readiness; evaluate when the tested RO-Crate mapping is mature enough for a versioned ORW RO-Crate Profile ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)).
 
-**v3 — AI-ready workspace:** semantic project context, ISA-aligned entities, schemas, ontology mappings and explicit policies.
+**V2 — reproducibility + provenance:** environments, workflow/run records, checksums/manifests, experimental and computational provenance, data/version linkage, automated QA and reproducibility/readiness reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)).
 
-**v4 — Agentic workspace:** reusable provider-neutral skills plus thin agent adapters operating against the same project model.
+**V3 — AI-ready workspace:** explicit semantic relations, authoritative-resource declarations, ontology/schema mappings, context manifests, machine-readable policies and validation for AI-facing context ([#6](https://github.com/dhuzard/OpenResearchWorkspace/issues/6)).
+
+**V4 — constrained agentic workspace:** provider-neutral Agent Contract + portable Skill ([#25](https://github.com/dhuzard/OpenResearchWorkspace/issues/25)); deterministic MCP operations ([#26](https://github.com/dhuzard/OpenResearchWorkspace/issues/26)); agent-conformance benchmarking ([#27](https://github.com/dhuzard/OpenResearchWorkspace/issues/27)); then thin provider-specific LLM packaging/adapters without moving canonical scientific rules into any one provider ([#28](https://github.com/dhuzard/OpenResearchWorkspace/issues/28)).
 
 ## Non-goals
 
