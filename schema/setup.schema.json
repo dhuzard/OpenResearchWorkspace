@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/dhuzard/OpenResearchWorkspace/blob/main/schema/setup.schema.json",
   "title": "OpenResearchWorkspace normalized setup payload",
   "type": "object",
   "required": [
@@ -21,14 +20,19 @@
     },
     "creator": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "properties": {
         "name": {
           "type": "string",
           "minLength": 1
         },
         "orcid": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^(https://orcid\\.org/)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"
         }
       },
@@ -36,7 +40,9 @@
     },
     "first_study": {
       "type": "object",
-      "required": ["title"],
+      "required": [
+        "title"
+      ],
       "properties": {
         "title": {
           "type": "string",
@@ -49,7 +55,9 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["title"],
+          "required": [
+            "title"
+          ],
           "properties": {
             "title": {
               "type": "string",
@@ -65,7 +73,10 @@
     },
     "data": {
       "type": "object",
-      "required": ["location", "access"],
+      "required": [
+        "location",
+        "access"
+      ],
       "properties": {
         "location": {
           "type": "string",
@@ -73,7 +84,13 @@
         },
         "access": {
           "type": "string",
-          "enum": ["private", "restricted", "embargoed", "open", "unknown"]
+          "enum": [
+            "private",
+            "restricted",
+            "embargoed",
+            "open",
+            "unknown"
+          ]
         }
       },
       "additionalProperties": false
