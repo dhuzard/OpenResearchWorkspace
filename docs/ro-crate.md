@@ -2,196 +2,330 @@
 
 OpenResearchWorkspace (ORW) uses **ISA Investigation–Study–Assay semantics as its scientific model** and treats **RO-Crate as an interoperability, packaging, and publication/export layer**.
 
-RO-Crate is therefore **not** a second source of project truth that researchers must maintain manually.
-
-## Design rule
-
-The canonical editable ORW project record remains:
+RO-Crate is therefore **not** a second source of project truth that researchers maintain manually. The canonical editable scientific record remains:
 
 ```text
 .research/project.yml
 ```
 
-A conforming exporter derives an RO-Crate from that record, the workspace layout, and explicitly selected files/resources:
+## Status
 
-```text
-ORW workspace
-  │
-  ├── .research/project.yml       canonical scientific record
-  ├── studies/...                 human-facing research workspace
-  ├── protocols/...
-  └── other resources
-          │
-          ▼
-   deterministic export
-          │
-          ▼
-  ro-crate-metadata.json          generated interoperability metadata
-          +
-  selected files / references
-          │
-          ▼
-   RO-Crate directory or archive
+A validated attached-directory **RO-Crate 1.3 exporter is implemented** in the provider-neutral ORW core.
+
+```bash
+orw export my-study --format ro-crate --output dist/my-study-ro-crate
 ```
 
-Researchers SHOULD NOT need to edit `ro-crate-metadata.json` directly.
+The exporter:
+
+1. validates the source ORW workspace;
+2. derives an RO-Crate graph from canonical ORW metadata;
+3. copies eligible attached files into a temporary crate;
+4. writes `ro-crate-metadata.json`;
+5. validates the generated crate against the RO-Crate 1.3 base requirements implemented by ORW;
+6. only then moves the completed crate to the requested output directory.
+
+The first implementation creates a directory crate. ZIP/archive output remains a later addition.
 
 ## Supported baseline
 
-The first ORW RO-Crate exporter SHOULD target **RO-Crate 1.3** and declare the supported version explicitly.
+ORW currently targets **RO-Crate 1.3**.
 
-RO-Crate 1.3 is the current long-term release and Recommendation:
+Generated metadata declares:
 
-- specification: https://www.researchobject.org/ro-crate/specification/1.3/
-- persistent specification URI: https://w3id.org/ro/crate/1.3
-- profiles: https://www.researchobject.org/ro-crate/specification/1.3/profiles.html
-
-The implementation SHOULD keep the RO-Crate target version configurable so that support for future versions can be added without changing ORW's canonical project model.
-
-## Source-of-truth boundaries
-
-| Concern | Canonical ORW representation | RO-Crate role |
-| --- | --- | --- |
-| Investigation / Study / Assay semantics | `.research/project.yml` using ISA-aligned ORW fields | exported graph representation |
-| Researcher-facing folder structure | ORW workspace filesystem | files/directories represented as Data Entities when exported |
-| Contributors and identifiers | ORW project metadata | mapped to contextual entities such as Person/Organization |
-| External datasets | ORW resource/data records with location/PID | represented by resolvable identifiers/URLs without requiring duplication |
-| Provenance | ORW ISA-aligned process/protocol relationships as capabilities mature | exported provenance/context where expressible |
-| Publication package | not canonical during active work | RO-Crate directory/archive generated intentionally |
-
-An RO-Crate export MUST NOT silently become the editable canonical copy of project metadata.
-
-## Minimum v0.x export
-
-The first exporter should be deliberately small and deterministic.
-
-Given a valid ORW workspace, it SHOULD generate:
-
-```text
-export/
-├── ro-crate-metadata.json
-├── .research/
-│   └── project.yml
-├── README.md
-└── <selected workspace files>
+```json
+{
+  "@context": "https://w3id.org/ro/crate/1.3/context"
+}
 ```
 
-The generated RO-Crate metadata MUST include the required RO-Crate Metadata File Descriptor and Root Data Entity.
+and the metadata descriptor declares conformance to:
 
-At minimum, the Root Data Entity SHOULD expose, when available:
+```text
+https://w3id.org/ro/crate/1.3
+```
 
-- project title;
-- description;
-- keywords;
-- persistent identifier;
-- license;
-- creators/contributors;
-- creation/export date where appropriate;
-- links to included or referenced research resources.
+The implementation is intentionally version-specific so future RO-Crate versions can be added without changing the canonical ORW scientific model.
 
-The export SHOULD preserve the original ORW canonical record inside the crate so that the package remains understandable as an ORW workspace export.
+## Source-of-truth boundary
 
-## Mapping strategy
+```text
+.research/project.yml
+        │
+        │ canonical ORW/ISA-aligned scientific record
+        ▼
+   ORW validation
+        │
+        ▼
+ deterministic export
+        │
+        ▼
+ro-crate-metadata.json
++ selected attached files
++ external resource references
+```
 
-The initial mapping should be conservative.
+An exported `ro-crate-metadata.json` MUST NOT silently become the editable canonical copy of project metadata.
 
-### Investigation
+## Output
 
-The ORW Investigation maps to the RO-Crate Root Data Entity representing the exported research object.
+A minimal export contains:
 
-### Contributors
+```text
+my-study-ro-crate/
+├── ro-crate-metadata.json
+├── README.md
+└── .research/
+    └── project.yml
+```
 
-ORW contributors map to RO-Crate contextual entities, normally `Person`, with ORCID used as a persistent identifier when available.
+Additional explicitly declared **open** local resources may also be copied into their workspace-relative paths.
+
+The canonical `.research/project.yml` is preserved inside the crate so a consumer can identify the package as an ORW-derived research object and inspect the richer ISA-aligned source representation.
+
+## Current mapping
+
+### Investigation → Root Data Entity
+
+The ORW Investigation maps to the RO-Crate Root Data Entity:
+
+```json
+{
+  "@id": "./",
+  "@type": "Dataset"
+}
+```
+
+The exporter currently maps, when available:
+
+- Investigation title → `name`;
+- description → `description`;
+- Investigation identifier → `identifier`;
+- keywords → `keywords`;
+- declared license → `license`;
+- contributors → `author`;
+- Studies, canonical metadata, README, and resources → `hasPart`;
+- export date → `datePublished`.
+
+At this stage `datePublished` records the date on which the crate package is emitted. It should not be interpreted as the scientific article/publication date.
+
+### Contributors → Person
+
+ORW contributors become `Person` contextual entities.
+
+When an ORCID is available, its HTTPS URI is used as the entity `@id`:
+
+```json
+{
+  "@id": "https://orcid.org/0000-0002-1825-0097",
+  "@type": "Person",
+  "name": "Alex Scientist"
+}
+```
 
 ### Studies and Assays
 
-ORW Studies and Assays SHOULD be represented explicitly in the RO-Crate graph rather than flattened into filenames.
+Studies and Assays remain explicit graph entities rather than being inferred from filenames or flattened away.
 
-The exact type/property mapping must be documented and covered by golden-file tests before ORW claims a stable RO-Crate profile.
+Current conservative mapping:
 
-Until that mapping is stable, ORW should describe the exporter as an **RO-Crate 1.3 export** rather than claiming conformance to a dedicated ORW RO-Crate profile.
+```text
+Root Dataset
+  hasPart
+     ↓
+Study Dataset
+  hasPart
+     ↓
+Assay Dataset
+```
 
-### Files and directories
+Their ORW identifiers are retained through `identifier`.
 
-Included files can be represented as RO-Crate Data Entities. The exporter SHOULD derive their relationships from ORW metadata and layout roles rather than from filename guessing alone.
+This representation provides explicit graph nodes and hierarchy without claiming that generic schema.org Dataset types encode the full ISA meaning. The authoritative ISA-aligned semantics remain in `.research/project.yml`.
+
+A future ORW RO-Crate Profile may introduce stronger profile-specific semantics after the mapping has been tested across a wider range of preclinical workspaces.
+
+### Canonical metadata and README
+
+The exporter always packages, when present:
+
+- `.research/project.yml` as a File Data Entity;
+- `README.md` as a File Data Entity.
+
+### Local resources
+
+Local resources are only automatically attached when both are true:
+
+1. the canonical ORW resource has a local `path`;
+2. its `access` is explicitly `open`.
+
+Example:
+
+```yaml
+resources:
+  - name: Open analysis table
+    path: results/summary.csv
+    access: open
+```
+
+The file is copied and represented as a File Data Entity.
+
+A directory resource is copied recursively and represented as a Dataset Data Entity.
+
+### Private, restricted, embargoed, or unknown resources
+
+RO-Crate export must not turn metadata packaging into accidental data disclosure.
+
+Local resource content is **not copied automatically** when access is:
+
+- `private`;
+- `restricted`;
+- `embargoed`;
+- `unknown`;
+- absent/not explicitly `open`.
+
+The resource remains represented in metadata, including its access status and known identifier/path/location, but its content is not placed in the attached crate.
+
+This is a deliberate safety boundary rather than a statement that every RO-Crate must use this policy.
 
 ### External data
 
-Large, sensitive, regulated, or externally managed datasets do not need to be copied into the crate. ORW should export their PID, URL, access status, checksum/manifest information, and other metadata where available.
+Resources with an absolute URI location are represented as external entities and are **not downloaded**.
 
-## ORW RO-Crate profile
+For example:
 
-A versioned ORW RO-Crate profile is a useful later milestone, but it should follow implementation evidence rather than precede it.
+```yaml
+resources:
+  - name: Deposited dataset
+    location: https://example.org/datasets/123
+    access: open
+```
 
-The profile should be introduced only after:
+becomes an entity whose `@id` is the external URI.
 
-1. the ORW → RO-Crate mapping is documented;
-2. multiple representative preclinical workspaces have been exported;
-3. exported crates validate against RO-Crate requirements;
-4. round-trip expectations have been explicitly defined;
-5. consumers can reliably identify Investigation, Study, Assay, people, data, protocols, and outputs.
+Large or institutionally managed data can therefore remain at their authoritative location.
 
-A future profile URI SHOULD be persistent and versioned as recommended by the RO-Crate profile specification.
+## Path and overwrite safety
 
-## CLI interface
+For attached local resources, the exporter rejects:
 
-The planned command is:
+- absolute filesystem paths;
+- `..` path traversal;
+- paths escaping the ORW workspace;
+- symlinked resources or symlinks nested inside a packaged directory;
+- recursive situations where the requested export destination lies inside a directory being packaged.
+
+The exporter does not overwrite an existing destination by default.
+
+Explicit replacement requires:
 
 ```bash
-orw export . --format ro-crate --output dist/my-study-ro-crate
+orw export my-study --format ro-crate --output dist/my-study-ro-crate --force
 ```
 
-Optional archive output may later be supported:
-
-```bash
-orw export . --format ro-crate --output dist/my-study-ro-crate.zip
-```
-
-The exporter MUST validate the ORW project before generating the crate unless the user explicitly selects a diagnostic/non-strict mode.
-
-## Browser interface
-
-The planned browser generator should expose the same export capability after workspace creation:
-
-```text
-Create workspace
-      ↓
-Preview generated structure
-      ↓
-Download ORW workspace ZIP
-      ↓
-Optional: Download RO-Crate export
-```
-
-No GitHub account, Git installation, or server-side persistence should be required for the default browser path.
+The replacement occurs only after a new crate has been successfully generated and validated in a temporary directory.
 
 ## Validation
 
-The RO-Crate exporter should have three validation levels:
+The export pipeline has three validation layers.
 
-1. **ORW validation** — canonical `.research/project.yml` and workspace rules.
-2. **RO-Crate validation** — generated crate satisfies the supported RO-Crate specification.
-3. **ORW mapping tests** — golden fixtures confirm that key ISA/ORW semantics are represented consistently in the graph.
+### 1. ORW source validation
 
-Tests SHOULD include at least:
+Before export, the normal provider-neutral ORW validator checks:
 
-- one Investigation / one Study / one Assay;
+- canonical project YAML;
+- ORW JSON Schema;
+- declared Study/Assay/resource paths;
+- identifier consistency;
+- initialized workspace state;
+- spec-version consistency.
+
+If the source workspace is invalid, export stops before an output crate is created.
+
+### 2. RO-Crate 1.3 base validation
+
+ORW validates the generated graph for the base RO-Crate requirements relevant to its attached-directory exporter, including:
+
+- the RO-Crate 1.3 context;
+- flattened `@graph`;
+- `@id` and `@type` on graph entities;
+- exact `ro-crate-metadata.json` descriptor identifier;
+- descriptor type `CreativeWork`;
+- descriptor `about` relationship to the Root Data Entity;
+- Root Data Entity type `Dataset`;
+- ISO 8601 `datePublished`;
+- local/fragment reference resolution;
+- presence of attached local File/Dataset entities;
+- reachability of attached Data Entities from the Root through `hasPart`.
+
+Recommended metadata such as a missing license is reported as a warning rather than making the crate invalid.
+
+This validator is **not presented as an independent exhaustive implementation of every RO-Crate recommendation**, nor as an ORW RO-Crate Profile validator. Its purpose is to deterministically validate the base constraints used by the ORW 1.3 exporter.
+
+### 3. ORW mapping/golden tests
+
+The test suite covers:
+
+- one Study / one Assay;
 - multiple Studies;
 - multiple Assays;
-- external data only;
-- mixed local + external data;
 - contributor with ORCID;
-- restricted/private data references;
-- workspace with no scientifically meaningful Assay.
+- no-Assay workspace;
+- external-only resources;
+- mixed attached + external resources;
+- private local resources not being copied;
+- URI encoding of local Data Entity identifiers;
+- invalid source workspace refusal;
+- destination overwrite protection;
+- generated-crate validation.
 
-## Non-goals for the first exporter
+A golden semantic fixture checks that the ORW → RO-Crate graph remains stable across implementation changes.
 
-The first implementation does not need to:
+## CLI
 
-- make RO-Crate the editable project database;
-- support arbitrary RO-Crate → ORW import;
-- copy all raw data into the package;
-- encode every future provenance capability;
-- define a mature ORW RO-Crate profile before the mapping is tested.
+```bash
+orw export my-study \
+  --format ro-crate \
+  --output dist/my-study-ro-crate
+```
 
-The priority is a deterministic, validated export from the existing ORW canonical model.
+The default source workspace is the current directory:
+
+```bash
+orw export --format ro-crate --output dist/crate
+```
+
+Current format support:
+
+```text
+ro-crate
+```
+
+Future export targets may include ISA-JSON, ISA-Tab, DataCite metadata, and repository-specific deposit packages while consuming the same canonical ORW model.
+
+## ORW RO-Crate Profile
+
+ORW **does not yet claim a dedicated RO-Crate Profile**.
+
+A versioned profile should be introduced only after:
+
+1. the mapping has been exercised across representative preclinical workspace types;
+2. Study/Assay/process/data semantics have a stable representation;
+3. profile requirements and versioning are documented;
+4. independent consumers can identify the ORW semantics reliably;
+5. profile-level validation is implemented and tested.
+
+The current claim is narrower: ORW can emit a validated **RO-Crate 1.3 export** from its canonical workspace model.
+
+## Non-goals of the current exporter
+
+The current implementation does not:
+
+- make RO-Crate the editable ORW project database;
+- import arbitrary RO-Crates back into ORW;
+- copy every workspace file automatically;
+- copy restricted/private/embargoed content simply because it is referenced;
+- fetch external resources;
+- encode all future ISA process/provenance semantics;
+- claim an ORW RO-Crate Profile;
+- create ZIP archives yet.

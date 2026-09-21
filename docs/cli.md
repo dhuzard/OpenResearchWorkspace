@@ -152,6 +152,7 @@ Invalid workspaces return structured issues:
 | `1` | workspace validation failed |
 | `2` | setup/configuration/input error |
 | `3` | initialization refused because the workspace is already initialized |
+| `4` | export failed for a non-validation reason |
 
 These statuses are intended to be stable enough for CI and agent workflows.
 
@@ -167,12 +168,29 @@ orw init ──────────┘
 
 GitHub-specific logic handles permissions, form parsing, commits, and feedback. It does not define a separate scientific workspace model.
 
-## Next CLI capability
+## Export a validated RO-Crate
 
-The next planned command is the interoperability exporter:
+The CLI can export an ORW workspace as an attached RO-Crate 1.3 directory:
 
 ```bash
-orw export my-study --format ro-crate
+orw export my-study \
+  --format ro-crate \
+  --output dist/my-study-ro-crate
 ```
 
-That belongs to the RO-Crate implementation milestone rather than this CLI MVP.
+The source workspace is validated before export. An invalid workspace exits with status `1` and no crate is produced.
+
+Existing output is protected by default. Explicit replacement requires:
+
+```bash
+orw export my-study \
+  --format ro-crate \
+  --output dist/my-study-ro-crate \
+  --force
+```
+
+A non-validation export error, such as an existing destination without `--force`, exits with status `4`.
+
+The exporter always preserves the canonical `.research/project.yml` in the crate. Local resource content is copied only when the resource is explicitly declared `access: open`; private, restricted, embargoed, or unknown resources remain metadata references.
+
+See [RO-Crate interoperability and export](ro-crate.md) for the mapping and validation boundary.

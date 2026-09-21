@@ -9,6 +9,7 @@ import sys
 from typing import Any, Sequence
 
 from . import __version__
+from .export.rocrate import ROCrateExportError, export_rocrate
 from .initialize import WorkspaceAlreadyInitialized, create_workspace
 from .model import ACCESS_LEVELS, SetupConfig, SetupValidationError
 from .validate import validate_workspace
@@ -17,6 +18,7 @@ EXIT_OK = 0
 EXIT_INVALID = 1
 EXIT_INPUT = 2
 EXIT_ALREADY_INITIALIZED = 3
+EXIT_EXPORT = 4
 
 
 def _nonempty(prompt: str) -> str:
@@ -181,6 +183,47 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     return EXIT_OK if report.valid else EXIT_INVALID
 
 
+def _cmd_export(args: argparse.Namespace) -> int:
+    try:
+        result = export_rocrate(
+            args.workspace,
+            args.output,
+            force=args.force,
+        )
+    except ROCrateExportError as exc:
+        print(f"Export error: {exc}", file=sys.stderr)
+        if exc.workspace_report is not None:
+            for issue in exc.workspace_report.issues:
+                location = f" ({issue.path})" if issue.path else ""
+                print(
+                    f"- [{issue.code}]{location} {issue.message}",
+                    file=sys.stderr,
+                )
+            return EXIT_INVALID
+        return EXIT_EXPORT
+    except OSError as exc:
+        print(f"Export error: {exc}", file=sys.stderr)
+        return EXIT_EXPORT
+
+    print(f"Created RO-Crate 1.3 export: {result.output}")
+    print(f"Metadata: {result.metadata_path}")
+    print(f"Entities: {result.entity_count}")
+    if result.copied_paths:
+        print(f"Packaged paths: {len(result.copied_paths)}")
+    if result.validation.warnings:
+        print(
+            f"Validation warnings: {len(result.validation.warnings)}",
+            file=sys.stderr,
+        )
+        for warning in result.validation.warnings:
+            location = f" ({warning.path})" if warning.path else ""
+            print(
+                f"- [{warning.code}]{location} {warning.message}",
+                file=sys.stderr,
+            )
+    return EXIT_OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="orw",
@@ -239,6 +282,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="Emit a machine-readable JSON validation report.",
     )
     validate_parser.set_defaults(func=_cmd_validate)
+
+    export_parser = subparsers.add_parser(
+        "export",
+        help="Export a validated workspace to an interoperability package.",
+        description=(
+            "Export canonical ORW metadata and eligible resources as a validated "
+            "interoperability package. RO-Crate export never replaces the "
+            "canonical .research/project.yml source record."
+        ),
+    )
+    export_parser.add_argument(
+        "workspace",
+        nargs="?",
+        default=".",
+        help="Workspace folder to export (default: current folder).",
+    )
+    export_parser.add_argument(
+        "--format",
+        choices=("ro-crate",),
+        default="ro-crate",
+        help="Export format (currently: ro-crate).",
+    )
+    export_parser.add_argument(
+        "--output",
+        required=True,
+        metavar="DIR",
+        help="Destination directory for the generated package.",
+    )
+    export_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing output directory after the new crate validates.",
+    )
+    export_parser.set_defaults(func=_cmd_export)
 
     return parser
 

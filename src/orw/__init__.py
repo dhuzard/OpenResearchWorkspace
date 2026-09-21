@@ -1,5 +1,13 @@
 """Provider-neutral OpenResearchWorkspace core."""
 
+from .export import (
+    ExportResult,
+    ROCrateExportError,
+    ROCrateValidationIssue,
+    ROCrateValidationReport,
+    export_rocrate,
+    validate_rocrate,
+)
 from .initialize import (
     ImplementationContext,
     WorkspaceAlreadyInitialized,
@@ -10,6 +18,10 @@ from .model import SetupConfig, SetupValidationError
 from .validate import ValidationIssue, ValidationReport, validate_workspace
 
 __all__ = [
+    "ExportResult",
+    "ROCrateExportError",
+    "ROCrateValidationIssue",
+    "ROCrateValidationReport",
     "ImplementationContext",
     "SetupConfig",
     "SetupValidationError",
@@ -18,6 +30,8 @@ __all__ = [
     "WorkspaceAlreadyInitialized",
     "WorkspaceResult",
     "create_workspace",
+    "export_rocrate",
+    "validate_rocrate",
     "validate_workspace",
 ]
 

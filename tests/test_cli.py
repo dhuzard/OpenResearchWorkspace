@@ -40,6 +40,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("Create and validate portable OpenResearchWorkspace projects", result.stdout)
         self.assertIn("init", result.stdout)
         self.assertIn("validate", result.stdout)
+        self.assertIn("export", result.stdout)
 
     def test_init_from_config_and_validate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -180,6 +181,76 @@ class CliTests(unittest.TestCase):
                     for issue in payload["issues"]
                 )
             )
+
+    def test_export_rocrate_command(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workspace = root / "study"
+            crate = root / "crate"
+
+            created = run_cli(
+                "init",
+                str(workspace),
+                "--config",
+                str(FIXTURES / "basic.json"),
+                cwd=root,
+            )
+            self.assertEqual(created.returncode, 0, msg=created.stderr)
+
+            exported = run_cli(
+                "export",
+                str(workspace),
+                "--format",
+                "ro-crate",
+                "--output",
+                str(crate),
+                cwd=root,
+            )
+            self.assertEqual(exported.returncode, 0, msg=exported.stderr)
+            self.assertIn("Created RO-Crate 1.3 export:", exported.stdout)
+            self.assertTrue((crate / "ro-crate-metadata.json").is_file())
+            self.assertTrue((crate / ".research" / "project.yml").is_file())
+
+    def test_export_invalid_workspace_returns_validation_exit_code(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            exported = run_cli(
+                "export",
+                str(root / "not-a-workspace"),
+                "--format",
+                "ro-crate",
+                "--output",
+                str(root / "crate"),
+                cwd=root,
+            )
+            self.assertEqual(exported.returncode, 1)
+            self.assertIn("Export error:", exported.stderr)
+            self.assertFalse((root / "crate").exists())
+
+    def test_export_existing_output_returns_export_exit_code(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workspace = root / "study"
+            crate = root / "crate"
+            created = run_cli(
+                "init",
+                str(workspace),
+                "--config",
+                str(FIXTURES / "basic.json"),
+                cwd=root,
+            )
+            self.assertEqual(created.returncode, 0, msg=created.stderr)
+            crate.mkdir()
+
+            exported = run_cli(
+                "export",
+                str(workspace),
+                "--output",
+                str(crate),
+                cwd=root,
+            )
+            self.assertEqual(exported.returncode, 4)
+            self.assertIn("Use --force", exported.stderr)
 
     def test_missing_workspace_root_is_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

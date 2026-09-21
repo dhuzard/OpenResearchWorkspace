@@ -1,0 +1,74 @@
+{
+  "context": "https://w3id.org/ro/crate/1.3/context",
+  "root": {
+    "id": "./",
+    "type": "Dataset",
+    "name": "Effects of light exposure on mouse activity",
+    "identifier": "effects-of-light-exposure-on-mouse-activity",
+    "keywords": [
+      "behaviour",
+      "circadian rhythm",
+      "mouse"
+    ],
+    "authors": [
+      "#person-1"
+    ],
+    "hasPart": [
+      ".research/project.yml",
+      "README.md",
+      "#study-light-exposure-study",
+      "#resource-1"
+    ]
+  },
+  "entities": [
+    {
+      "id": "ro-crate-metadata.json",
+      "type": "CreativeWork"
+    },
+    {
+      "id": "./",
+      "type": "Dataset",
+      "name": "Effects of light exposure on mouse activity",
+      "identifier": "effects-of-light-exposure-on-mouse-activity"
+    },
+    {
+      "id": ".research/project.yml",
+      "type": "File",
+      "name": "Canonical ORW project record"
+    },
+    {
+      "id": "README.md",
+      "type": "File",
+      "name": "ORW project overview"
+    },
+    {
+      "id": "#person-1",
+      "type": "Person",
+      "name": "Jane Researcher"
+    },
+    {
+      "id": "#study-light-exposure-study",
+      "type": "Dataset",
+      "name": "Light exposure study",
+      "identifier": "light-exposure-study"
+    },
+    {
+      "id": "#assay-light-exposure-study-behaviour",
+      "type": "Dataset",
+      "name": "Behaviour",
+      "identifier": "behaviour"
+    },
+    {
+      "id": "#resource-1",
+      "type": "Dataset",
+      "name": "Authoritative/raw research data",
+      "identifier": "Institutional research server",
+      "access": "private"
+    }
+  ],
+  "relations": {
+    "#study-light-exposure-study": [
+      "#assay-light-exposure-study-behaviour"
+    ]
+  }
+}

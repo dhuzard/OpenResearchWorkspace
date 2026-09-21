@@ -27,6 +27,7 @@ The local CLI is now implemented for researchers, automation, and agents that do
 python -m pip install .
 orw init my-study
 orw validate my-study
+orw export my-study --format ro-crate --output dist/my-study-ro-crate
 ```
 
 Non-interactive initialization uses the same normalized setup contract as the GitHub adapter:
@@ -129,7 +130,7 @@ The canonical scientific record remains `.research/project.yml`. GitHub-specific
 - [Portable CLI/browser architecture](docs/portable-implementations.md)
 - [RO-Crate interoperability and export](docs/ro-crate.md)
 
-The browser generator is planned as a static, local-first interface: fill the scientific form, preview the ISA structure, and download a workspace ZIP without requiring a Git provider account or server-side persistence. The CLI currently implements `orw init` and `orw validate`; `orw export --format ro-crate` is the next planned interoperability command.
+The browser generator is planned as a static, local-first interface: fill the scientific form, preview the ISA structure, and download a workspace ZIP without requiring a Git provider account or server-side persistence. The CLI currently implements `orw init`, `orw validate`, and validated RO-Crate 1.3 export through `orw export --format ro-crate`.
 
 ## Researcher-facing workflow
 
@@ -226,9 +227,9 @@ ORW uses one standard and one template, with initialization presets rather than 
 
 **v0 — ISA-aligned workspace + current GitHub adapter:** create Investigation, beginner setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
 
-**v0.x — Portable creation layer:** provider-neutral generator and `orw init` / `orw validate` CLI implemented; static browser generator remains planned.
+**v0.x — Portable creation layer:** provider-neutral generator, `orw init` / `orw validate`, and validated RO-Crate 1.3 directory export implemented; static browser generator remains planned.
 
-**v1 — FAIR + interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, validated RO-Crate 1.3 export, FAIR Signposting.
+**v1 — FAIR + interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, maturation of RO-Crate mappings/profile requirements, FAIR Signposting.
 
 **v2 — Reproducible workspace:** ISA process/provenance links plus environments, workflows and automated QA.
 
@@ -242,7 +243,7 @@ ORW is not intended to become a required central hosted application, require sci
 
 ## Status
 
-Early specification with a working GitHub-template adapter and provider-neutral local CLI. **ISA Investigation–Study–Assay is the required scientific organizational model.** Workspaces can now be created and validated without GitHub; the static browser generator remains planned for a no-install beginner path.
+Early specification with a working GitHub-template adapter and provider-neutral local CLI. **ISA Investigation–Study–Assay is the required scientific organizational model.** Workspaces can now be created, validated, and exported as RO-Crate 1.3 directories without GitHub; the static browser generator remains planned for a no-install beginner path.
 
 ## License
 
