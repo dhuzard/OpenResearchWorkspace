@@ -6,13 +6,39 @@ OpenResearchWorkspace (ORW) defines a portable format/contract for research work
 
 ORW is **forge-agnostic by design**. A valid workspace does not require GitHub, GitLab, Git, or any central ORW service.
 
-The current implemented beginner path uses the GitHub template:
+Two creation paths are implemented:
 
-> **Use template → set up project → collaborate → work → publish**
+- the existing beginner-oriented GitHub template and setup form;
+- a local `orw` CLI that creates and validates the same workspace without requiring Git or a hosted forge.
 
-That path remains supported, but GitHub is an adapter rather than part of the scientific format. The next portable implementations are a small local CLI and a browser generator that can create the same workspace without a forge account.
+The browser generator remains the next beginner-facing portable interface.
+
+> **Create workspace → collaborate/work wherever appropriate → validate → publish intentionally**
+
+GitHub remains an adapter rather than part of the scientific format.
 
 Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
+
+## Local CLI
+
+The local CLI is now implemented for researchers, automation, and agents that do not want to depend on GitHub:
+
+```bash
+python -m pip install .
+orw init my-study
+orw validate my-study
+```
+
+Non-interactive initialization uses the same normalized setup contract as the GitHub adapter:
+
+```bash
+orw init my-study --config setup.json
+orw validate my-study --json
+```
+
+The Python package is prepared but is **not yet published to PyPI**, so the installation command above refers to a local/downloaded ORW source release.
+
+See [CLI usage](docs/cli.md).
 
 ## New project? Set it up here
 
@@ -71,7 +97,7 @@ ORW has two distinct layers:
 1. **Specification / contract** — defines what an ORW-compatible research workspace must expose and how core concepts are represented.
 2. **Reference implementations** — practical ways to create or emit a conforming workspace.
 
-The currently implemented reference adapter is this GitHub template. Other software can produce ORW-compatible workspaces without GitHub, and planned CLI/browser implementations target the same canonical contract.
+The currently implemented interfaces are the GitHub template adapter and the local `orw` CLI. Both target the same provider-neutral generation contract. The browser generator is planned as the next portable interface.
 
 ## Portable implementation architecture
 
@@ -103,7 +129,7 @@ The canonical scientific record remains `.research/project.yml`. GitHub-specific
 - [Portable CLI/browser architecture](docs/portable-implementations.md)
 - [RO-Crate interoperability and export](docs/ro-crate.md)
 
-The browser generator is planned as a static, local-first interface: fill the scientific form, preview the ISA structure, and download a workspace ZIP without requiring a Git provider account or server-side persistence. The CLI is planned around `orw init`, `orw validate`, and `orw export --format ro-crate`.
+The browser generator is planned as a static, local-first interface: fill the scientific form, preview the ISA structure, and download a workspace ZIP without requiring a Git provider account or server-side persistence. The CLI currently implements `orw init` and `orw validate`; `orw export --format ro-crate` is the next planned interoperability command.
 
 ## Researcher-facing workflow
 
@@ -192,6 +218,7 @@ ORW uses one standard and one template, with initialization presets rather than 
 - [`docs/faq.md`](docs/faq.md) — practical FAQ.
 - [`docs/portable-implementations.md`](docs/portable-implementations.md) — provider-neutral core, CLI, browser generator, and forge-adapter plan.
 - [`docs/ro-crate.md`](docs/ro-crate.md) — RO-Crate interoperability/export design.
+- [`docs/cli.md`](docs/cli.md) — local CLI installation, initialization, validation, JSON output, and exit codes.
 - [`SPEC.md`](SPEC.md) — Research Workspace Core v0.1 draft specification.
 - [`schema/project.schema.json`](schema/project.schema.json) — machine-readable project schema.
 
@@ -199,7 +226,7 @@ ORW uses one standard and one template, with initialization presets rather than 
 
 **v0 — ISA-aligned workspace + current GitHub adapter:** create Investigation, beginner setup form, add Studies/Assays, collaboration, files/data references, metadata, publish/DOI.
 
-**v0.x — Portable creation layer:** extract the provider-neutral generator, add `orw init` / `orw validate`, and add a static browser generator that downloads a conforming workspace ZIP.
+**v0.x — Portable creation layer:** provider-neutral generator and `orw init` / `orw validate` CLI implemented; static browser generator remains planned.
 
 **v1 — FAIR + interoperability:** richer metadata, ontology annotations, ISA-JSON/ISA-Tab interoperability, persistent identifiers, DataCite export, validated RO-Crate 1.3 export, FAIR Signposting.
 
@@ -215,7 +242,7 @@ ORW is not intended to become a required central hosted application, require sci
 
 ## Status
 
-Early specification with a working GitHub-template adapter. **ISA Investigation–Study–Assay is the required scientific organizational model.** The current beginner initialization path is a GitHub setup form; provider-neutral CLI and browser creation paths are planned so that GitHub is optional infrastructure rather than a requirement.
+Early specification with a working GitHub-template adapter and provider-neutral local CLI. **ISA Investigation–Study–Assay is the required scientific organizational model.** Workspaces can now be created and validated without GitHub; the static browser generator remains planned for a no-install beginner path.
 
 ## License
 
