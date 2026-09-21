@@ -27,15 +27,19 @@
     },
     {
       "id": "./",
-      "type": "Dataset"
+      "type": "Dataset",
+      "name": "Effects of light exposure on mouse activity",
+      "identifier": "effects-of-light-exposure-on-mouse-activity"
     },
     {
       "id": ".research/project.yml",
-      "type": "File"
+      "type": "File",
+      "name": "Canonical ORW project record"
     },
     {
       "id": "README.md",
-      "type": "File"
+      "type": "File",
+      "name": "ORW project overview"
     },
     {
       "id": "#person-1",
@@ -45,16 +49,20 @@
     {
       "id": "#study-light-exposure-study",
       "type": "Dataset",
+      "name": "Light exposure study",
       "identifier": "light-exposure-study"
     },
     {
       "id": "#assay-light-exposure-study-behaviour",
       "type": "Dataset",
+      "name": "Behaviour",
       "identifier": "behaviour"
     },
     {
       "id": "#resource-1",
       "type": "Dataset",
+      "name": "Authoritative/raw research data",
+      "identifier": "Institutional research server",
       "access": "private"
     }
   ],
