@@ -71,7 +71,7 @@ ORW has two distinct layers:
 1. **Specification / contract** — defines what an ORW-compatible research workspace must expose and how core concepts are represented.
 2. **Reference implementations** — practical ways to create or emit a conforming workspace.
 
-The primary reference implementation is this GitHub template. Other software can produce ORW-compatible workspaces without using the template.
+The currently implemented reference adapter is this GitHub template. Other software can produce ORW-compatible workspaces without GitHub, and planned CLI/browser implementations target the same canonical contract.
 
 ## Portable implementation architecture
 
@@ -190,6 +190,8 @@ ORW uses one standard and one template, with initialization presets rather than 
 - [`docs/concepts.md`](docs/concepts.md) — ORW concepts and architecture.
 - [`docs/capabilities.md`](docs/capabilities.md) — FAIR, reproducibility, AI-ready, and agent-ready capability model.
 - [`docs/faq.md`](docs/faq.md) — practical FAQ.
+- [`docs/portable-implementations.md`](docs/portable-implementations.md) — provider-neutral core, CLI, browser generator, and forge-adapter plan.
+- [`docs/ro-crate.md`](docs/ro-crate.md) — RO-Crate interoperability/export design.
 - [`SPEC.md`](SPEC.md) — Research Workspace Core v0.1 draft specification.
 - [`schema/project.schema.json`](schema/project.schema.json) — machine-readable project schema.
 
