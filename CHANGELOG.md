@@ -5,6 +5,8 @@
 ### Added
 
 - Provider-neutral workspace generation, CLI initialization and validation, and RO-Crate 1.3 directory export.
+- Deterministic workspace mutation API (`orw.mutate`) with `add_study`, `add_assay`, `register_resource`, `add_contributor` and `update_project_metadata`, plus the `orw study add`, `orw assay add`, `orw resource add`, `orw contributor add` and `orw metadata set` commands. Every mutation supports `--dry-run` diff review and `--json` plans, refuses to start from a workspace that does not validate, detects identifier/path/name conflicts before writing, and rolls back if the result would not validate. Exit code `5` reports a conflict.
+- Structural YAML editing (`orw.edit`) so mutations replace only the located span of `.research/project.yml`, preserving comments, key order, quoting style and line endings.
 - Standalone browser generator with local ZIP creation and Python/browser contract checks.
 - Wheel/source-distribution smoke tests and a staged TestPyPI → public PyPI publishing workflow using the same verified artifacts.
 - Software version in `src/orw/_version.py`; specification/template versions remain independent.

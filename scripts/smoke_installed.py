@@ -35,6 +35,23 @@ def main():
             return result.stdout
         assert args.version in run("--version")
         run("init", "study", "--config", "setup.json")
+        # Mutations, including a dry run and the refusal paths, on the installed CLI.
+        run("study", "add", "Second study", "--workspace", "study", "--dry-run")
+        assert not (root / "study/studies/second-study").exists()
+        plan = json.loads(run("study", "add", "Second study", "--workspace", "study",
+                              "--dry-run", "--json"))
+        assert plan["applied"] is False and plan["operation"] == "study.add", plan
+        run("study", "add", "Second study", "--workspace", "study")
+        run("study", "add", "Second study", "--workspace", "study", code=5)
+        run("study", "add", "Third", "--workspace", "study", "--id", "Not A Slug", code=2)
+        run("assay", "add", "Open field", "--study", "second-study", "--workspace", "study")
+        run("contributor", "add", "Second author", "--orcid", "0000-0002-1825-0097",
+            "--workspace", "study")
+        run("resource", "add", "External archive", "--location", "Local storage",
+            "--access", "private", "--workspace", "study")
+        run("metadata", "set", "--status", "paused", "--keyword", "smoke",
+            "--workspace", "study")
+        assert (root / "study/studies/second-study/assays/open-field/data/raw").is_dir()
         assert json.loads(run("validate", "study", "--json"))["valid"]
         run("export", "study", "--output", "crate")
         run("export", "study", "--output", "crate", "--force")

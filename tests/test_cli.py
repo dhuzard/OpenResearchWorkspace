@@ -261,6 +261,131 @@ class CliTests(unittest.TestCase):
             self.assertEqual(payload["issues"][0]["code"], "missing_workspace_root")
 
 
+class MutationCliTests(unittest.TestCase):
+    """The mutation commands are the researcher-facing half of the mutation API."""
+
+    def setUp(self) -> None:
+        self._temporary = tempfile.TemporaryDirectory(prefix="orw-cli-mutate-")
+        self.addCleanup(self._temporary.cleanup)
+        self.root = Path(self._temporary.name)
+        self.workspace = self.root / "study"
+        created = run_cli(
+            "init", str(self.workspace), "--config", str(FIXTURES / "basic.json"),
+            cwd=self.root,
+        )
+        self.assertEqual(created.returncode, 0, msg=created.stderr)
+
+    def mutate(self, *args: str):
+        return run_cli(*args, "--workspace", str(self.workspace), cwd=self.root)
+
+    def record(self) -> str:
+        return (self.workspace / ".research" / "project.yml").read_text(encoding="utf-8")
+
+    def test_help_lists_the_mutation_commands(self) -> None:
+        result = run_cli("--help")
+        self.assertEqual(result.returncode, 0)
+        for command in ("study", "assay", "resource", "contributor", "metadata"):
+            self.assertIn(command, result.stdout)
+
+    def test_study_and_assay_round_trip(self) -> None:
+        study = self.mutate("study", "add", "Sleep deprivation")
+        self.assertEqual(study.returncode, 0, msg=study.stderr)
+        self.assertIn("sleep-deprivation", study.stdout)
+
+        assay = self.mutate("assay", "add", "Open field", "--study", "sleep-deprivation")
+        self.assertEqual(assay.returncode, 0, msg=assay.stderr)
+
+        validated = run_cli("validate", str(self.workspace), cwd=self.root)
+        self.assertEqual(validated.returncode, 0, msg=validated.stderr)
+        self.assertTrue(
+            (self.workspace / "studies/sleep-deprivation/assays/open-field").is_dir()
+        )
+
+    def test_dry_run_leaves_the_workspace_untouched(self) -> None:
+        before = self.record()
+        result = self.mutate("study", "add", "Sleep deprivation", "--dry-run")
+
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("Dry run: nothing was written.", result.stdout)
+        self.assertIn('+  - identifier: "sleep-deprivation"', result.stdout)
+        self.assertEqual(self.record(), before)
+        self.assertFalse((self.workspace / "studies" / "sleep-deprivation").exists())
+
+    def test_json_plan_is_machine_readable(self) -> None:
+        result = self.mutate("study", "add", "Sleep deprivation", "--dry-run", "--json")
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["applied"])
+        self.assertEqual(payload["operation"], "study.add")
+        self.assertEqual(payload["identifier"], "sleep-deprivation")
+        self.assertEqual(payload["record"], ".research/project.yml")
+        self.assertIn("studies/sleep-deprivation", payload["new_directories"])
+
+    def test_conflicts_have_their_own_exit_code(self) -> None:
+        first = self.mutate("study", "add", "Sleep deprivation")
+        self.assertEqual(first.returncode, 0, msg=first.stderr)
+
+        second = self.mutate("study", "add", "Sleep deprivation")
+        self.assertEqual(second.returncode, 5)
+        self.assertIn("Conflict:", second.stderr)
+
+    def test_input_errors_have_the_input_exit_code(self) -> None:
+        result = self.mutate("study", "add", "Sleep", "--id", "Not A Slug")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Input error:", result.stderr)
+
+    def test_an_invalid_workspace_is_refused_before_any_write(self) -> None:
+        (self.workspace / ".research" / "initialized").unlink()
+        before = self.record()
+
+        result = self.mutate("contributor", "add", "Ada Lovelace")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("does not validate", result.stderr)
+        self.assertIn("missing_initialized", result.stderr)
+        self.assertEqual(self.record(), before)
+
+    def test_contributor_resource_and_metadata_commands(self) -> None:
+        contributor = self.mutate(
+            "contributor", "add", "Ada Lovelace",
+            "--role", "Analyst", "--orcid", "0000-0002-1825-0097",
+        )
+        self.assertEqual(contributor.returncode, 0, msg=contributor.stderr)
+
+        resource = self.mutate(
+            "resource", "add", "Imaging archive",
+            "--type", "dataset", "--location", "https://example.org/a", "--access", "restricted",
+        )
+        self.assertEqual(resource.returncode, 0, msg=resource.stderr)
+
+        metadata = self.mutate(
+            "metadata", "set", "--status", "paused", "--keyword", "sleep", "--keyword", "mouse",
+        )
+        self.assertEqual(metadata.returncode, 0, msg=metadata.stderr)
+
+        validated = run_cli("validate", str(self.workspace), cwd=self.root)
+        self.assertEqual(validated.returncode, 0, msg=validated.stderr)
+
+        record = self.record()
+        self.assertIn("Ada Lovelace", record)
+        self.assertIn("Imaging archive", record)
+        self.assertIn('status: "paused"', record)
+
+    def test_metadata_requires_a_field(self) -> None:
+        result = self.mutate("metadata", "set")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Input error:", result.stderr)
+
+    def test_metadata_refuses_contradictory_keyword_options(self) -> None:
+        result = self.mutate("metadata", "set", "--keyword", "sleep", "--clear-keywords")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("not both", result.stderr)
+
+    def test_a_subcommand_group_requires_an_action(self) -> None:
+        result = run_cli("study", cwd=self.root)
+        self.assertEqual(result.returncode, 2)
+
+
 class PackagingTests(unittest.TestCase):
     def test_packaged_project_schema_matches_canonical_schema(self) -> None:
         canonical = (REPO_ROOT / "schema" / "project.schema.json").read_text(
