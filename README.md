@@ -6,12 +6,13 @@ OpenResearchWorkspace (ORW) defines a portable format/contract for research work
 
 ORW is **forge-agnostic by design**. A valid workspace does not require GitHub, GitLab, Git, or any central ORW service.
 
-Two creation paths are implemented:
+Three creation paths are implemented:
 
-- the existing beginner-oriented GitHub template and setup form;
-- a local `orw` CLI that creates and validates the same workspace without requiring Git or a hosted forge.
+- a **static browser generator**: form → review → local workspace ZIP, with no account or installation;
+- the beginner-oriented GitHub template and setup form;
+- a local `orw` CLI for creation, validation, and RO-Crate export.
 
-The browser generator remains the next beginner-facing portable interface.
+The browser is a portable static build, not a required hosted ORW service. A public hosted instance is not automatically deployed.
 
 > **Create workspace → collaborate/work wherever appropriate → validate → publish intentionally**
 
@@ -19,7 +20,25 @@ GitHub remains an adapter rather than part of the scientific format.
 
 Ordinary researchers should not need to learn Git, YAML, CI/CD, branches, tags, or GitHub Actions to use the workspace.
 
-## New project? Set it up here
+## Browser generator — no account required
+
+Open a **built** copy of the generator, describe your project, review the exact
+folder tree and metadata, then download the workspace ZIP. Keep the `.research`
+folder when extracting it. The ZIP contains scaffolding and entered metadata;
+no research data are read or uploaded.
+
+See the [browser guide](docs/browser-generator.md) for the researcher workflow
+and distribution instructions. Maintainers build `dist/browser/index.html` with
+`python scripts/build_browser.py` after installing the repository's Python
+dependencies. That single file can be distributed directly or served from any
+static host; researchers do not need Python or Node to use it.
+
+**Current scope:** one Investigation, one Study, and an optional first Assay;
+local schema checks, review confirmation, and ZIP download. Browser editing of
+existing workspaces, additional Studies/Assays, and browser RO-Crate download
+remain planned. RO-Crate export already exists in the CLI.
+
+## GitHub template: set up a new project
 
 If you are reading this README **inside a new repository that you just created from the ORW template**, use the setup form below:
 
@@ -53,9 +72,9 @@ See [`docs/isa.md`](docs/isa.md) for the rationale and mapping.
 
 ## Start here
 
-If you are a researcher, begin with the step-by-step guide in [`docs/getting-started.md`](docs/getting-started.md) and the project skeleton in [`docs/project-structure.md`](docs/project-structure.md).
+Choose the [browser guide](docs/browser-generator.md) for local ZIP creation, the [GitHub setup guide](docs/getting-started.md) for the template workflow, or [CLI usage](docs/cli.md) for command-line automation. All use the same [scientific project structure](docs/project-structure.md).
 
-### Visual walkthrough
+### Visual walkthrough — GitHub path
 
 [▶ Watch the annotated setup walkthrough (WebM)](docs/assets/getting-started/orw-getting-started.webm)
 
@@ -76,7 +95,7 @@ ORW has two distinct layers:
 1. **Specification / contract** — defines what an ORW-compatible research workspace must expose and how core concepts are represented.
 2. **Reference implementations** — practical ways to create or emit a conforming workspace.
 
-The currently implemented interfaces are the GitHub template adapter and the local `orw` CLI. Both target the same provider-neutral generation contract. The browser generator is planned as the next portable interface.
+The implemented interfaces are the browser generator, the GitHub template adapter, and the local `orw` CLI. They target the same canonical schemas and generation contract. Browser scaffolding is built from the Python core templates and checked against shared fixtures rather than maintained as a second scientific model.
 
 ## Portable implementation architecture
 
@@ -108,9 +127,9 @@ The canonical scientific record remains `.research/project.yml`. GitHub-specific
 - [Portable CLI/browser architecture](docs/portable-implementations.md)
 - [RO-Crate interoperability and export](docs/ro-crate.md)
 
-The browser generator is planned as a static, local-first interface: fill the scientific form, preview the ISA structure, and download a workspace ZIP without requiring a Git provider account or server-side persistence. The CLI currently implements `orw init`, `orw validate`, and validated RO-Crate 1.3 export through `orw export --format ro-crate`.
+The browser generator implements local form validation, structure/metadata review, and ZIP download without a Git-provider account or backend. The CLI implements `orw init`, `orw validate`, and RO-Crate 1.3 directory export through `orw export --format ro-crate`. Browser RO-Crate download and a hosted deployment are not included in the browser MVP.
 
-## Researcher-facing workflow
+## GitHub researcher-facing workflow
 
 ```text
 Use this template
@@ -174,7 +193,7 @@ my-research-project/                 # Investigation workspace
 ├── references/
 ├── project-docs/
 ├── .research/
-└── .github/
+└── .github/                        # optional GitHub adapter; absent from browser ZIP
 ```
 
 The hierarchy follows ISA: the workspace represents an Investigation; `studies/` contains its research units; `assays/` contains measurements/tests belonging to a Study. Analysis and results remain close to the Study they interpret, while Investigation-wide references and project documentation remain at the root.
@@ -190,7 +209,7 @@ Every ORW-compatible workspace should be:
 - **Machine readable** — one canonical structured project description with ISA-aligned scientific semantics.
 - **Reproducible** — subjects/samples, processes, assays, data, analyses and outputs can be related through provenance.
 - **Agent ready** — AI systems can discover project context without reverse-engineering filenames or repository history.
-- **Interoperable rather than bespoke** — ORW reuses ISA for experimental structure instead of defining a competing Investigation/Study/Assay model.
+- **Interoperable rather than bespoke** — ORW reuses ISA for scientific hierarchy instead of defining a competing Investigation/Study/Assay model.
 
 ## Canonical machine-readable files
 
@@ -220,6 +239,8 @@ ORW uses one standard and one template, with initialization presets rather than 
 - [`docs/portable-implementations.md`](docs/portable-implementations.md) — provider-neutral core, CLI, browser generator, and forge-adapter plan.
 - [`docs/ro-crate.md`](docs/ro-crate.md) — RO-Crate interoperability/export design.
 - [`docs/cli.md`](docs/cli.md) — local CLI installation, initialization, validation, JSON output, and exit codes.
+- [`docs/browser-generator.md`](docs/browser-generator.md) — browser workflow, static distribution, privacy boundary, and current limitations.
+- [`browser/README.md`](browser/README.md) — build and cross-language/browser testing instructions.
 - [`SPEC.md`](SPEC.md) — Research Workspace Core v0.1 draft specification.
 - [`schema/project.schema.json`](schema/project.schema.json) — machine-readable project schema.
 
@@ -235,7 +256,8 @@ ORW uses one standard and one template, with initialization presets rather than 
 | RO-Crate interoperability | **Implemented** | Validated RO-Crate 1.3 directory export with `orw export --format ro-crate` |
 | Restricted-data protection during export | **Implemented** | Local content is attached only when explicitly marked `access: open`; restricted/private/embargoed resources stay metadata-only |
 | Forge-independent use | **Implemented** | Core, CLI, validation, and export work without GitHub/GitLab/Git |
-| Browser workspace generator | **Planned next** | Static local-first form + ZIP download, no account/backend required ([#23](https://github.com/dhuzard/OpenResearchWorkspace/issues/23)) |
+| Browser workspace generator | **Implemented — static build** | Local form, schema checks, exact-file review, and ZIP download; shared core templates and fixtures ([guide](docs/browser-generator.md)) |
+| Browser editing and browser RO-Crate download | **Planned** | Current browser creates new workspaces only; use the CLI for RO-Crate export |
 | Intentional publish/DOI workflow | **Planned** | Validate → preview → explicit confirmation → archive/PID ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)) |
 | FAIR capability layer | **Planned** | CITATION.cff, DataCite, PID/license checks, FAIR Signposting, FAIR-readiness reporting ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
 | Reproducibility/provenance | **Planned** | Environments, workflows, checksums, provenance, reproducibility reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)) |
@@ -258,11 +280,11 @@ DONE
   CLI init + validate
         ↓
   RO-Crate 1.3 export
+        ↓
+  static browser generator (#23)
 
 NEXT
-  static browser generator (#23)
-        ↓
-  richer FAIR / publication capabilities
+  richer metadata editing / FAIR / publication capabilities
         ↓
   reproducibility + provenance
         ↓
@@ -281,9 +303,9 @@ The architectural rule remains the same throughout: **scientific rules live in t
 
 ## Roadmap
 
-**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; validated RO-Crate 1.3 directory export; shared contract/golden fixtures.
+**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; validated RO-Crate 1.3 directory export; static browser generator; shared contract/golden fixtures and browser acceptance tests.
 
-**Next — browser-first portability:** static local-first workspace generator with form validation, ISA structure preview, local ZIP download, and no required account/backend ([#23](https://github.com/dhuzard/OpenResearchWorkspace/issues/23)).
+**Browser-first portability — implemented:** static local-first setup, ISA structure/metadata review, and ZIP download without an account/backend ([browser guide](docs/browser-generator.md)). Distribution and hosting are separate deployment choices, not automatic publication. Browser editing and browser RO-Crate download remain follow-ups.
 
 **V0 completion — scientist-facing project lifecycle:** simplify adding Studies/Assays, collaboration and file/data-reference workflows; add intentional publication/archive/DOI flow with validation, preview, and explicit confirmation ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)).
 
@@ -301,7 +323,7 @@ ORW is not intended to become a required central hosted application, require sci
 
 ## Status
 
-Early specification with a working GitHub-template adapter and provider-neutral local CLI. **ISA Investigation–Study–Assay is the required scientific organizational model.** Workspaces can now be created, validated, and exported as RO-Crate 1.3 directories without GitHub; the static browser generator remains planned for a no-install beginner path.
+Early specification with a working browser generator, GitHub-template adapter, and provider-neutral local CLI. **ISA Investigation–Study–Assay is the required scientific organizational model.** The browser provides no-install workspace creation; the CLI provides validation and RO-Crate directory export. No central hosted service, automatic deposition/DOI workflow, or browser RO-Crate export is claimed.
 
 ## License
 

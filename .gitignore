@@ -1,2 +1,9 @@
 # Local browser profile used by the one-shot documentation capture
 .orw-playwright-github/
+
+# Local builds and test output (not scientific workspace data)
+/dist/
+/build/
+*.egg-info/
+__pycache__/
+*.py[cod]
