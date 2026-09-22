@@ -1,34 +1,42 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=77,<82"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "openresearchworkspace"
-version = "0.1.0"
-description = "Portable tools for creating and validating OpenResearchWorkspace projects"
-readme = "README.md"
+dynamic = ["version"]
+description = "Local-first research workspace creation, validation, and RO-Crate export"
+readme = "docs/PYPI_README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [
-  { name = "OpenResearchWorkspace contributors" }
-]
-dependencies = [
-  "PyYAML>=6.0,<7",
-  "jsonschema>=4.22,<5"
-]
+license-files = ["LICENSE"]
+authors = [{ name = "OpenResearchWorkspace contributors" }]
+dependencies = ["PyYAML>=6.0,<7", "jsonschema>=4.22,<5"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
   "Intended Audience :: Science/Research",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only"
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.13",
 ]
+
+[project.urls]
+Homepage = "https://github.com/dhuzard/OpenResearchWorkspace"
+Documentation = "https://github.com/dhuzard/OpenResearchWorkspace/blob/main/docs/cli.md"
+Repository = "https://github.com/dhuzard/OpenResearchWorkspace"
+Issues = "https://github.com/dhuzard/OpenResearchWorkspace/issues"
+Changelog = "https://github.com/dhuzard/OpenResearchWorkspace/blob/main/CHANGELOG.md"
 
 [project.scripts]
 orw = "orw.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "orw._version.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-orw = ["schemas/*.json"]
+orw = ["schemas/*.json", "templates/*.yml"]

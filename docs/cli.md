@@ -1,32 +1,18 @@
 # ORW command-line interface
 
-The ORW CLI creates and validates research workspaces locally without requiring Git, GitHub, GitLab, or another hosted forge.
+Create, validate and export research workspaces locally without requiring Git, GitHub or another hosted forge. This is the `0.1.0a1` evaluation alpha. A release-preparation commit is not proof of publication; see the [release process](releases.md).
 
-## Status
-
-The CLI is implemented in the repository and packaged as the `orw` command.
-
-The Python distribution metadata currently uses the provisional package name `openresearchworkspace`. The package has **not** been published to PyPI as part of this milestone, so do not assume `pipx install openresearchworkspace` is available from the public package index yet.
-
-## Install from a local ORW source release
+## Install
 
 From an extracted ORW source directory:
 
 ```bash
 python -m pip install .
-```
-
-For an isolated command-line installation with `pipx`:
-
-```bash
-pipx install .
-```
-
-After installation:
-
-```bash
+# Alternatively: pipx install .
 orw --version
 ```
+
+After the public alpha is actually published, the versioned package can be installed with `pipx install openresearchworkspace==0.1.0a1`. Python 3.10 or later is required. Browser users do not need to install Python.
 
 ## Create a workspace interactively
 
@@ -34,163 +20,89 @@ orw --version
 orw init my-study
 ```
 
-ORW asks for:
+The destination must be new or empty. An existing README, data, metadata, or any other content causes refusal without overwriting those files. There is no general initialization `--force` option. The explicit GitHub template adapter has a separate checked initialization path that preserves its original overview and placeholder metadata.
 
-- project title;
-- short description;
-- researcher name;
-- optional ORCID;
-- first Study title;
-- optional first measurement/Assay;
-- authoritative data location;
-- data access level;
-- optional keywords.
-
-An Assay can be omitted when it is not scientifically applicable.
-
-The resulting workspace uses the same provider-neutral generation core as the GitHub setup adapter.
+The questions cover project title, description, researcher name, optional ORCID, first Study, optional measurement/Assay, authoritative data location, access level and keywords. Leave the Assay blank when it is not scientifically applicable. Initial creation supports one Study and an optional first Assay; richer workspace editing remains planned.
 
 ## Create a workspace non-interactively
-
-For CI, agents, scripts, or reproducible setup, provide the normalized JSON setup contract:
 
 ```bash
 orw init my-study --config setup.json
 ```
 
-Example:
+Example normalized setup contract:
 
 ```json
 {
   "project_title": "Effects of light exposure on mouse activity",
   "project_description": "Study of altered light exposure and spontaneous activity.",
-  "creator": {
-    "name": "Jane Researcher",
-    "orcid": "0000-0002-1825-0097"
-  },
-  "first_study": {
-    "title": "Light exposure study"
-  },
-  "first_assay": {
-    "title": "Behaviour"
-  },
-  "data": {
-    "location": "Institutional research server",
-    "access": "private"
-  },
+  "creator": {"name": "Jane Researcher", "orcid": "0000-0002-1825-0097"},
+  "first_study": {"title": "Light exposure study"},
+  "first_assay": {"title": "Behaviour"},
+  "data": {"location": "Institutional research server", "access": "private"},
   "keywords": ["behaviour", "circadian rhythm", "mouse"]
 }
 ```
 
-The same contract can be streamed through standard input:
+Use `"first_assay": null` for no Assay. JSON can also arrive through standard input:
 
 ```bash
 cat setup.json | orw init my-study --config -
 ```
 
-This is the preferred interface for automation because it avoids interactive prompts.
+In PowerShell, `Get-Content -Raw setup.json | orw init my-study --config -` supplies the same contract. This is appropriate for scripts/agents; it does not bypass validation or overwrite rules.
 
 ## Validate a workspace
 
 ```bash
 orw validate my-study
-```
-
-Validation currently checks:
-
-1. the canonical `.research/project.yml` can be parsed as YAML;
-2. project metadata validate against the ORW Core JSON Schema;
-3. Study, Assay, and local resource paths declared in metadata exist;
-4. declared paths are relative and do not escape the workspace;
-5. an Assay path remains inside its parent Study path when both are declared;
-6. Study identifiers are unique;
-7. Assay identifiers are unique within each Study;
-8. `.research/workspace.yml` is parseable and records an initialized workspace;
-9. `.research/initialized` is present and consistent;
-10. project/workspace specification versions agree;
-11. the canonical project-record location remains `.research/project.yml`.
-
-Validation does not require a `.git/` or `.github/` directory.
-
-## Machine-readable validation
-
-```bash
 orw validate my-study --json
 ```
 
-Example successful output:
+Validation parses canonical project YAML, applies the bundled ORW JSON Schema, checks declared paths, Study/Assay containment and identifier uniqueness, and checks initialized-state/spec-version consistency. No `.git` or `.github` directory is required. The report is not a FAIR certification or a complete scientific quality/security assessment.
+
+Successful JSON report:
 
 ```json
-{
-  "valid": true,
-  "workspace": "/path/to/my-study",
-  "issues": []
-}
+{"valid": true, "workspace": "/path/to/my-study", "issues": []}
 ```
 
-Invalid workspaces return structured issues:
+Failures contain `code`, `message` and, where available, `path` fields. Without a folder argument, `orw validate` checks the current directory.
 
-```json
-{
-  "valid": false,
-  "workspace": "/path/to/my-study",
-  "issues": [
-    {
-      "code": "missing_declared_path",
-      "message": "Declared workspace path does not exist: studies/study-01",
-      "path": ".research/project.yml:studies[0].path"
-    }
-  ]
-}
+## Export a RO-Crate directory
+
+```bash
+orw export my-study --format ro-crate --output my-study-crate
 ```
+
+The source workspace is validated before export. `.research/project.yml` remains canonical and is preserved in the crate. Local resource content is attached only when explicitly declared open; external data are referenced rather than fetched. Metadata and README text may itself be sensitive: review before sharing.
+
+**The destination must be outside the source workspace.** To export your current directory:
+
+```bash
+orw export . --format ro-crate --output ../my-study-crate
+```
+
+Only a recognized, unchanged previous ORW export can be replaced:
+
+```bash
+orw export my-study --format ro-crate --output my-study-crate --force
+```
+
+`--force` does not authorize deletion of a source subdirectory, unrelated directory, modified export or unmarked legacy export. The exporter inventories the previous output and stages/validates the new crate before promotion. On an ordinary promotion failure it restores the previous export. Exclusive workspace access is required; this is not a general concurrent or crash-proof filesystem transaction.
+
+See [RO-Crate mapping and safety](ro-crate.md). ZIP RO-Crate output is not yet implemented; the browser ZIP is an ORW workspace, not a RO-Crate archive.
 
 ## Exit status
 
-| Exit status | Meaning |
+| Code | Meaning |
 | --- | --- |
-| `0` | command succeeded / workspace is valid |
-| `1` | workspace validation failed |
-| `2` | setup/configuration/input error |
-| `3` | initialization refused because the workspace is already initialized |
-| `4` | export failed for a non-validation reason |
+| `0` | Command succeeded / workspace valid |
+| `1` | Workspace validation failed |
+| `2` | Setup/configuration/input error, including a nonempty initialization destination |
+| `3` | Initialization refused because the workspace is already initialized |
+| `4` | Export failed for another reason, including a protected destination |
 
-These statuses are intended to be stable enough for CI and agent workflows.
+## Interface and source-of-truth boundary
 
-## Relationship to the GitHub adapter
-
-The two interfaces share the same core:
-
-```text
-GitHub setup form ─┐
-                   ├─ normalized setup payload ─→ ORW core ─→ workspace
-orw init ──────────┘
-```
-
-GitHub-specific logic handles permissions, form parsing, commits, and feedback. It does not define a separate scientific workspace model.
-
-## Export a validated RO-Crate
-
-The CLI can export an ORW workspace as an attached RO-Crate 1.3 directory:
-
-```bash
-orw export my-study \
-  --format ro-crate \
-  --output dist/my-study-ro-crate
-```
-
-The source workspace is validated before export. An invalid workspace exits with status `1` and no crate is produced.
-
-Existing output is protected by default. Explicit replacement requires:
-
-```bash
-orw export my-study \
-  --format ro-crate \
-  --output dist/my-study-ro-crate \
-  --force
-```
-
-A non-validation export error, such as an existing destination without `--force`, exits with status `4`.
-
-The exporter always preserves the canonical `.research/project.yml` in the crate. Local resource content is copied only when the resource is explicitly declared `access: open`; private, restricted, embargoed, or unknown resources remain metadata references.
-
-See [RO-Crate interoperability and export](ro-crate.md) for the mapping and validation boundary.
+The browser, CLI and GitHub adapter use the same normalized setup contract and canonical model. Provider identity belongs in implementation metadata, not in a parallel scientific record. Publication/DOI, richer editing, provenance, MCP and agent layers remain planned; they are not silently activated by these commands.

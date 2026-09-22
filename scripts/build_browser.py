@@ -4,7 +4,6 @@ No JavaScript package manager, network access, or browser runtime Python is need
 The generated HTML may be served at any URL prefix or opened directly from disk.
 """
 from __future__ import annotations
-
 import argparse
 import base64
 from hashlib import sha256
@@ -13,15 +12,14 @@ from pathlib import Path
 import re
 import sys
 import tempfile
-
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from orw.initialize import ImplementationContext, create_workspace, slug  # noqa: E402
 from orw.model import SetupConfig  # noqa: E402
+from orw._version import __version__  # noqa: E402
 
-# Build-time sentinels, not user-facing defaults or a second project model.
 TOKENS = {
     'projectTitle': 'ORW_SENTINEL_PROJECT_6D1A',
     'description': 'ORW_SENTINEL_DESCRIPTION_6D1A',
@@ -41,7 +39,7 @@ SUPPORTED = {
 
 
 def check_schema(schema: dict) -> None:
-    """Fail the build if the bounded browser schema interpreter would omit a rule."""
+    """Fail rather than silently omit a rule the browser cannot interpret."""
     unknown = set(schema) - SUPPORTED
     if unknown:
         raise ValueError(f'Unsupported browser schema keywords: {sorted(unknown)}')
@@ -58,8 +56,8 @@ def check_schema(schema: dict) -> None:
 
 
 def make_contract() -> dict:
-    setup = json.loads((ROOT / 'schema/setup.schema.json').read_text())
-    project_schema = json.loads((ROOT / 'schema/project.schema.json').read_text())
+    setup = json.loads((ROOT / 'schema/setup.schema.json').read_text(encoding='utf-8'))
+    project_schema = json.loads((ROOT / 'schema/project.schema.json').read_text(encoding='utf-8'))
     for schema in (setup, project_schema):
         check_schema(schema)
     tokens = dict(TOKENS)
@@ -89,15 +87,16 @@ def make_contract() -> dict:
                 project = yaml.safe_load(files.pop('.research/project.yml'))
                 variants[f'{int(assay)}{int(orcid)}'] = {'project': project, 'files': files}
     sources = {p: sha256((ROOT / p).read_bytes()).hexdigest() for p in (
-        'src/orw/initialize.py', 'src/orw/model.py',
+        'src/orw/initialize.py', 'src/orw/_scaffold.py', 'src/orw/fs_safety.py',
+        'src/orw/_version.py', 'src/orw/model.py',
         'schema/setup.schema.json', 'schema/project.schema.json',
     )}
-    return {'format': 1, 'tokens': tokens, 'variants': variants, 'setupSchema': setup,
+    return {'format': 1, 'softwareVersion': __version__, 'tokens': tokens,
+            'variants': variants, 'setupSchema': setup,
             'projectSchema': project_schema, 'sourceHashes': sources}
 
 
 def script_json(value: object) -> str:
-    # Also safe when future template prose includes a literal HTML closing tag.
     return json.dumps(value, ensure_ascii=True, separators=(',', ':')).replace('<', '\\u003c')
 
 
@@ -108,8 +107,8 @@ def build(output: Path) -> Path:
     replacements.update({key: (ROOT / path).read_text(encoding='utf-8') for key, path in (
         ('ENGINE', 'browser/engine.js'), ('APP', 'browser/app.js'), ('STYLE', 'browser/style.css'),
     )})
-    # A single pass prevents inserted source text from becoming a second template.
     html = re.sub(r'@@(CONTRACT|ENGINE|APP|STYLE)@@', lambda m: replacements[m[1]], html)
+    html = html.replace('</head>', f'<meta name="orw-software-version" content="{__version__}">\n</head>')
     def integrity(body: str) -> str:
         return "'sha256-" + base64.b64encode(sha256(body.encode('utf-8')).digest()).decode() + "'"
     scripts = re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', html)
