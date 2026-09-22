@@ -9,9 +9,15 @@ import sys
 from typing import Any, Sequence
 
 from . import __version__
+from .edit import YamlEditError
 from .export.rocrate import ROCrateExportError, export_rocrate
 from .initialize import WorkspaceAlreadyInitialized, create_workspace
 from .model import ACCESS_LEVELS, SetupConfig, SetupValidationError
+from .mutate import (
+    MutationConflict, MutationInputError, MutationResult, RESOURCE_COLLECTIONS,
+    STATUSES, WorkspaceNotValid, add_assay, add_contributor, add_study,
+    register_resource, update_project_metadata,
+)
 from .validate import validate_workspace
 
 EXIT_OK = 0
@@ -19,6 +25,7 @@ EXIT_INVALID = 1
 EXIT_INPUT = 2
 EXIT_ALREADY_INITIALIZED = 3
 EXIT_EXPORT = 4
+EXIT_CONFLICT = 5
 
 
 def _nonempty(prompt: str) -> str:
@@ -224,12 +231,352 @@ def _cmd_export(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _report_mutation(result: MutationResult, as_json: bool) -> int:
+    plan = result.plan
+    if as_json:
+        print(json.dumps(result.to_mapping(), ensure_ascii=False, indent=2))
+        return EXIT_OK
+
+    print(plan.summary)
+    diff = plan.diff()
+    if diff:
+        print(diff, end="" if diff.endswith("\n") else "\n")
+    else:
+        print(f"No change to {plan.record}.")
+
+    if result.applied:
+        if diff:
+            print(f"Updated {plan.record}")
+        for name in plan.replaced_files:
+            print(f"Replaced {name[0]}")
+        if plan.new_directories or plan.new_files:
+            print(
+                f"Created {len(plan.new_directories)} folder(s) "
+                f"and {len(plan.new_files)} file(s)."
+            )
+    else:
+        print("Dry run: nothing was written.")
+        for name in plan.new_directories:
+            print(f"Would create folder: {name}")
+        for name, _ in plan.new_files:
+            print(f"Would create file: {name}")
+        for name, _, _ in plan.replaced_files:
+            print(f"Would replace file: {name}")
+    return EXIT_OK
+
+
+def _run_mutation(args: argparse.Namespace, operation) -> int:
+    try:
+        result = operation()
+    except MutationInputError as exc:
+        print(f"Input error: {exc}", file=sys.stderr)
+        return EXIT_INPUT
+    except MutationConflict as exc:
+        print(f"Conflict: {exc}", file=sys.stderr)
+        return EXIT_CONFLICT
+    except WorkspaceNotValid as exc:
+        print(str(exc), file=sys.stderr)
+        for issue in exc.report.issues:
+            location = f" ({issue.path})" if issue.path else ""
+            print(f"- [{issue.code}]{location} {issue.message}", file=sys.stderr)
+        return EXIT_INVALID
+    except YamlEditError as exc:
+        print(f"Record error: {exc}", file=sys.stderr)
+        return EXIT_INPUT
+    except OSError as exc:
+        print(f"Could not update workspace: {exc}", file=sys.stderr)
+        return EXIT_INPUT
+    return _report_mutation(result, args.json)
+
+
+def _cmd_study_add(args: argparse.Namespace) -> int:
+    return _run_mutation(
+        args,
+        lambda: add_study(
+            args.workspace,
+            args.title,
+            identifier=args.id,
+            description=args.description,
+            path=args.path,
+            dry_run=args.dry_run,
+        ),
+    )
+
+
+def _cmd_assay_add(args: argparse.Namespace) -> int:
+    return _run_mutation(
+        args,
+        lambda: add_assay(
+            args.workspace,
+            args.study,
+            args.title,
+            identifier=args.id,
+            description=args.description,
+            path=args.path,
+            dry_run=args.dry_run,
+        ),
+    )
+
+
+def _cmd_resource_add(args: argparse.Namespace) -> int:
+    return _run_mutation(
+        args,
+        lambda: register_resource(
+            args.workspace,
+            args.name,
+            collection=args.collection,
+            kind=args.type,
+            path=args.path,
+            location=args.location,
+            identifier=args.identifier,
+            access=args.access,
+            description=args.description,
+            dry_run=args.dry_run,
+        ),
+    )
+
+
+def _cmd_contributor_add(args: argparse.Namespace) -> int:
+    return _run_mutation(
+        args,
+        lambda: add_contributor(
+            args.workspace,
+            args.name,
+            role=args.role,
+            orcid=args.orcid,
+            dry_run=args.dry_run,
+        ),
+    )
+
+
+def _cmd_metadata_set(args: argparse.Namespace) -> int:
+    if args.keyword and args.clear_keywords:
+        print(
+            "Input error: use either --keyword or --clear-keywords, not both.",
+            file=sys.stderr,
+        )
+        return EXIT_INPUT
+    keywords = [] if args.clear_keywords else (args.keyword or None)
+    return _run_mutation(
+        args,
+        lambda: update_project_metadata(
+            args.workspace,
+            title=args.title,
+            description=args.description,
+            status=args.status,
+            keywords=keywords,
+            dry_run=args.dry_run,
+        ),
+    )
+
+
+def _mutation_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--workspace",
+        default=".",
+        metavar="DIR",
+        help="Workspace folder to update (default: current folder).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show the diff and the folders that would be created, without writing.",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit a machine-readable JSON plan instead of human-readable output.",
+    )
+
+
+def _add_mutation_commands(subparsers: argparse._SubParsersAction) -> None:
+    """Commands that evolve an already-initialized workspace."""
+
+    study = subparsers.add_parser(
+        "study",
+        help="Work with the Studies of an existing workspace.",
+        description="Record additional ISA Studies in an existing workspace.",
+    )
+    study_actions = study.add_subparsers(dest="action", required=True)
+    study_add = study_actions.add_parser(
+        "add",
+        help="Record a new Study and scaffold its folders.",
+        description=(
+            "Record a new ISA Study in .research/project.yml and scaffold the same "
+            "folder layout initialization creates. Refused if the identifier or the "
+            "folder is already taken."
+        ),
+    )
+    study_add.add_argument("title", help="Human-readable Study title.")
+    study_add.add_argument(
+        "--id",
+        metavar="IDENTIFIER",
+        help="Study identifier and folder name (default: derived from the title).",
+    )
+    study_add.add_argument("--description", help="Optional Study description.")
+    study_add.add_argument(
+        "--path",
+        metavar="RELATIVE",
+        help="Workspace-relative Study folder (default: studies/<identifier>).",
+    )
+    _mutation_options(study_add)
+    study_add.set_defaults(func=_cmd_study_add)
+
+    assay = subparsers.add_parser(
+        "assay",
+        help="Work with the Assays of an existing Study.",
+        description="Record additional ISA Assays inside an existing Study.",
+    )
+    assay_actions = assay.add_subparsers(dest="action", required=True)
+    assay_add = assay_actions.add_parser(
+        "add",
+        help="Record a new Assay inside a Study and scaffold its folders.",
+        description=(
+            "Record a new ISA Assay under an existing Study. The Assay folder is "
+            "created inside the Study folder, which the ORW validator requires."
+        ),
+    )
+    assay_add.add_argument("title", help="Human-readable Assay title.")
+    assay_add.add_argument(
+        "--study",
+        required=True,
+        metavar="IDENTIFIER",
+        help="Identifier of the Study this measurement belongs to.",
+    )
+    assay_add.add_argument(
+        "--id",
+        metavar="IDENTIFIER",
+        help="Assay identifier and folder name (default: derived from the title).",
+    )
+    assay_add.add_argument("--description", help="Optional Assay description.")
+    assay_add.add_argument(
+        "--path",
+        metavar="RELATIVE",
+        help=(
+            "Workspace-relative Assay folder inside the Study "
+            "(default: <study path>/assays/<identifier>)."
+        ),
+    )
+    _mutation_options(assay_add)
+    assay_add.set_defaults(func=_cmd_assay_add)
+
+    resource = subparsers.add_parser(
+        "resource",
+        help="Register data, documents and other resources.",
+        description=(
+            "Register resources the Investigation depends on or produces. ORW records "
+            "references; it does not copy or move research data."
+        ),
+    )
+    resource_actions = resource.add_subparsers(dest="action", required=True)
+    resource_add = resource_actions.add_parser(
+        "add",
+        help="Register a resource in the canonical project record.",
+        description=(
+            "Register a dataset, document or other resource. Give a workspace path "
+            "for content kept here, or a location/identifier for data held elsewhere."
+        ),
+    )
+    resource_add.add_argument("name", help="Human-readable resource name.")
+    resource_add.add_argument(
+        "--type",
+        metavar="TYPE",
+        help="Resource type, for example dataset, documentation, software or schema.",
+    )
+    resource_add.add_argument(
+        "--path",
+        metavar="RELATIVE",
+        help="Workspace-relative path of an existing file or folder.",
+    )
+    resource_add.add_argument(
+        "--location",
+        help="Authoritative location when the data live outside this workspace.",
+    )
+    resource_add.add_argument(
+        "--identifier",
+        help="Persistent identifier, for example a DOI or accession number.",
+    )
+    resource_add.add_argument(
+        "--access",
+        choices=sorted(ACCESS_LEVELS),
+        help="Access level recorded for this resource.",
+    )
+    resource_add.add_argument("--description", help="Optional resource description.")
+    resource_add.add_argument(
+        "--collection",
+        choices=RESOURCE_COLLECTIONS,
+        default="resources",
+        help=(
+            "Record the entry as an input resource or as a project output "
+            "(default: resources)."
+        ),
+    )
+    _mutation_options(resource_add)
+    resource_add.set_defaults(func=_cmd_resource_add)
+
+    contributor = subparsers.add_parser(
+        "contributor",
+        help="Record the people working on the Investigation.",
+        description="Record contributors in the canonical project record.",
+    )
+    contributor_actions = contributor.add_subparsers(dest="action", required=True)
+    contributor_add = contributor_actions.add_parser(
+        "add",
+        help="Record a contributor.",
+        description=(
+            "Record a contributor. Duplicate names and duplicate ORCIDs are refused "
+            "so that the credit record stays unambiguous."
+        ),
+    )
+    contributor_add.add_argument("name", help="Contributor name.")
+    contributor_add.add_argument("--role", help="Role in the Investigation.")
+    contributor_add.add_argument("--orcid", help="ORCID, for example 0000-0002-1825-0097.")
+    _mutation_options(contributor_add)
+    contributor_add.set_defaults(func=_cmd_contributor_add)
+
+    metadata = subparsers.add_parser(
+        "metadata",
+        help="Update Investigation-level metadata.",
+        description="Update the Investigation title, description, status or keywords.",
+    )
+    metadata_actions = metadata.add_subparsers(dest="action", required=True)
+    metadata_set = metadata_actions.add_parser(
+        "set",
+        help="Set Investigation metadata fields.",
+        description=(
+            "Set Investigation metadata. Only the fields given are changed; the "
+            "workspace README is left to its authors."
+        ),
+    )
+    metadata_set.add_argument("--title", help="New Investigation title.")
+    metadata_set.add_argument("--description", help="New Investigation description.")
+    metadata_set.add_argument(
+        "--status",
+        choices=STATUSES,
+        help="New Investigation status.",
+    )
+    metadata_set.add_argument(
+        "--keyword",
+        action="append",
+        metavar="KEYWORD",
+        help="Keyword to record; repeat the option to replace the whole keyword list.",
+    )
+    metadata_set.add_argument(
+        "--clear-keywords",
+        action="store_true",
+        help="Record an empty keyword list.",
+    )
+    _mutation_options(metadata_set)
+    metadata_set.set_defaults(func=_cmd_metadata_set)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="orw",
         description=(
-            "Create and validate portable OpenResearchWorkspace projects "
-            "without requiring a hosted forge."
+            "Create and validate portable OpenResearchWorkspace projects, and record "
+            "Studies, Assays, resources, contributors and metadata as the research "
+            "grows, without requiring a hosted forge."
         ),
     )
     parser.add_argument(
@@ -316,6 +663,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Replace an existing output directory after the new crate validates.",
     )
     export_parser.set_defaults(func=_cmd_export)
+
+    _add_mutation_commands(subparsers)
 
     return parser
 

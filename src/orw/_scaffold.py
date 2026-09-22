@@ -3,14 +3,130 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import json
 from pathlib import Path
 import re
 
+from .edit import scalar
 from .model import SetupConfig
 
 SPEC_VERSION = "0.1"
 TEMPLATE_VERSION = "0.1.0"
+
+# Study and Assay folder layouts are shared with the mutation API so that a
+# Study added later is scaffolded exactly like the one written at initialization.
+STUDY_SUBFOLDERS: tuple[tuple[str, str, str], ...] = (
+    (
+        "data",
+        "Study data",
+        "Study-level data and references to authoritative data locations.",
+    ),
+    (
+        "data/raw",
+        "Raw data",
+        "Authoritative source data when appropriate to keep them in this workspace. Do not silently overwrite raw evidence.",
+    ),
+    (
+        "data/processed",
+        "Processed data",
+        "Data derived reproducibly from raw or external inputs.",
+    ),
+    (
+        "data/external",
+        "External data",
+        "Links, identifiers, manifests, checksums, or access notes for data stored elsewhere.",
+    ),
+    (
+        "protocols",
+        "Protocols",
+        "Study-level procedures, designs, and protocols.",
+    ),
+    (
+        "analysis",
+        "Study analysis",
+        "Analyses that apply across assays or interpret the Study as a whole.",
+    ),
+    (
+        "results",
+        "Study results",
+        "Study-level derived outputs and summaries.",
+    ),
+)
+
+ASSAY_SUBFOLDERS: tuple[tuple[str, str, str], ...] = (
+    (
+        "data",
+        "Assay data",
+        "Data belonging specifically to this measurement or assay.",
+    ),
+    (
+        "data/raw",
+        "Raw assay data",
+        "Authoritative source data for this assay when appropriate to keep them here.",
+    ),
+    (
+        "data/processed",
+        "Processed assay data",
+        "Data derived reproducibly from this assay's raw or external inputs.",
+    ),
+    (
+        "analysis",
+        "Assay analysis",
+        "Analysis code, notebooks, and workflows specific to this assay.",
+    ),
+    (
+        "results",
+        "Assay results",
+        "Derived tables, figures, reports, and outputs specific to this assay.",
+    ),
+)
+
+# The Assay container README depends on whether an Assay exists yet. Adding one
+# later replaces the "none initialized" note only when it is still byte-identical.
+NO_ASSAY_FOLDER: tuple[str, str] = (
+    "Assays",
+    "No Assay was initialized because none was scientifically specified.",
+)
+ASSAY_CONTAINER_FOLDER: tuple[str, str] = (
+    "Assays",
+    "Measurements and tests performed on this Study's material or subjects.",
+)
+
+INVESTIGATION_FOLDERS: tuple[tuple[str, str, str], ...] = (
+    (
+        "references",
+        "References",
+        "Literature, citation exports, and stable identifiers relevant to the Investigation.",
+    ),
+    (
+        "project-docs",
+        "Project documentation",
+        "Investigation-wide notes, decisions, rationale, history, and data-management context.",
+    ),
+)
+
+
+def readme_text(title: str, text: str) -> str:
+    """The folder README body used by initialization and by later mutations."""
+
+    return f"# {title}\n\n{text}\n"
+
+
+def _layout(
+    root: Path, entries: tuple[tuple[str, str, str], ...]
+) -> dict[Path, tuple[str, str]]:
+    return {root / relative: (title, text) for relative, title, text in entries}
+
+
+def study_folders(study_root: Path) -> dict[Path, tuple[str, str]]:
+    """Folders scaffolded inside a Study, keyed by workspace-relative path."""
+
+    return _layout(study_root, STUDY_SUBFOLDERS)
+
+
+def assay_folders(assay_root: Path) -> dict[Path, tuple[str, str]]:
+    """Folders scaffolded inside an Assay, keyed by workspace-relative path."""
+
+    return _layout(assay_root, ASSAY_SUBFOLDERS)
 
 
 class WorkspaceAlreadyInitialized(RuntimeError):
@@ -42,7 +158,7 @@ def slug(value: str, fallback: str) -> str:
 def yaml_string(value: str) -> str:
     """JSON strings are valid YAML scalars and give deterministic escaping."""
 
-    return json.dumps(value, ensure_ascii=False)
+    return scalar(value)
 
 
 def _write_text(path: Path, content: str) -> None:
@@ -55,7 +171,7 @@ def _ensure_readme(root: Path, path: Path, title: str, text: str) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     readme = directory / "README.md"
     if not readme.exists():
-        _write_text(readme, f"# {title}\n\n{text}\n")
+        _write_text(readme, readme_text(title, text))
 
 
 def _is_initialized(root: Path) -> bool:
@@ -253,77 +369,13 @@ def create_workspace(
             ),
         )
     else:
-        _ensure_readme(
-            root,
-            study_root / "assays",
-            "Assays",
-            "No Assay was initialized because none was scientifically specified.",
-        )
+        _ensure_readme(root, study_root / "assays", *NO_ASSAY_FOLDER)
 
-    folders = {
-        study_root / "data": (
-            "Study data",
-            "Study-level data and references to authoritative data locations.",
-        ),
-        study_root / "data" / "raw": (
-            "Raw data",
-            "Authoritative source data when appropriate to keep them in this workspace. Do not silently overwrite raw evidence.",
-        ),
-        study_root / "data" / "processed": (
-            "Processed data",
-            "Data derived reproducibly from raw or external inputs.",
-        ),
-        study_root / "data" / "external": (
-            "External data",
-            "Links, identifiers, manifests, checksums, or access notes for data stored elsewhere.",
-        ),
-        study_root / "protocols": (
-            "Protocols",
-            "Study-level procedures, designs, and protocols.",
-        ),
-        study_root / "analysis": (
-            "Study analysis",
-            "Analyses that apply across assays or interpret the Study as a whole.",
-        ),
-        study_root / "results": (
-            "Study results",
-            "Study-level derived outputs and summaries.",
-        ),
-        Path("references"): (
-            "References",
-            "Literature, citation exports, and stable identifiers relevant to the Investigation.",
-        ),
-        Path("project-docs"): (
-            "Project documentation",
-            "Investigation-wide notes, decisions, rationale, history, and data-management context.",
-        ),
-    }
+    folders = study_folders(study_root)
+    folders.update(_layout(Path("."), INVESTIGATION_FOLDERS))
 
     if assay_root:
-        folders.update(
-            {
-                assay_root / "data": (
-                    "Assay data",
-                    "Data belonging specifically to this measurement or assay.",
-                ),
-                assay_root / "data" / "raw": (
-                    "Raw assay data",
-                    "Authoritative source data for this assay when appropriate to keep them here.",
-                ),
-                assay_root / "data" / "processed": (
-                    "Processed assay data",
-                    "Data derived reproducibly from this assay's raw or external inputs.",
-                ),
-                assay_root / "analysis": (
-                    "Assay analysis",
-                    "Analysis code, notebooks, and workflows specific to this assay.",
-                ),
-                assay_root / "results": (
-                    "Assay results",
-                    "Derived tables, figures, reports, and outputs specific to this assay.",
-                ),
-            }
-        )
+        folders.update(assay_folders(assay_root))
 
     for path, (title, text) in folders.items():
         _ensure_readme(root, path, title, text)

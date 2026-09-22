@@ -69,6 +69,57 @@ Successful JSON report:
 
 Failures contain `code`, `message` and, where available, `path` fields. Without a folder argument, `orw validate` checks the current directory.
 
+## Record Studies, Assays, resources, contributors and metadata
+
+A workspace grows after it is created. These commands are the supported way to record that growth; they write the canonical `.research/project.yml` through the same core functions the browser and future agent interfaces use, rather than editing YAML by hand.
+
+```bash
+orw study add "Sleep deprivation"
+orw assay add "Open field" --study sleep-deprivation
+orw resource add "Imaging archive" --type dataset --location "Institutional store" --access restricted
+orw contributor add "Ada Lovelace" --role "Data analyst" --orcid 0000-0002-1825-0097
+orw metadata set --status paused --keyword sleep --keyword mouse
+```
+
+Each command takes `--workspace DIR` (default: the current folder), `--dry-run` and `--json`.
+
+### Review before writing
+
+```bash
+orw study add "Sleep deprivation" --dry-run
+```
+
+A dry run prints the exact unified diff that applying would write to `.research/project.yml`, followed by every folder and file it would create. Nothing is written. `--json` emits the same plan as a machine-readable object with `applied`, `operation`, `identifier`, `diff`, `new_directories` and `new_files` fields, which is the form an agent or another tool should consume.
+
+### What each command records
+
+| Command | Records | Creates on disk |
+| --- | --- | --- |
+| `orw study add TITLE` | An ISA Study in `studies` | `studies/<identifier>/` with the same layout `orw init` writes |
+| `orw assay add TITLE --study ID` | An ISA Assay inside that Study | `<study path>/assays/<identifier>/` with its data, analysis and results folders |
+| `orw resource add NAME` | An entry in `resources`, or in `outputs` with `--collection outputs` | Nothing; ORW records references, it does not copy research data |
+| `orw contributor add NAME` | An entry in `contributors` | Nothing |
+| `orw metadata set` | Investigation `title`, `description`, `status` or `keywords` | Nothing |
+
+Identifiers double as folder names and default to a slug of the title; pass `--id` to choose one. Only lowercase letters, digits and single hyphens are accepted. `--path` overrides the default folder, and an Assay path must stay inside its Study path because the validator requires that containment.
+
+`orw resource add` needs at least one of `--path` (an existing file or folder in the workspace), `--location` (data held elsewhere) or `--identifier` (a DOI or accession). A `--path` that does not exist is refused, because a declared path that is missing makes the workspace invalid.
+
+`--keyword` replaces the whole keyword list, so repeat it once per keyword you want to keep; `--clear-keywords` records an empty list.
+
+### Guarantees and refusals
+
+Every mutation:
+
+- **refuses to start** from a workspace that does not already validate, and prints the validation issues;
+- **detects conflicts** before touching the filesystem — a duplicate Study or Assay identifier, a duplicate contributor name or ORCID, a duplicate resource name, a folder that already exists and is not empty, or a path that overlaps one the record already declares;
+- **preserves the rest of the file byte for byte.** Comments, key order, quoting style and line endings you chose are kept; only the lines the operation adds or changes appear in the diff;
+- **validates the result and rolls back** if it would not validate, restoring the record and removing the folders and files it had created.
+
+Rollback assumes exclusive access to the workspace for the duration of the command. It recovers from an ordinary failure; it is not a filesystem transaction against another process writing at the same time. As everywhere else in ORW, evaluate on disposable copies during the alpha.
+
+These commands do not rewrite `README.md`. The workspace overview belongs to its authors, so a renamed Investigation or a new Study is recorded in the canonical metadata and left for you to describe in prose.
+
 ## Export a RO-Crate directory
 
 ```bash
@@ -102,7 +153,8 @@ See [RO-Crate mapping and safety](ro-crate.md). ZIP RO-Crate output is not yet i
 | `2` | Setup/configuration/input error, including a nonempty initialization destination |
 | `3` | Initialization refused because the workspace is already initialized |
 | `4` | Export failed for another reason, including a protected destination |
+| `5` | A mutation conflicts with what the workspace already records |
 
 ## Interface and source-of-truth boundary
 
-The browser, CLI and GitHub adapter use the same normalized setup contract and canonical model. Provider identity belongs in implementation metadata, not in a parallel scientific record. Publication/DOI, richer editing, provenance, MCP and agent layers remain planned; they are not silently activated by these commands.
+The browser, CLI and GitHub adapter use the same normalized setup contract and canonical model. Provider identity belongs in implementation metadata, not in a parallel scientific record. The mutation commands above are a thin front end over `orw.mutate`, whose functions — `add_study`, `add_assay`, `register_resource`, `add_contributor` and `update_project_metadata` — are the single supported way to evolve a workspace. Browser editing, publication/DOI, provenance, MCP and agent layers are expected to call those functions rather than reimplement the rules; they remain planned and are not silently activated by these commands.

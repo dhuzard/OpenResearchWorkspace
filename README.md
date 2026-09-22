@@ -2,7 +2,7 @@
 
 **A portable research workspace specification with GitHub as one supported reference implementation.**
 
-> **Software alpha preparation: `0.1.0a1`.** The browser, CLI, validation and RO-Crate directory exporter are implemented. A preparation commit is not a published release: TestPyPI rehearsal and public PyPI promotion are separate, explicitly approved stages. See the [release guide](docs/releases.md) and [changelog](CHANGELOG.md).
+> **Software alpha preparation: `0.1.0a1`.** The browser, CLI, workspace mutation commands, validation and RO-Crate directory exporter are implemented. A preparation commit is not a published release: TestPyPI rehearsal and public PyPI promotion are separate, explicitly approved stages. See the [release guide](docs/releases.md) and [changelog](CHANGELOG.md).
 >
 > Evaluate on disposable copies. Ordinary initialization requires an empty destination. Export destinations must be outside the source workspace; `--force` only replaces an unchanged, identifiable ORW export. Metadata and the README can themselves be sensitive. These tools are not a FAIR certification, an OS sandbox, or a complete hosted research repository.
 
@@ -39,8 +39,10 @@ static host; researchers do not need Python or Node to use it.
 
 **Current scope:** one Investigation, one Study, and an optional first Assay;
 local schema checks, review confirmation, and ZIP download. Browser editing of
-existing workspaces, additional Studies/Assays, and browser RO-Crate download
-remain planned. RO-Crate export already exists in the CLI.
+existing workspaces and browser RO-Crate download remain planned. Additional
+Studies, Assays, resources and contributors can already be recorded with the
+CLI (`orw study add`, `orw assay add`), and RO-Crate export already exists
+there too.
 
 ## GitHub template: set up a new project
 
@@ -133,7 +135,7 @@ The canonical scientific record remains `.research/project.yml`. GitHub-specific
 - [Portable CLI/browser architecture](docs/portable-implementations.md)
 - [RO-Crate interoperability and export](docs/ro-crate.md)
 
-The browser generator implements local form validation, structure/metadata review, and ZIP download without a Git-provider account or backend. The CLI implements `orw init`, `orw validate`, and RO-Crate 1.3 directory export through `orw export --format ro-crate`. Browser RO-Crate download and a hosted deployment are not included in the browser MVP.
+The browser generator implements local form validation, structure/metadata review, and ZIP download without a Git-provider account or backend. The CLI implements `orw init`, `orw validate`, the workspace mutation commands (`orw study add`, `orw assay add`, `orw resource add`, `orw contributor add`, `orw metadata set`), and RO-Crate 1.3 directory export through `orw export --format ro-crate`. Browser RO-Crate download and a hosted deployment are not included in the browser MVP.
 
 ## GitHub researcher-facing workflow
 
@@ -175,9 +177,23 @@ orw init my-study --config setup.json
 orw validate my-study --json
 ```
 
+Research does not stop at creation. Studies, measurements, data references and people are recorded afterwards with provider-neutral mutation commands:
+
+```bash
+cd my-study
+orw study add "Sleep deprivation" --dry-run   # show the exact diff, write nothing
+orw study add "Sleep deprivation"
+orw assay add "Open field" --study sleep-deprivation
+orw resource add "Imaging archive" --location "Institutional store" --access restricted
+orw contributor add "Ada Lovelace" --orcid 0000-0002-1825-0097
+orw metadata set --status paused --keyword sleep
+```
+
+Every mutation refuses to start from a workspace that does not validate, detects conflicts before touching the filesystem, preserves the rest of `.research/project.yml` byte for byte (including your comments and key order), and rolls the whole operation back if the result would not validate. `--json` emits the same plan for scripts and agents.
+
 The `0.1.0a1` package is prepared; public-index availability must be established by the release workflow, not inferred from this README. After successful public publication, use `pipx install openresearchworkspace==0.1.0a1`.
 
-**Write safeguards:** `orw init` rejects nonempty destinations. Export source/output trees must be disjoint; when exporting `.` use an outside destination such as `../my-study-crate`. `--force` only replaces a recognized export whose inventoried contents have not changed. It never authorizes deletion of a source subdirectory or an unrelated folder. Exclusive workspace access is required during mutations.
+**Write safeguards:** `orw init` rejects nonempty destinations. Mutation commands refuse duplicate identifiers, occupied folders and overlapping declared paths, and never overwrite a file a researcher has edited. Export source/output trees must be disjoint; when exporting `.` use an outside destination such as `../my-study-crate`. `--force` only replaces a recognized export whose inventoried contents have not changed. It never authorizes deletion of a source subdirectory or an unrelated folder. Exclusive workspace access is required during mutations.
 
 See [CLI usage](docs/cli.md) and [release instructions](docs/releases.md).
 
@@ -269,7 +285,8 @@ ORW uses one standard and one template, with initialization presets rather than 
 | Forge-independent use | **Implemented** | Core, CLI, validation, and export work without GitHub/GitLab/Git |
 | Browser workspace generator | **Implemented — static build** | Local form, schema checks, exact-file review, and ZIP download; shared core templates and fixtures ([guide](docs/browser-generator.md)) |
 | Alpha packaging and staged publishing | **Prepared — publication separate** | Wheel/sdist tests, versioned browser asset, TestPyPI read-back and exact-artifact public promotion ([guide](docs/releases.md)) |
-| Browser editing and browser RO-Crate download | **Planned** | Current browser creates new workspaces only; use the CLI for RO-Crate export |
+| Workspace mutation API and CLI | **Implemented** | `add_study`, `add_assay`, `register_resource`, `add_contributor`, `update_project_metadata` and the matching `orw study/assay/resource/contributor/metadata` commands, with `--dry-run` diffs, conflict detection and validated rollback |
+| Browser editing and browser RO-Crate download | **Planned** | Current browser creates new workspaces only; use the CLI to edit an existing workspace or export RO-Crate |
 | Intentional research publish/DOI workflow | **Planned** | Validate → preview → explicit confirmation → archive/PID ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)); distinct from software package publishing |
 | FAIR capability layer | **Planned** | CITATION.cff, DataCite, PID/license checks, FAIR Signposting, FAIR-readiness reporting ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
 | Reproducibility/provenance | **Planned** | Environments, workflows, checksums, provenance, reproducibility reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)) |
@@ -292,6 +309,8 @@ IMPLEMENTED
   RO-Crate 1.3 export
         ↓
   static browser generator (#23)
+        ↓
+  deterministic workspace mutation API + CLI
 
 RELEASE GATE
   0.1.0a1 safety + packaging checks
@@ -322,13 +341,13 @@ The architectural rule remains the same throughout: **scientific rules live in t
 
 ## Roadmap
 
-**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; RO-Crate 1.3 directory export; static browser generator; shared contract/golden fixtures and browser acceptance tests.
+**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; a deterministic workspace mutation API and its CLI commands; RO-Crate 1.3 directory export; static browser generator; shared contract/golden fixtures and browser acceptance tests.
 
 **Alpha release — prepared:** address data-loss hazards, test wheel and source installations across supported operating systems, rehearse through TestPyPI, then promote the identical artifacts to public PyPI after explicit approval. A software release is not a research-data publication or a DOI workflow.
 
 **Browser-first portability — implemented:** static local-first setup, ISA structure/metadata review, and ZIP download without an account/backend ([browser guide](docs/browser-generator.md)). Distribution and hosting are separate deployment choices, not automatic publication. Browser editing and browser RO-Crate download remain follow-ups.
 
-**V0 completion — scientist-facing project lifecycle:** simplify adding Studies/Assays, collaboration and file/data-reference workflows; add intentional publication/archive/DOI flow with validation, preview, and explicit confirmation ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)).
+**V0 completion — scientist-facing project lifecycle:** Studies, Assays, resources, contributors and metadata are now recorded through the deterministic mutation API; next come browser editing on top of that same API, collaboration and file/data-reference workflows; add intentional publication/archive/DOI flow with validation, preview, and explicit confirmation ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)).
 
 **V1 — FAIR + interoperability:** richer metadata and ontology annotations; ISA-JSON/ISA-Tab interoperability; CITATION.cff/DataCite; persistent identifiers and licenses; FAIR Signposting/readiness; evaluate when the tested RO-Crate mapping is mature enough for a versioned ORW RO-Crate Profile ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)).
 
