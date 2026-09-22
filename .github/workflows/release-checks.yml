@@ -38,3 +38,16 @@ jobs:
         run: python scripts/test_distributions.py dist/packages --version 0.1.0a1
       - name: Rebuild standalone browser from source
         run: python scripts/build_browser.py
+      - name: Exercise the candidate-building path without upload credentials
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        run: |
+          python scripts/release.py build --directory dist/release-candidate --version 0.1.0a1
+          python scripts/release.py verify --directory dist/release-candidate --version 0.1.0a1
+      - name: Share non-published review artifacts
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: alpha-review-artifacts
+          path: dist/release-candidate/
+          if-no-files-found: error
+          retention-days: 14
