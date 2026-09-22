@@ -1,0 +1,215 @@
+name: Publish alpha (TestPyPI first)
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'TestPyPI rehearsal, or promote a successful rehearsal to PyPI'
+        required: true
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+      version:
+        description: 'Explicit alpha version'
+        required: true
+        type: string
+        default: '0.1.0a1'
+      rehearsal_run:
+        description: 'Successful TestPyPI run ID (required for PyPI promotion)'
+        type: string
+        default: ''
+      confirmation:
+        description: 'For public promotion enter: publish 0.1.0a1'
+        type: string
+        default: ''
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: orw-alpha-${{ inputs.version }}
+  cancel-in-progress: false
+env:
+  VERSION: ${{ inputs.version }}
+  PHASE: ${{ inputs.phase }}
+  REHEARSAL_RUN: ${{ inputs.rehearsal_run }}
+  CONFIRMATION: ${{ inputs.confirmation }}
+  PYTHONUTF8: '1'
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Enforce main, alpha version, environment reviewers and rehearsal provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/release.py guard
+
+  checks:
+    needs: guard
+    if: inputs.phase == 'testpypi'
+    uses: ./.github/workflows/release-checks.yml
+
+  build:
+    needs: [guard, checks]
+    if: inputs.phase == 'testpypi'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install build and browser test dependencies
+        run: |
+          python -m pip install . build twine -r browser/requirements-test.txt
+          python -m playwright install --with-deps chromium
+      - name: Real browser acceptance tests
+        run: python -m unittest discover -s browser/tests -v
+      - name: Build and test the immutable candidate
+        run: python scripts/release.py build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: alpha-candidate
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-testpypi:
+    needs: build
+    if: inputs.phase == 'testpypi'
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: alpha-candidate
+          path: candidate/
+      - name: Upload exact candidate to TestPyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: candidate/packages/
+          skip-existing: true
+
+  verify-testpypi:
+    needs: publish-testpypi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: alpha-candidate
+          path: candidate/
+      - name: Download actual TestPyPI bytes, verify hashes, install wheel and sdist
+        run: python scripts/release.py registry --index testpypi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: alpha-verified
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 30
+
+  acquire-verified:
+    needs: guard
+    if: inputs.phase == 'pypi'
+    runs-on: ubuntu-latest
+    outputs:
+      source_sha: ${{ steps.proof.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: alpha-verified
+          path: candidate/
+          run-id: ${{ inputs.rehearsal_run }}
+          github-token: ${{ github.token }}
+      - name: Verify provenance and TestPyPI again; never rebuild
+        id: proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/release.py promotion
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: alpha-approved
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-pypi:
+    needs: acquire-verified
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: alpha-approved
+          path: candidate/
+      - name: Upload the exact rehearsed artifacts to PyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          packages-dir: candidate/packages/
+          skip-existing: true
+
+  verify-pypi:
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: alpha-approved
+          path: candidate/
+      - name: Verify public index bytes and clean installations
+        run: python scripts/release.py registry --index pypi
+
+  github-prerelease:
+    needs: [verify-pypi, acquire-verified]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: alpha-approved
+          path: candidate/
+      - name: Publish matching browser and Python prerelease assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: dhuzard/OpenResearchWorkspace
+          SOURCE_SHA: ${{ needs.acquire-verified.outputs.source_sha }}
+        run: |
+          gh release create "v$VERSION" --target "$SOURCE_SHA" --prerelease \
+            --title "OpenResearchWorkspace $VERSION" \
+            --notes "Evaluation alpha. TestPyPI rehearsal and public package read-back succeeded. Use disposable copies; inspect metadata before sharing. See the release guide and changelog for limitations." \
+            candidate/packages/* candidate/orw-browser-generator-*.zip \
+            candidate/index.html candidate/manifest.json candidate/rehearsal.json
