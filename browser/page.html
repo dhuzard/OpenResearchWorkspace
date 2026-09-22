@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="@@CSP@@">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:,">
+<title>Create a workspace · OpenResearchWorkspace</title>
+<style>@@STYLE@@</style>
+</head>
+<body>
+<a class="skip" href="#workspace-form">Skip to the setup form</a>
+<header class="masthead">
+  <a class="brand" href="#top" aria-label="OpenResearchWorkspace home"><span class="mark" aria-hidden="true">ORW</span><span>OpenResearchWorkspace<small>Research structure. Researcher control.</small></span></a>
+  <span class="local-badge"><span aria-hidden="true">●</span> Local workspace builder</span>
+</header>
+<main id="top">
+<section class="intro" aria-labelledby="page-title">
+  <p class="eyebrow">NO ACCOUNT. NO GIT. NO UPLOAD.</p>
+  <h1 id="page-title">Create a research workspace.</h1>
+  <p class="lede">Describe your project once. Get an organized folder, readable guidance, and structured metadata that stay under your control.</p>
+  <p class="privacy">Everything you enter is processed in this page. Nothing is sent to an ORW service. The downloaded ZIP contains metadata and empty research folders—not your data.</p>
+</section>
+<noscript><p class="error-summary">JavaScript is needed to create the ZIP locally. No form information will be submitted.</p></noscript>
+<div class="workspace-layout">
+<section class="form-panel" aria-labelledby="setup-title">
+  <div class="panel-header"><div><p class="eyebrow">01 / DESCRIBE</p><h2 id="setup-title">Your project</h2></div><button type="button" class="text-button" id="example" disabled>Try an example</button></div>
+  <p class="muted" id="form-help">Fields are required unless marked optional. Do not enter passwords, access tokens, participant identifiers, or confidential clinical information.</p>
+  <p id="example-note" class="notice" hidden>Example values are loaded. Replace them with your own information before saving a real project.</p>
+  <form id="workspace-form" autocomplete="off" novalidate aria-describedby="form-help">
+    <div id="errors" class="error-summary" tabindex="-1" role="alert" hidden></div>
+    <fieldset><legend>Project &amp; people</legend>
+      <div class="field"><label for="project-title">Project title</label><input id="project-title" name="project_title" maxlength="200" required placeholder="Effects of light exposure on mouse activity"><p class="hint">The overall research project, called an Investigation in the ISA model.</p></div>
+      <div class="field"><label for="description">Short description</label><textarea id="description" name="project_description" rows="3" maxlength="5000" required placeholder="What question are you investigating?"></textarea></div>
+      <div class="pair"><div class="field"><label for="creator-name">Your name</label><input id="creator-name" name="creator_name" maxlength="200" required placeholder="Name as it should appear in the metadata"></div>
+      <div class="field"><label for="orcid">ORCID <span class="optional">optional</span></label><input id="orcid" name="orcid" maxlength="100" spellcheck="false" placeholder="0000-0002-1825-0097" aria-describedby="orcid-help"><p class="hint" id="orcid-help">Format check only; identity is not verified.</p></div></div>
+    </fieldset>
+    <fieldset><legend>Study &amp; measurements</legend>
+      <div class="field"><label for="study-title">First study title</label><input id="study-title" name="study_title" maxlength="200" required placeholder="Light exposure study"><p class="hint">One study or research design within the project.</p></div>
+      <div class="field"><label for="assay-title">First measurement or test <span class="optional">optional</span></label><input id="assay-title" name="assay_title" maxlength="200" placeholder="Behaviour, imaging, ECG…"><p class="hint">An Assay in ISA. Leave blank when no measurement is applicable; no artificial Assay will be created.</p></div>
+    </fieldset>
+    <fieldset><legend>Data &amp; access</legend>
+      <div class="field"><label for="data-location">Where will the authoritative data live?</label><input id="data-location" name="data_location" maxlength="1000" required placeholder="Institutional research server"><p class="hint">A high-level location is enough. This builder does not connect to or copy those data.</p></div>
+      <div class="pair"><div class="field"><label for="data-access">Data access</label><select id="data-access" name="data_access" required aria-describedby="access-help"></select><p class="hint" id="access-help">Private by default. This records access; it does not grant permissions.</p></div>
+      <div class="field"><label for="keywords">Keywords <span class="optional">optional</span></label><input id="keywords" name="keywords" maxlength="1000" placeholder="behaviour, mouse, circadian rhythm"><p class="hint">Separate keywords with commas.</p></div></div>
+    </fieldset>
+    <div class="form-actions"><button class="primary" id="review" type="submit" disabled>Review workspace <span aria-hidden="true">→</span></button><button class="text-button" type="reset" id="clear">Clear form</button></div>
+  </form>
+</section>
+<aside class="preview-panel" aria-labelledby="preview-title">
+  <div class="panel-header"><div><p class="eyebrow">02 / REVIEW &amp; SAVE</p><h2 id="preview-title">Your workspace</h2></div><span id="preview-badge" class="status-badge">Not generated</span></div>
+  <p id="preview-intro" class="muted">Complete the form, then review the exact files before downloading.</p>
+  <div class="structure-card"><div class="structure-head"><span id="folder-name">my-research-project/</span><span class="tiny-label">ISA-ALIGNED</span></div><pre id="tree" aria-label="Workspace structure">Project · Investigation
+└── Study
+    ├── data/
+    ├── protocols/
+    ├── analysis/
+    ├── results/
+    └── assays/ · when applicable
+
+.research/ · structured metadata
+README.md · where to start</pre></div>
+  <dl class="summary" id="summary" hidden><div><dt>Generated files</dt><dd id="file-count"></dd></div><div><dt>Access recorded</dt><dd id="access-summary"></dd></div><div><dt>Source data copied</dt><dd>None</dd></div></dl>
+  <details id="metadata-details" hidden><summary>Inspect the canonical metadata</summary><pre id="metadata" tabindex="0"></pre></details>
+  <label class="confirmation" id="confirmation-row" hidden><input type="checkbox" id="confirmation"><span>I reviewed the metadata. I understand that the ZIP is not encrypted and creating it does not publish my project.</span></label>
+  <button class="primary download" id="download" type="button" disabled>Download workspace ZIP <span aria-hidden="true">↓</span></button>
+  <p class="hint" id="download-help">No installation is needed to create or open the workspace. You choose where to keep it.</p>
+  <p id="status" class="notice" role="status" aria-live="polite" hidden></p>
+  <div class="next-steps" id="next-steps" hidden><h3>Start working</h3><p>Extract the ZIP. Open <code>README.md</code>. Keep the <code>.research</code> folder—it holds the metadata. Add your work under the appropriate study or measurement folder.</p><p>Your research outputs need their own licensing choices; they do not automatically inherit ORW's software license.</p></div>
+  <div class="boundary"><h3>A starting workspace, not a hosted service</h3><p>This version creates one project and one study, with an optional measurement. It does not upload data, manage collaborators, edit an existing workspace, or issue a DOI.</p><p>RO-Crate export is available in the ORW CLI. Browser RO-Crate download and guided metadata editing remain planned.</p></div>
+</aside>
+</div>
+<footer><p><strong>OpenResearchWorkspace</strong> <span id="version"></span></p><p>Built from the same core templates and schemas as the CLI. No tracking, remote fonts, or automatic form storage.</p><p class="hint">On a hosted copy, the host still receives the page request. Browser extensions and browser-managed history are outside this page's control.</p></footer>
+</main>
+<script id="orw-contract" type="application/json">@@CONTRACT@@</script>
+<script>@@ENGINE@@</script>
+<script>@@APP@@</script>
+</body>
+</html>

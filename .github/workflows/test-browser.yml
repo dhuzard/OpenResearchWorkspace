@@ -1,0 +1,68 @@
+name: Browser generator
+
+on:
+  pull_request:
+    paths:
+      - 'browser/**'
+      - 'scripts/build_browser.py'
+      - 'src/orw/**'
+      - 'schema/**'
+      - 'tests/test_browser_contract.py'
+      - 'tests/fixtures/setup/**'
+      - '.github/workflows/test-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'browser/**'
+      - 'scripts/build_browser.py'
+      - 'src/orw/**'
+      - 'schema/**'
+      - 'tests/test_browser_contract.py'
+      - 'tests/fixtures/setup/**'
+      - '.github/workflows/test-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: |
+          python -m pip install . -r browser/requirements-test.txt
+          python -m playwright install --with-deps chromium
+      - name: Cross-language contract and ZIP tests
+        run: python -m unittest discover -s tests -p test_browser_contract.py -v
+      - name: Build standalone application
+        run: python scripts/build_browser.py
+      - name: Browser acceptance (HTTP, file, offline, downloads)
+        env:
+          ORW_SCREENSHOT_DIR: dist/browser-evidence
+        run: python -m unittest discover -s browser/tests -v
+      - name: Share tested static build
+        uses: actions/upload-artifact@v4
+        with:
+          name: orw-browser-generator
+          path: dist/browser/index.html
+          if-no-files-found: error
+      - name: Share synthetic test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-screenshots
+          path: dist/browser-evidence/
+          if-no-files-found: ignore

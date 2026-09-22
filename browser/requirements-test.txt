@@ -1,0 +1,2 @@
+# Browser acceptance dependency; no runtime dependency for the generated HTML.
+playwright==1.57.0
