@@ -2,7 +2,7 @@
 
 **A portable research workspace specification with GitHub as one supported reference implementation.**
 
-> **Software alpha preparation: `0.1.0a1`.** The browser, CLI, workspace mutation commands, validation and RO-Crate directory exporter are implemented. A preparation commit is not a published release: TestPyPI rehearsal and public PyPI promotion are separate, explicitly approved stages. See the [release guide](docs/releases.md) and [changelog](CHANGELOG.md).
+> **Software alpha preparation: `0.1.0a1`.** The browser, CLI, workspace mutation commands, FAIR outputs, validation and RO-Crate directory exporter are implemented. A preparation commit is not a published release: TestPyPI rehearsal and public PyPI promotion are separate, explicitly approved stages. See the [release guide](docs/releases.md) and [changelog](CHANGELOG.md).
 >
 > Evaluate on disposable copies. Ordinary initialization requires an empty destination. Export destinations must be outside the source workspace; `--force` only replaces an unchanged, identifiable ORW export. Metadata and the README can themselves be sensitive. These tools are not a FAIR certification, an OS sandbox, or a complete hosted research repository.
 
@@ -189,13 +189,25 @@ orw contributor add "Ada Lovelace" --orcid 0000-0002-1825-0097
 orw metadata set --status paused --keyword sleep
 ```
 
+FAIR metadata are captured the same way, and the formats repositories expect are generated from them:
+
+```bash
+orw license set project CC-BY-4.0     # per-scope rights: project, data, code, documentation
+orw identifier add 10.5281/zenodo.1234567 --relation IsSupplementTo
+orw fair report                       # every gap, with the command that closes it
+orw fair citation                     # generate CITATION.cff
+orw fair datacite                     # the metadata a deposit would submit
+```
+
+Identifiers are validated, not just shape-matched: an ORCID that fails its check digit is refused. Generating a deposit payload is not depositing it — no network call is made and no DOI is minted. See the [FAIR guide](docs/fair.md).
+
 Every mutation refuses to start from a workspace that does not validate, detects conflicts before touching the filesystem, preserves the rest of `.research/project.yml` byte for byte (including your comments and key order), and rolls the whole operation back if the result would not validate. `--json` emits the same plan for scripts and agents.
 
 The `0.1.0a1` package is prepared; public-index availability must be established by the release workflow, not inferred from this README. After successful public publication, use `pipx install openresearchworkspace==0.1.0a1`.
 
 **Write safeguards:** `orw init` rejects nonempty destinations. Mutation commands refuse duplicate identifiers, occupied folders and overlapping declared paths, and never overwrite a file a researcher has edited. Export source/output trees must be disjoint; when exporting `.` use an outside destination such as `../my-study-crate`. `--force` only replaces a recognized export whose inventoried contents have not changed. It never authorizes deletion of a source subdirectory or an unrelated folder. Exclusive workspace access is required during mutations.
 
-See [CLI usage](docs/cli.md) and [release instructions](docs/releases.md).
+See [CLI usage](docs/cli.md), the [FAIR capability layer](docs/fair.md) and [release instructions](docs/releases.md).
 
 ## Default scientific project skeleton
 
@@ -288,7 +300,7 @@ ORW uses one standard and one template, with initialization presets rather than 
 | Workspace mutation API and CLI | **Implemented** | `add_study`, `add_assay`, `register_resource`, `add_contributor`, `update_project_metadata` and the matching `orw study/assay/resource/contributor/metadata` commands, with `--dry-run` diffs, conflict detection and validated rollback |
 | Browser editing and browser RO-Crate download | **Planned** | Current browser creates new workspaces only; use the CLI to edit an existing workspace or export RO-Crate |
 | Intentional research publish/DOI workflow | **Planned** | Validate → preview → explicit confirmation → archive/PID ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)); distinct from software package publishing |
-| FAIR capability layer | **Planned** | CITATION.cff, DataCite, PID/license checks, FAIR Signposting, FAIR-readiness reporting ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
+| FAIR capability layer | **Partly implemented** | `orw fair report` (actionable gaps, not a score), `CITATION.cff` generation, DataCite metadata with refusal on missing mandatory properties, per-scope licensing, PID validation with check digits ([guide](docs/fair.md)). FAIR Signposting, ISA-JSON/ISA-Tab and a versioned RO-Crate profile remain planned ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)) |
 | Reproducibility/provenance | **Planned** | Environments, workflows, checksums, provenance, reproducibility reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)) |
 | AI-ready workspace model | **Planned** | Structured semantic context, authoritative-resource declarations, agent-readable constraints ([#6](https://github.com/dhuzard/OpenResearchWorkspace/issues/6)) |
 | Agent Contract + portable Skill | **Planned** | Provider-neutral rules and data-steward skill ([#25](https://github.com/dhuzard/OpenResearchWorkspace/issues/25)) |
@@ -311,6 +323,8 @@ IMPLEMENTED
   static browser generator (#23)
         ↓
   deterministic workspace mutation API + CLI
+        ↓
+  FAIR outputs: CITATION.cff, DataCite, readiness (#4)
 
 RELEASE GATE
   0.1.0a1 safety + packaging checks
@@ -341,7 +355,7 @@ The architectural rule remains the same throughout: **scientific rules live in t
 
 ## Roadmap
 
-**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; a deterministic workspace mutation API and its CLI commands; RO-Crate 1.3 directory export; static browser generator; shared contract/golden fixtures and browser acceptance tests.
+**Current foundation — implemented:** ISA-aligned canonical workspace model; provider-neutral generation core; GitHub setup adapter; `orw init`; `orw validate`; machine-readable validation; a deterministic workspace mutation API and its CLI commands; FAIR outputs (CITATION.cff, DataCite metadata, per-scope licensing, PID validation, readiness reporting); RO-Crate 1.3 directory export; static browser generator; shared contract/golden fixtures and browser acceptance tests.
 
 **Alpha release — prepared:** address data-loss hazards, test wheel and source installations across supported operating systems, rehearse through TestPyPI, then promote the identical artifacts to public PyPI after explicit approval. A software release is not a research-data publication or a DOI workflow.
 
@@ -349,7 +363,7 @@ The architectural rule remains the same throughout: **scientific rules live in t
 
 **V0 completion — scientist-facing project lifecycle:** Studies, Assays, resources, contributors and metadata are now recorded through the deterministic mutation API; next come browser editing on top of that same API, collaboration and file/data-reference workflows; add intentional publication/archive/DOI flow with validation, preview, and explicit confirmation ([#3](https://github.com/dhuzard/OpenResearchWorkspace/issues/3)).
 
-**V1 — FAIR + interoperability:** richer metadata and ontology annotations; ISA-JSON/ISA-Tab interoperability; CITATION.cff/DataCite; persistent identifiers and licenses; FAIR Signposting/readiness; evaluate when the tested RO-Crate mapping is mature enough for a versioned ORW RO-Crate Profile ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)).
+**V1 — FAIR + interoperability:** CITATION.cff, DataCite metadata, persistent identifiers, per-scope licensing and FAIR-readiness reporting are implemented ([guide](docs/fair.md)); richer metadata and ontology annotations, ISA-JSON/ISA-Tab interoperability and FAIR Signposting remain; evaluate when the tested RO-Crate mapping is mature enough for a versioned ORW RO-Crate Profile ([#4](https://github.com/dhuzard/OpenResearchWorkspace/issues/4)).
 
 **V2 — reproducibility + provenance:** environments, workflow/run records, checksums/manifests, experimental and computational provenance, data/version linkage, automated QA and reproducibility/readiness reports ([#5](https://github.com/dhuzard/OpenResearchWorkspace/issues/5)).
 
