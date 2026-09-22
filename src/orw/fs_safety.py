@@ -17,8 +17,16 @@ class UnsafePathError(ValueError):
 
 
 def absolute_path(value: Path | str) -> Path:
-    # Do not resolve first: that would erase evidence of symlink/junction use.
-    return Path(os.path.abspath(Path(value).expanduser()))
+    """Canonicalize ancestors, but preserve the named root for link inspection.
+
+User-selected workspace/output roots can live below filesystem aliases such as
+macOS /var -> /private/var. Resolve their ancestors before comparing boundaries.
+Do not resolve the final component: a symlink/junction at the selected root is
+still refused. Resource paths below a workspace never use this normalization;
+assert_no_links checks every component against the already canonical root.
+"""
+    path = Path(os.path.abspath(Path(value).expanduser()))
+    return path.parent.resolve(strict=False) / path.name
 
 
 def assert_no_links(path: Path) -> None:
@@ -52,6 +60,7 @@ def overlaps(left: Path, right: Path) -> bool:
 
 def inventory(root: Path, *, exclude: frozenset[str] = frozenset()) -> dict:
     """Hash all regular files and inventory directories; refuse links/special files."""
+    root = absolute_path(root)
     assert_no_links(root)
     files: dict[str, str] = {}
     directories: list[str] = []
