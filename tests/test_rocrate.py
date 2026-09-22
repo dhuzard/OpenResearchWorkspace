@@ -182,6 +182,60 @@ class ROCrateExportTests(unittest.TestCase):
         self.assertTrue(report.valid)
         self.assertEqual({item.code for item in report.warnings}, {"root_license"})
 
+    def test_declared_license_reaches_the_crate(self):
+        """A license nobody can see in the interoperability export is no license."""
+
+        self.create()
+        project = self.project()
+        project["licenses"] = {
+            "project": {
+                "identifier": "CC-BY-4.0",
+                "name": "Creative Commons Attribution 4.0 International",
+                "url": "https://creativecommons.org/licenses/by/4.0/",
+            }
+        }
+        self.save(project)
+
+        result = self.export()
+        graph = {entity["@id"]: entity for entity in
+                 json.loads((self.crate / ROCRATE_METADATA).read_text(encoding="utf-8"))["@graph"]}
+        url = "https://creativecommons.org/licenses/by/4.0/"
+
+        self.assertEqual(graph["./"]["license"], {"@id": url})
+        self.assertEqual(graph[url]["name"], "Creative Commons Attribution 4.0 International")
+        self.assertNotIn("root_license", {item.code for item in result.validation.warnings})
+
+    def test_license_identifier_without_a_url_is_recorded_as_text(self):
+        self.create()
+        project = self.project()
+        project["licenses"] = {"project": {"identifier": "MIT"}}
+        self.save(project)
+
+        self.export()
+        graph = {entity["@id"]: entity for entity in
+                 json.loads((self.crate / ROCRATE_METADATA).read_text(encoding="utf-8"))["@graph"]}
+        self.assertEqual(graph["./"]["license"], "MIT")
+
+    def test_contributor_name_parts_reach_the_crate(self):
+        self.create()
+        project = self.project()
+        project["contributors"].append({
+            "name": "Ada Lovelace",
+            "given_name": "Ada",
+            "family_name": "Lovelace",
+            "affiliation": "Example Institute",
+        })
+        self.save(project)
+
+        self.export()
+        people = [entity for entity in
+                  json.loads((self.crate / ROCRATE_METADATA).read_text(encoding="utf-8"))["@graph"]
+                  if entity.get("@type") == "Person"]
+        added = next(person for person in people if person["name"] == "Ada Lovelace")
+        self.assertEqual(added["givenName"], "Ada")
+        self.assertEqual(added["familyName"], "Lovelace")
+        self.assertEqual(added["affiliation"], "Example Institute")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,7 +13,11 @@
         "title": {"type": "string", "minLength": 1},
         "description": {"type": "string", "minLength": 1},
         "status": {"type": "string", "enum": ["active", "paused", "completed", "archived"]},
-        "keywords": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        "keywords": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "version": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "publication_year": {"type": "string", "pattern": "^[0-9]{4}$"},
+        "doi": {"type": "string", "pattern": "^10\\.[0-9]{4,9}/[^\\s]+$"}
       },
       "additionalProperties": true
     },
@@ -25,20 +29,20 @@
       "type": "array",
       "items": {"$ref": "#/$defs/study"}
     },
+    "licenses": {
+      "type": "object",
+      "description": "Explicit rights per scope. An absent scope is undeclared, not permissive.",
+      "properties": {
+        "project": {"$ref": "#/$defs/license"},
+        "data": {"$ref": "#/$defs/license"},
+        "code": {"$ref": "#/$defs/license"},
+        "documentation": {"$ref": "#/$defs/license"}
+      },
+      "additionalProperties": false
+    },
     "resources": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
     "outputs": {"type": "array", "items": {"$ref": "#/$defs/resource"}},
-    "related_identifiers": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["identifier"],
-        "properties": {
-          "identifier": {"type": "string", "minLength": 1},
-          "relation": {"type": "string"}
-        },
-        "additionalProperties": true
-      }
-    },
+    "related_identifiers": {"type": "array", "items": {"$ref": "#/$defs/relatedIdentifier"}},
     "extensions": {"type": "object", "additionalProperties": true}
   },
   "additionalProperties": true,
@@ -49,7 +53,11 @@
       "properties": {
         "name": {"type": "string", "minLength": 1},
         "orcid": {"type": "string", "pattern": "^(https://orcid\\.org/)?[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9X]{4}$"},
-        "role": {"type": "string"}
+        "role": {"type": "string"},
+        "given_name": {"type": "string", "minLength": 1},
+        "family_name": {"type": "string", "minLength": 1},
+        "affiliation": {"type": "string", "minLength": 1},
+        "email": {"type": "string", "minLength": 1}
       },
       "additionalProperties": true
     },
@@ -87,6 +95,28 @@
         "term": {"type": "string"},
         "term_source": {"type": "string"},
         "term_accession": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "license": {
+      "type": "object",
+      "required": ["identifier"],
+      "properties": {
+        "identifier": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "relatedIdentifier": {
+      "type": "object",
+      "required": ["identifier"],
+      "properties": {
+        "identifier": {"type": "string", "minLength": 1},
+        "relation": {"type": "string", "enum": ["IsCitedBy", "Cites", "IsSupplementTo", "IsSupplementedBy", "IsContinuedBy", "Continues", "IsDescribedBy", "Describes", "HasMetadata", "IsMetadataFor", "HasVersion", "IsVersionOf", "IsNewVersionOf", "IsPreviousVersionOf", "IsPartOf", "HasPart", "IsPublishedIn", "IsReferencedBy", "References", "IsDocumentedBy", "Documents", "IsCompiledBy", "Compiles", "IsVariantFormOf", "IsOriginalFormOf", "IsIdenticalTo", "IsReviewedBy", "Reviews", "IsDerivedFrom", "IsSourceOf", "IsRequiredBy", "Requires", "IsObsoletedBy", "Obsoletes"]},
+        "scheme": {"type": "string", "enum": ["doi", "url", "handle", "arxiv", "pmid", "ark", "urn", "isbn", "accession", "other"]},
+        "resource_type": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1}
       },
       "additionalProperties": true
     },

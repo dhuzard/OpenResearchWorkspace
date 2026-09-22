@@ -35,15 +35,16 @@ This is the minimum required for both humans and machines to understand the work
 
 ## FAIR capability
 
-Planned elements include:
+Implemented ([guide](fair.md)):
 
-- ORCID and other persistent identifiers;
-- explicit licenses;
-- DataCite-compatible metadata;
-- archival repository linkage;
-- RO-Crate export;
-- FAIR Signposting;
-- validation of required metadata.
+- ORCID and other persistent identifiers, validated against their check digits;
+- explicit licenses, declared separately for project, data, code and documentation;
+- DataCite-compatible metadata, refused rather than invented when mandatory properties are missing;
+- `CITATION.cff` generated from the canonical record;
+- related identifiers using the DataCite relation vocabulary;
+- a readiness report that names each gap and the command that closes it.
+
+Still planned: archival repository linkage, FAIR Signposting, and a versioned ORW RO-Crate profile. RO-Crate export itself exists in the CLI and carries the declared project license.
 
 The guiding principle is FAIR-by-design: metadata are captured during the project rather than reconstructed only at publication.
 

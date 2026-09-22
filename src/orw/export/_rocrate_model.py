@@ -324,6 +324,16 @@ class _GraphBuilder:
             "@type": "Person",
             "name": name_text,
         }
+        # Separated name parts and affiliation are carried when the record has
+        # them, so a crate is as citable as the canonical record allows.
+        for source, target in (
+            ("given_name", "givenName"),
+            ("family_name", "familyName"),
+            ("affiliation", "affiliation"),
+        ):
+            value = contributor.get(source)
+            if isinstance(value, str) and value.strip():
+                entity[target] = value.strip()
         role = contributor.get("role")
         if isinstance(role, str) and role.strip():
             entity["description"] = f"ORW contributor role: {role.strip()}"
@@ -550,9 +560,30 @@ class _GraphBuilder:
             if clean_keywords:
                 root_entity["keywords"] = clean_keywords
 
-        license_value = investigation.get("license")
-        if not license_value:
-            license_value = self.project.get("license")
+        # The structured `licenses.project` declaration is preferred; the older
+        # free-text keys remain honoured for hand-written records.
+        license_name: str | None = None
+        declared = self.project.get("licenses")
+        if isinstance(declared, Mapping) and isinstance(declared.get("project"), Mapping):
+            project_license = declared["project"]
+            license_identifier = project_license.get("identifier")
+            license_url = project_license.get("url")
+            license_name = (
+                str(project_license["name"]).strip()
+                if isinstance(project_license.get("name"), str)
+                and str(project_license["name"]).strip()
+                else None
+            )
+            license_value = (
+                license_url
+                if isinstance(license_url, str) and license_url.strip()
+                else license_identifier
+            )
+            if license_name is None and isinstance(license_identifier, str):
+                license_name = license_identifier.strip()
+        else:
+            license_value = investigation.get("license") or self.project.get("license")
+
         if isinstance(license_value, str) and license_value.strip():
             license_text = license_value.strip()
             if _absolute_uri(license_text):
@@ -561,7 +592,7 @@ class _GraphBuilder:
                     {
                         "@id": license_text,
                         "@type": "CreativeWork",
-                        "name": license_text,
+                        "name": license_name or license_text,
                         "description": "License declared by the canonical ORW project metadata.",
                     }
                 )
