@@ -91,6 +91,7 @@ The normative documents remain in the repository root: `SPEC.md`,
 
 browser-generator
 cli
+fair
 ro-crate
 portable-implementations
 getting-started

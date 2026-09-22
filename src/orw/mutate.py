@@ -23,6 +23,7 @@ from dataclasses import dataclass
 import difflib
 import os
 from pathlib import Path, PurePosixPath
+import re
 import tempfile
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -34,13 +35,27 @@ from ._scaffold import (
     study_folders,
 )
 from .fs_safety import UnsafePathError, absolute_path, assert_no_links, overlaps, relative_path
-from .model import ACCESS_LEVELS, ORCID_RE
-from .validate import ValidationReport, validate_workspace
+from .fair.identifiers import IdentifierError, parse_identifier, parse_orcid
+from .model import ACCESS_LEVELS
+from .validate import ValidationReport, _load_project_schema, validate_workspace
 
 PROJECT_RECORD = ".research/project.yml"
 RESEARCH_DIRECTORY = ".research"
 STATUSES = ("active", "paused", "completed", "archived")
 RESOURCE_COLLECTIONS = ("resources", "outputs")
+LICENSE_SCOPES = ("project", "data", "code", "documentation")
+
+
+def _schema_enum(*path: str) -> tuple[str, ...]:
+    """Read a vocabulary from the bundled schema, so the CLI cannot drift from it."""
+
+    node: Any = _load_project_schema()
+    for step in path:
+        node = node[step]
+    return tuple(node["enum"])
+
+
+RELATIONS = _schema_enum("$defs", "relatedIdentifier", "properties", "relation")
 
 
 class MutationError(ValueError):
@@ -139,7 +154,12 @@ def _read_record(path: Path) -> tuple[str, str]:
     return raw.replace("\r\n", "\n"), newline
 
 
-def _open(workspace: Path | str) -> tuple[Path, str, Mapping[str, Any]]:
+def load_workspace(workspace: Path | str) -> tuple[Path, str, Mapping[str, Any]]:
+    """Validate a workspace and return its root, canonical record text and data.
+
+    Every mutation and every generated FAIR view starts here, so none of them
+    can act on a workspace whose canonical record is already broken.
+    """
     try:
         root = absolute_path(workspace)
         assert_no_links(root)
@@ -468,7 +488,7 @@ def add_study(
 ) -> MutationResult:
     """Record a new ISA Study and scaffold its folders."""
 
-    root, text, data = _open(workspace)
+    root, text, data = load_workspace(workspace)
     title = _text(title, "Study title")
     description = _optional_text(description, "Study description")
     study_id = (
@@ -543,7 +563,7 @@ def add_assay(
 ) -> MutationResult:
     """Record a new ISA Assay inside an existing Study and scaffold its folders."""
 
-    root, text, data = _open(workspace)
+    root, text, data = load_workspace(workspace)
     study_id = _text(study, "Study identifier")
     title = _text(title, "Assay title")
     description = _optional_text(description, "Assay description")
@@ -657,7 +677,7 @@ def register_resource(
 ) -> MutationResult:
     """Register a dataset, document or other resource, in place or elsewhere."""
 
-    root, text, data = _open(workspace)
+    root, text, data = load_workspace(workspace)
     name = _text(name, "Resource name")
     if collection not in RESOURCE_COLLECTIONS:
         allowed = ", ".join(RESOURCE_COLLECTIONS)
@@ -728,19 +748,34 @@ def add_contributor(
     *,
     role: str | None = None,
     orcid: str | None = None,
+    given_name: str | None = None,
+    family_name: str | None = None,
+    affiliation: str | None = None,
+    email: str | None = None,
     dry_run: bool = False,
 ) -> MutationResult:
-    """Record a person who contributes to the Investigation."""
+    """Record a person who contributes to the Investigation.
 
-    root, text, data = _open(workspace)
+    Separated given and family names are optional but worth giving: CITATION.cff
+    can only record a person, rather than an organization, when it has them.
+    """
+
+    root, text, data = load_workspace(workspace)
     name = _text(name, "Contributor name")
     role = _optional_text(role, "Contributor role")
-    orcid = _optional_text(orcid, "ORCID")
-    if orcid is not None and not ORCID_RE.fullmatch(orcid):
-        raise MutationInputError(
-            "ORCID must look like 0000-0000-0000-0000 (final character may be X), "
-            "optionally prefixed by https://orcid.org/."
-        )
+    given_name = _optional_text(given_name, "Given name")
+    family_name = _optional_text(family_name, "Family name")
+    affiliation = _optional_text(affiliation, "Affiliation")
+    email = _optional_text(email, "Email")
+    declared = _optional_text(orcid, "ORCID")
+    orcid = None
+    if declared is not None:
+        try:
+            # Checked against its check digit, not only its shape: a mistyped
+            # ORCID credits the wrong researcher, or nobody at all.
+            orcid = parse_orcid(declared).value
+        except IdentifierError as exc:
+            raise MutationInputError(str(exc)) from exc
 
     contributors = data.get("contributors")
     if isinstance(contributors, list):
@@ -752,13 +787,150 @@ def add_contributor(
             if orcid and _same_orcid(item.get("orcid"), orcid):
                 raise MutationConflict(f"ORCID {orcid} is already recorded for this project.")
 
-    item = {"name": name, "role": role, "orcid": orcid}
+    item = {
+        "name": name,
+        "role": role,
+        "orcid": orcid,
+        "given_name": given_name,
+        "family_name": family_name,
+        "affiliation": affiliation,
+        "email": email,
+    }
     after = edit.append_item(text, ("contributors",), item)
 
     return _finish(
         _plan(root, "contributor.add", f"Added contributor {name!r}", name, text, after),
         dry_run,
     )
+
+
+def set_license(
+    workspace: Path | str,
+    scope: str,
+    identifier: str,
+    *,
+    name: str | None = None,
+    url: str | None = None,
+    dry_run: bool = False,
+) -> MutationResult:
+    """Declare the rights covering one scope of the workspace.
+
+    Scopes are declared separately because research outputs rarely share one
+    licence: code under a software licence and data under a Creative Commons
+    licence is the ordinary case, not an edge case. An undeclared scope stays
+    undeclared; ORW never infers that silence means permission.
+    """
+
+    root, text, data = load_workspace(workspace)
+    if scope not in LICENSE_SCOPES:
+        raise MutationInputError(
+            f"License scope must be one of: {', '.join(LICENSE_SCOPES)}."
+        )
+    identifier = _text(identifier, "License identifier")
+    name = _optional_text(name, "License name")
+    url = _optional_text(url, "License URL")
+
+    record = {"identifier": identifier, "name": name, "url": url}
+    declared = data.get("licenses")
+    if isinstance(declared, Mapping):
+        replacing = isinstance(declared.get(scope), Mapping)
+        after = edit.set_value(text, ("licenses", scope), record)
+    else:
+        replacing = False
+        after = edit.set_value(text, ("licenses",), {scope: record})
+
+    if after == text:
+        summary = f"The {scope} license already records {identifier}"
+    else:
+        verb = "Replaced" if replacing else "Declared"
+        summary = f"{verb} the {scope} license: {identifier}"
+    return _finish(
+        _plan(root, "license.set", summary, identifier, text, after),
+        dry_run or after == text,
+    )
+
+
+def add_related_identifier(
+    workspace: Path | str,
+    identifier: str,
+    *,
+    relation: str | None = None,
+    scheme: str | None = None,
+    resource_type: str | None = None,
+    title: str | None = None,
+    dry_run: bool = False,
+) -> MutationResult:
+    """Record a persistent identifier this Investigation relates to.
+
+    The identifier is validated and normalized before it is written, so a
+    mistyped DOI is refused here rather than deposited later.
+    """
+
+    root, text, data = load_workspace(workspace)
+    raw = _text(identifier, "Identifier")
+    relation = _optional_text(relation, "Relation")
+    resource_type = _optional_text(resource_type, "Resource type")
+    title = _optional_text(title, "Title")
+    scheme = _optional_text(scheme, "Identifier scheme")
+
+    try:
+        parsed = parse_identifier(raw, scheme=scheme)
+    except IdentifierError as exc:
+        raise MutationInputError(str(exc)) from exc
+    if parsed.scheme == "orcid":
+        raise MutationInputError(
+            "An ORCID identifies a person, not a related work. Record it with "
+            "'orw contributor add NAME --orcid ...'."
+        )
+
+    if relation is not None and relation not in RELATIONS:
+        raise MutationInputError(
+            f"{relation!r} is not a DataCite relation type. Common choices are "
+            "IsSupplementTo, IsDerivedFrom, Cites, References and IsPartOf; "
+            f"the full list is: {', '.join(RELATIONS)}."
+        )
+
+    existing = data.get("related_identifiers")
+    if isinstance(existing, list):
+        for item in existing:
+            if isinstance(item, Mapping) and _same_identifier(item, parsed.value):
+                raise MutationConflict(
+                    f"{parsed.value} is already recorded as a related identifier."
+                )
+
+    item = {
+        "identifier": parsed.value,
+        "relation": relation,
+        "scheme": parsed.scheme,
+        "resource_type": resource_type,
+        "title": title,
+    }
+    after = edit.append_item(text, ("related_identifiers",), item)
+
+    return _finish(
+        _plan(
+            root,
+            "identifier.add",
+            f"Recorded related identifier {parsed.value}",
+            parsed.value,
+            text,
+            after,
+        ),
+        dry_run,
+    )
+
+
+def _same_identifier(entry: Mapping[str, Any], value: str) -> bool:
+    declared = entry.get("identifier")
+    if not isinstance(declared, str):
+        return False
+    try:
+        scheme = entry.get("scheme")
+        return parse_identifier(
+            declared, scheme=scheme if isinstance(scheme, str) else None
+        ).value.casefold() == value.casefold()
+    except IdentifierError:
+        return declared.strip().casefold() == value.casefold()
 
 
 def _same_person(left: str, right: str) -> bool:
@@ -779,21 +951,42 @@ def update_project_metadata(
     description: str | None = None,
     status: str | None = None,
     keywords: Sequence[str] | None = None,
+    publisher: str | None = None,
+    publication_year: str | None = None,
+    version: str | None = None,
+    doi: str | None = None,
     dry_run: bool = False,
 ) -> MutationResult:
-    """Update Investigation-level metadata, replacing only the fields given."""
+    """Update Investigation-level metadata, replacing only the fields given.
 
-    root, text, data = _open(workspace)
+    Publisher, publication year and DOI exist here because DataCite requires
+    them. Recording them while the research is open is the point of FAIR by
+    design; improvising them at deposit time is what it replaces.
+    """
+
+    root, text, data = load_workspace(workspace)
     title = _optional_text(title, "Investigation title")
     description = _optional_text(description, "Investigation description")
     status = _optional_text(status, "Investigation status")
+    publisher = _optional_text(publisher, "Publisher")
+    publication_year = _optional_text(publication_year, "Publication year")
+    version = _optional_text(version, "Version")
+    doi = _optional_text(doi, "DOI")
     if status is not None and status not in STATUSES:
         raise MutationInputError(
             f"Investigation status must be one of: {', '.join(STATUSES)}."
         )
+    if publication_year is not None and not re.fullmatch(r"[0-9]{4}", publication_year):
+        raise MutationInputError("Publication year must be four digits, for example 2026.")
+    if doi is not None:
+        try:
+            doi = parse_identifier(doi, scheme="doi").value
+        except IdentifierError as exc:
+            raise MutationInputError(str(exc)) from exc
     if keywords is not None:
         keywords = _keywords(keywords)
-    if title is None and description is None and status is None and keywords is None:
+    given = (title, description, status, keywords, publisher, publication_year, version, doi)
+    if all(value is None for value in given):
         raise MutationInputError("Give at least one metadata field to update.")
 
     investigation = data.get("investigation")
@@ -807,6 +1000,10 @@ def update_project_metadata(
         ("description", description),
         ("status", status),
         ("keywords", list(keywords) if keywords is not None else None),
+        ("version", version),
+        ("publisher", publisher),
+        ("publication_year", publication_year),
+        ("doi", doi),
     ):
         if value is None:
             continue

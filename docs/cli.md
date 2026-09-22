@@ -99,7 +99,11 @@ A dry run prints the exact unified diff that applying would write to `.research/
 | `orw assay add TITLE --study ID` | An ISA Assay inside that Study | `<study path>/assays/<identifier>/` with its data, analysis and results folders |
 | `orw resource add NAME` | An entry in `resources`, or in `outputs` with `--collection outputs` | Nothing; ORW records references, it does not copy research data |
 | `orw contributor add NAME` | An entry in `contributors` | Nothing |
-| `orw metadata set` | Investigation `title`, `description`, `status` or `keywords` | Nothing |
+| `orw metadata set` | Investigation `title`, `description`, `status`, `keywords`, `publisher`, `publication-year`, `version-label` or `doi` | Nothing |
+| `orw license set SCOPE ID` | Explicit rights for `project`, `data`, `code` or `documentation` | Nothing |
+| `orw identifier add ID` | A validated related identifier in `related_identifiers` | Nothing |
+
+`orw license set`, `orw identifier add` and the FAIR-related `orw metadata set` fields belong to the [FAIR capability layer](fair.md), which also generates `CITATION.cff`, DataCite metadata and a readiness report from the same record.
 
 Identifiers double as folder names and default to a slug of the title; pass `--id` to choose one. Only lowercase letters, digits and single hyphens are accepted. `--path` overrides the default folder, and an Assay path must stay inside its Study path because the validator requires that containment.
 
@@ -119,6 +123,16 @@ Every mutation:
 Rollback assumes exclusive access to the workspace for the duration of the command. It recovers from an ordinary failure; it is not a filesystem transaction against another process writing at the same time. As everywhere else in ORW, evaluate on disposable copies during the alpha.
 
 These commands do not rewrite `README.md`. The workspace overview belongs to its authors, so a renamed Investigation or a new Study is recorded in the canonical metadata and left for you to describe in prose.
+
+## Generate FAIR outputs
+
+```bash
+orw fair report          # what is missing for reuse, and the command that fixes it
+orw fair citation        # generate CITATION.cff from the canonical record
+orw fair datacite        # the metadata a deposit would submit
+```
+
+These are generated views over `.research/project.yml`, never a second place to enter metadata. Generating a deposit payload is not depositing it: no network call is made and no DOI is minted. See the [FAIR capability layer](fair.md).
 
 ## Export a RO-Crate directory
 
