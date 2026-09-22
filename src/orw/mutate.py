@@ -394,7 +394,16 @@ def apply_plan(plan: MutationPlan) -> ValidationReport:
     against another process writing concurrently.
     """
 
-    root = plan.workspace
+    # A plan can arrive from another process, so normalize its root here rather
+    # than trusting the caller to have done it. Ancestors below a host alias
+    # such as macOS /var -> /private/var are resolved; a link at the workspace
+    # root itself is still refused.
+    try:
+        root = absolute_path(plan.workspace)
+        assert_no_links(root)
+    except UnsafePathError as exc:
+        raise MutationInputError(str(exc)) from exc
+
     record = _record_path(root)
     try:
         assert_no_links(record)

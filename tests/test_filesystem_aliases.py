@@ -1,5 +1,6 @@
 """Path normalization must support host aliases without hiding payload links."""
 from __future__ import annotations
+from dataclasses import replace
 import json
 from pathlib import Path
 import sys
@@ -10,7 +11,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from orw import SetupConfig, create_workspace
+from orw import SetupConfig, create_workspace, mutate
 from orw.export.rocrate import export_rocrate, ROCrateExportError
 from orw.fs_safety import absolute_path, inventory
 
@@ -59,6 +60,39 @@ class FilesystemAliasTests(unittest.TestCase):
         with self.assertRaises(ROCrateExportError):
             export_rocrate(workspace, alias, force=True)
         self.assertEqual(list(destination.iterdir()), [])
+
+    def test_mutations_work_below_a_parent_alias(self):
+        """A plan may name a workspace reached through an aliased ancestor."""
+
+        actual = self.root / "actual"
+        actual.mkdir()
+        alias = self.root / "alias"
+        self.link(alias, actual, directory=True)
+        create_workspace(self.config, actual / "study")
+
+        planned = mutate.add_contributor(alias / "study", "Ada Lovelace", dry_run=True)
+        self.assertFalse(planned.applied)
+
+        applied = mutate.apply_plan(
+            replace(planned.plan, workspace=alias / "study")
+        )
+        self.assertTrue(applied.valid, [issue.message for issue in applied.issues])
+        record = (actual / "study/.research/project.yml").read_text(encoding="utf-8")
+        self.assertIn("Ada Lovelace", record)
+
+    def test_a_linked_workspace_root_is_still_refused(self):
+        workspace = self.root / "study"
+        create_workspace(self.config, workspace)
+        alias = self.root / "alias"
+        self.link(alias, workspace, directory=True)
+
+        planned = mutate.add_contributor(workspace, "Ada Lovelace", dry_run=True)
+        with self.assertRaises(mutate.MutationInputError):
+            mutate.apply_plan(replace(planned.plan, workspace=alias))
+        self.assertNotIn(
+            "Ada Lovelace",
+            (workspace / ".research/project.yml").read_text(encoding="utf-8"),
+        )
 
     def test_nested_payload_symlink_is_still_rejected(self):
         workspace = self.root / "study"
