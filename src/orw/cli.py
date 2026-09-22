@@ -927,9 +927,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="orw",
         description=(
-            "Create and validate portable OpenResearchWorkspace projects, and record "
+            "Create and validate portable OpenResearchWorkspace projects, record "
             "Studies, Assays, resources, contributors and metadata as the research "
-            "grows, without requiring a hosted forge."
+            "grows, and generate FAIR outputs from the same canonical record, all "
+            "without requiring a hosted forge."
         ),
     )
     parser.add_argument(
