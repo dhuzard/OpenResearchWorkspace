@@ -23,60 +23,92 @@ pattern = re.compile(r"^###\s+(.+?)\s*$\n(.*?)(?=^###\s+|\Z)", re.MULTILINE | re
 for heading, value in pattern.findall(body):
     sections[heading.strip()] = value.strip()
 
-mapping = {
-    "project_title": "Project title",
-    "project_description": "Short project description",
-    "researcher_name": "Your name",
-    "study_title": "First study title",
-    "assay_title": "What will you measure first?",
-    "data_location": "Where are the authoritative/raw data stored?",
-    "data_access": "Data access level",
-    "keywords": "Keywords (optional)",
-    "orcid": "Your ORCID (optional)",
-}
 
-# The current GitHub form still asks for an initial Assay. The ORW core itself
-# allows first_assay=null so future CLI/browser interfaces can represent
-# projects for which an Assay is not scientifically applicable.
-required = {
-    "project_title",
-    "project_description",
-    "researcher_name",
-    "study_title",
-    "assay_title",
-    "data_location",
-    "data_access",
-}
-
-values: dict[str, str] = {}
-for key, heading in mapping.items():
+def read(heading: str, *, required: bool = False) -> str:
     value = sections.get(heading, "").strip()
     if value in {"_No response_", "No response"}:
         value = ""
-    if key in required and not value:
+    if required and not value:
         raise SystemExit(f"Missing required setup field: {heading}")
-    values[key] = value
+    return value
 
-keywords = [item.strip() for item in values["keywords"].split(",") if item.strip()]
+
+def choice(value: str, options: tuple[tuple[str, str], ...], label: str) -> str:
+    for prefix, normalized in options:
+        if value.startswith(prefix):
+            return normalized
+    raise SystemExit(f"Unsupported {label} choice: {value!r}")
+
+
+project_title = read("Project title", required=True)
+project_description = read("What is this project about?", required=True)
+researcher_name = read("Your name", required=True)
+orcid = read("Your ORCID (optional)")
+study_structure = choice(
+    read("How is this research organized?", required=True),
+    (
+        ("One Study", "single"),
+        ("Several Studies", "multiple"),
+        ("Not sure yet", "undecided"),
+    ),
+    "study structure",
+)
+
+study_title = read("First Study title (optional)")
+if not study_title:
+    study_title = (
+        f"{project_title} — Study 1"
+        if study_structure == "multiple"
+        else project_title
+    )
+
+assay_structure = choice(
+    read("Do your Studies contain several distinct measurement types?", required=True),
+    (
+        ("No", "single_or_none"),
+        ("Yes", "multiple"),
+        ("Not sure yet", "undecided"),
+    ),
+    "measurement structure",
+)
+
+protocol_storage = choice(
+    read("Do you want to keep protocol documents in this workspace?", required=True),
+    (
+        ("Yes", "workspace"),
+        ("No", "elsewhere"),
+        ("Not sure yet", "undecided"),
+    ),
+    "protocol storage",
+)
+
+data_location = read("Where are the authoritative or raw data stored?", required=True)
+data_access = read("Current data access", required=True)
+keywords_raw = read("Keywords (optional)")
+keywords = [item.strip() for item in keywords_raw.split(",") if item.strip()]
 
 normalized = {
-    "project_title": values["project_title"],
-    "project_description": values["project_description"],
+    "project_title": project_title,
+    "project_description": project_description,
     "creator": {
-        "name": values["researcher_name"],
-        "orcid": values["orcid"] or None,
+        "name": researcher_name,
+        "orcid": orcid or None,
     },
     "first_study": {
-        "title": values["study_title"],
+        "title": study_title,
     },
-    "first_assay": {
-        "title": values["assay_title"],
-    },
+    # Beginner setup deliberately does not invent or request an Assay name.
+    "first_assay": None,
     "data": {
-        "location": values["data_location"],
-        "access": values["data_access"],
+        "location": data_location,
+        "access": data_access,
     },
     "keywords": keywords,
+    "workspace_options": {
+        "study_structure": study_structure,
+        "assay_structure": assay_structure,
+        "protocol_storage": protocol_storage,
+    },
 }
 
 # Compact JSON stays on one GITHUB_OUTPUT line; embedded newlines in user text
