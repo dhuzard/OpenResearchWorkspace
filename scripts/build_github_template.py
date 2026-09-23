@@ -31,10 +31,17 @@ REQUIRED_FILES = {
     "README.md",
     "GETTING_STARTED.md",
     ".github/ISSUE_TEMPLATE/orw-setup.yml",
+    ".github/ISSUE_TEMPLATE/orw-add-study.yml",
+    ".github/ISSUE_TEMPLATE/orw-add-assay.yml",
+    ".github/ISSUE_TEMPLATE/orw-register-data.yml",
+    ".github/ISSUE_TEMPLATE/orw-add-contributor.yml",
+    ".github/ISSUE_TEMPLATE/orw-check-workspace.yml",
     ".github/ISSUE_TEMPLATE/config.yml",
     ".github/workflows/initialize-project.yml",
+    ".github/workflows/project-actions.yml",
     "scripts/parse_setup_issue.py",
     "scripts/initialize_project.py",
+    "scripts/handle_project_action.py",
     ".research/project.yml",
     ".research/workspace.yml",
     ".research/capabilities.yml",
@@ -128,11 +135,10 @@ def _copy_assets(destination: Path, revision: str) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         content = source.read_text(encoding="utf-8")
 
-        if relative.as_posix() == ".github/workflows/initialize-project.yml":
-            count = content.count(CORE_REVISION_TOKEN)
-            if count != 1:
+        if CORE_REVISION_TOKEN in content:
+            if not relative.as_posix().startswith(".github/workflows/"):
                 raise TemplateBuildError(
-                    "GitHub initializer must contain exactly one core revision token."
+                    f"Core revision token is only allowed in generated workflows: {relative}"
                 )
             content = content.replace(CORE_REVISION_TOKEN, revision)
 
@@ -205,17 +211,23 @@ def validate_distribution(destination: Path, revision: str) -> None:
                 f"Generated .research/{name} diverges from canonical source."
             )
 
-    workflow = (
-        destination / ".github" / "workflows" / "initialize-project.yml"
-    ).read_text(encoding="utf-8")
+    workflows = sorted((destination / ".github" / "workflows").glob("*.yml"))
     provenance = (destination / ".research" / "template-source.yml").read_text(
         encoding="utf-8"
     )
-    if CORE_REVISION_TOKEN in workflow:
-        raise TemplateBuildError("Unresolved core revision token in generated workflow.")
-    if revision not in workflow or revision not in provenance:
+    for workflow_path in workflows:
+        workflow = workflow_path.read_text(encoding="utf-8")
+        if CORE_REVISION_TOKEN in workflow:
+            raise TemplateBuildError(
+                f"Unresolved core revision token in generated workflow: {workflow_path.name}"
+            )
+        if "ORW_CORE_REVISION" in workflow and revision not in workflow:
+            raise TemplateBuildError(
+                f"Generated workflow does not pin the requested core revision: {workflow_path.name}"
+            )
+    if revision not in provenance:
         raise TemplateBuildError(
-            "Generated workflow/provenance do not pin the requested core revision."
+            "Generated provenance does not pin the requested core revision."
         )
 
 
