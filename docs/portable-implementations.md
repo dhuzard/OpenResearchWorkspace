@@ -40,18 +40,22 @@ GitHub remains a supported reference deployment, but it must not define what an 
 
 The same user input must produce semantically equivalent workspaces regardless of interface.
 
-## Existing code to reuse
+## Repository boundary
 
-The current implementation already contains useful generator logic in:
+Provider-neutral scientific generation lives in this repository under `src/orw/`.
+
+The GitHub-specific adapter now lives separately in:
 
 ```text
-scripts/initialize_project.py
-scripts/parse_setup_issue.py
-.github/workflows/initialize-project.yml
-.github/ISSUE_TEMPLATE/orw-setup.yml
+dhuzard/OpenResearchWorkspace-template
+├── .github/ISSUE_TEMPLATE/orw-setup.yml
+├── .github/workflows/initialize-project.yml
+└── scripts/
+    ├── parse_setup_issue.py
+    └── initialize_project.py
 ```
 
-The important refactor is to move workspace generation out of environment-variable-driven GitHub automation into a callable, testable core.
+The template adapter installs an immutable pinned revision of this canonical ORW core during initialization. It handles GitHub form parsing, permissions, checkout/commit/push, and user feedback; it does not contain an independent scientific workspace generator.
 
 ## Phase 1 — Define a provider-neutral generation contract
 
@@ -85,9 +89,9 @@ This input contract should be schema-validated and independent of GitHub fields 
 
 Provider-specific identity may be added as optional implementation metadata, not as required scientific metadata.
 
-## Phase 2 — Extract ORW core
+## Phase 2 — Provider-neutral ORW core — implemented
 
-Refactor `scripts/initialize_project.py` into pure functions that accept structured input and an output directory.
+Workspace generation is exposed as provider-neutral Python functions that accept structured input and an output directory.
 
 Suggested target:
 
@@ -124,7 +128,7 @@ Important properties:
 - clear machine-readable errors;
 - unit-testable without network access.
 
-The existing GitHub workflow should eventually call this same core.
+The dedicated GitHub template workflow calls this same core through a pinned canonical revision.
 
 ## Phase 3 — Small CLI
 
@@ -358,7 +362,7 @@ The application must not depend on the hostname on which it is served.
 - normalized setup schema;
 - pure workspace generator;
 - tests;
-- GitHub workflow migrated to core.
+- GitHub adapter separated into `OpenResearchWorkspace-template` and pinned to the canonical core.
 
 ### Milestone B — CLI MVP — implemented
 
