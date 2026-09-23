@@ -1,15 +1,15 @@
 name: Set up my research project
-description: Initialize this new OpenResearchWorkspace project without using Git or editing YAML.
+description: Create a simple ORW research workspace without Git, code, or YAML.
 title: "[ORW Setup] "
 body:
   - type: markdown
     attributes:
       value: |
-        # Set up your research project
+        # Set up your research workspace
 
-        Fill this form once after creating a new repository from the OpenResearchWorkspace template.
+        This form creates the initial scientific structure for your project.
 
-        When you submit it, ORW will automatically create your first **Investigation → Study → Assay** structure and the machine-readable project metadata.
+        You do **not** need to know Git, edit YAML, or understand ISA terminology. ORW will use the choices below to keep the initial workspace as simple as possible.
 
         **Do not enter passwords, access tokens, participant identifiers, confidential clinical information, or other secrets.**
 
@@ -17,7 +17,7 @@ body:
     id: project_title
     attributes:
       label: Project title
-      description: The human-readable title of the overall research project (the ISA Investigation).
+      description: The human-readable title of the overall research project.
       placeholder: Effects of light exposure on mouse activity
     validations:
       required: true
@@ -25,8 +25,8 @@ body:
   - type: textarea
     id: project_description
     attributes:
-      label: Short project description
-      description: One or two sentences describing the research question or objective.
+      label: What is this project about?
+      description: One or two sentences describing the question, objective, or purpose.
       placeholder: Study of how altered light exposure affects spontaneous mouse activity.
     validations:
       required: true
@@ -35,34 +35,83 @@ body:
     id: researcher_name
     attributes:
       label: Your name
-      description: Your scientific/professional name as you want it recorded in the project metadata.
+      description: Your scientific or professional name as it should appear in project metadata.
       placeholder: Jane Researcher
+    validations:
+      required: true
+
+  - type: input
+    id: orcid
+    attributes:
+      label: Your ORCID (optional)
+      description: Leave blank if you do not use ORCID. Example: 0000-0002-1825-0097.
+      placeholder: 0000-0002-1825-0097
+
+  - type: markdown
+    attributes:
+      value: |
+        ## How should ORW organize the project?
+
+        These choices only shape the initial folders. They do not lock the science into one structure forever.
+
+  - type: dropdown
+    id: study_structure
+    attributes:
+      label: How is this research organized?
+      description: Choose the simplest description that fits now.
+      options:
+        - One Study — this project is essentially one Study
+        - Several Studies — one overall project contains multiple Studies
+        - Not sure yet
+      default: 0
     validations:
       required: true
 
   - type: input
     id: study_title
     attributes:
-      label: First study title
-      description: The first Study within the project. You can add more studies later.
+      label: First Study title (optional)
+      description: For a one-Study project, leave blank to reuse the project title. For a multi-Study project, you may name the first Study now.
       placeholder: Light exposure study
+
+  - type: dropdown
+    id: assay_structure
+    attributes:
+      label: Do your Studies contain several distinct measurement types?
+      description: Choose Yes only when separate measurements really need their own structure. ORW will not ask you to invent an Assay name during setup.
+      options:
+        - No — keep data, analysis and results directly at Study level
+        - Yes — use an Assays layer for several measurement types
+        - Not sure yet
+      default: 0
     validations:
       required: true
 
-  - type: input
-    id: assay_title
+  - type: dropdown
+    id: protocol_storage
     attributes:
-      label: What will you measure first?
-      description: The first ISA Assay or measurement type, for example Behaviour, Imaging, Electrophysiology, RNA-seq, or Metabolomics.
-      placeholder: Behaviour
+      label: Do you want to keep protocol documents in this workspace?
+      description: This controls whether ORW creates a protocols folder now.
+      options:
+        - Yes — create a protocols folder
+        - No — protocols are managed elsewhere
+        - Not sure yet
+      default: 0
     validations:
       required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Data
+
+        ORW can reference data stored elsewhere. GitHub does not need to contain your authoritative raw data.
 
   - type: input
     id: data_location
     attributes:
-      label: Where are the authoritative/raw data stored?
-      description: A high-level location is enough. Do not enter passwords, credentials, or sensitive access details.
+      label: Where are the authoritative or raw data stored?
+      description: A high-level location is enough. Do not enter credentials or sensitive access details.
       placeholder: Institutional research server
     validations:
       required: true
@@ -70,8 +119,8 @@ body:
   - type: dropdown
     id: data_access
     attributes:
-      label: Data access level
-      description: Choose the current access status of the authoritative/raw data.
+      label: Current data access
+      description: Choose the current access status of the authoritative data.
       options:
         - private
         - restricted
@@ -89,18 +138,11 @@ body:
       description: Separate several keywords with commas.
       placeholder: behaviour, circadian rhythm, mouse
 
-  - type: input
-    id: orcid
-    attributes:
-      label: Your ORCID (optional)
-      description: Enter an ORCID such as 0000-0000-0000-0000. You can add contributors later.
-      placeholder: 0000-0000-0000-0000
-
   - type: checkboxes
     id: confirmation
     attributes:
-      label: Ready to initialize
-      description: This setup is intended to run once on a new ORW project.
+      label: Ready to create the workspace
+      description: ORW will initialize this repository once using the choices above.
       options:
         - label: I understand that submitting this form will initialize this repository as my research workspace.
           required: true
