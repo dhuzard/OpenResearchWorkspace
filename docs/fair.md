@@ -48,6 +48,13 @@ Prefer an SPDX identifier (`CC-BY-4.0`, `MIT`, `CC0-1.0`). An identifier ORW doe
 
 ORCID and ISBN carry check digits, and ORW verifies them. `0000-0002-1825-0098` is refused: it has the right shape but is mistyped or invented, and would credit nobody.
 
+A check digit only proves an identifier is well formed, not that it belongs to
+anyone. `orw contributor add --orcid … --fetch` goes further and asks the
+registry, refusing an ORCID that does not exist and filling the contributor's
+given and family names from the public record. It is the only ORW command that
+uses the network, and it warns rather than fails when the registry cannot be
+reached. See [the CLI guide](cli.md).
+
 Where detection is ambiguous — a bare `12345678` could be many things — ORW asks for `--scheme` rather than guessing.
 
 `--relation` uses the DataCite relation vocabulary (`IsSupplementTo`, `IsDerivedFrom`, `Cites`, `References`, `IsPartOf`, …). The list is read from the bundled schema, so the CLI and the schema cannot drift apart.

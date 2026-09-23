@@ -83,6 +83,23 @@ orw metadata set --status paused --keyword sleep --keyword mouse
 
 Each command takes `--workspace DIR` (default: the current folder), `--dry-run` and `--json`.
 
+### Filling a contributor from the ORCID registry
+
+```bash
+orw contributor add "Josiah Carberry" --orcid 0000-0002-1825-0097 --fetch
+```
+
+`--fetch` reads the public name on the record and fills `--given-name` and
+`--family-name`, which is what lets `CITATION.cff` record a person rather than
+an organization. Anything you pass explicitly wins over the registry.
+
+**This is the only ORW command that uses the network.** It sends the ORCID to
+`pub.orcid.org` and reads public data back; nothing else about your workspace
+leaves the machine, and every other command works fully offline. An ORCID the
+registry does not know is refused. A registry that cannot be reached only
+warns, and the contributor is still recorded, so being offline never blocks
+your work.
+
 ### Review before writing
 
 ```bash
