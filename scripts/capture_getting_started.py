@@ -43,9 +43,9 @@ from playwright.sync_api import (
     sync_playwright,
 )
 
-TEMPLATE_REPO = "https://github.com/dhuzard/OpenResearchWorkspace"
+TEMPLATE_REPO = "https://github.com/dhuzard/OpenResearchWorkspace-template"
 TEMPLATE_NEW = (
-    "https://github.com/new?template_name=OpenResearchWorkspace&template_owner=dhuzard"
+    "https://github.com/new?template_name=OpenResearchWorkspace-template&template_owner=dhuzard"
 )
 GUIDE_STEP = 0
 
@@ -172,6 +172,20 @@ def show_video_guide(
 def guided_fill(page: Page, locator, value: str, message: str) -> None:
     show_video_guide(page, message, locator)
     locator.first.fill(value)
+    clear_video_guide(page)
+
+
+def guided_choose(page: Page, label: str, option: str, message: str) -> None:
+    control = page.get_by_label(label)
+    show_video_guide(page, message, control)
+    tag = control.first.evaluate("element => element.tagName")
+    if tag == "SELECT":
+        control.first.select_option(label=option)
+    else:
+        control.first.click()
+        candidate = page.get_by_text(option, exact=True)
+        candidate.first.wait_for(state="visible", timeout=10_000)
+        candidate.first.click()
     clear_video_guide(page)
 
 
@@ -390,7 +404,7 @@ def fill_setup_form(page: Page) -> None:
     )
     guided_fill(
         page,
-        page.get_by_label("Short project description"),
+        page.get_by_label("What is this project about?"),
         "Study of how altered light exposure affects spontaneous mouse activity.",
         "Briefly describe the research question or objective.",
     )
@@ -400,48 +414,38 @@ def fill_setup_form(page: Page) -> None:
         "Jane Researcher",
         "Enter the project creator's name.",
     )
-    guided_fill(
+
+    guided_choose(
         page,
-        page.get_by_label("First study title"),
-        "Light exposure study",
-        "Name the first Study in the project.",
+        "How is this research organized?",
+        "One Study — this project is essentially one Study",
+        "Choose the simplest Study structure that fits the project.",
     )
-    guided_fill(
+    guided_choose(
         page,
-        page.get_by_label("What will you measure first?"),
-        "Behaviour",
-        "Enter the first Assay or measurement type.",
+        "Do your Studies contain several distinct measurement types?",
+        "No — keep data, analysis and results directly at Study level",
+        "Keep the initial project flat when a separate Assay layer is unnecessary.",
     )
+    guided_choose(
+        page,
+        "Do you want to keep protocol documents in this workspace?",
+        "Yes — create a protocols folder",
+        "Choose whether protocol documents should have a folder in this workspace.",
+    )
+
     guided_fill(
         page,
-        page.get_by_label("Where are the authoritative/raw data stored?"),
+        page.get_by_label("Where are the authoritative or raw data stored?"),
         "Institutional research server",
         "Record the authoritative data location without entering secrets.",
     )
-
-    access = page.get_by_label("Data access level")
-    if (
-        access.count()
-        and access.first.evaluate("element => element.tagName") == "SELECT"
-    ):
-        show_video_guide(
-            page, "Choose the current access level for the raw data.", access
-        )
-        access.select_option(label="private")
-        clear_video_guide(page)
-    elif access.count():
-        show_video_guide(
-            page, "Confirm the current access level for the raw data.", access
-        )
-        if access.first.inner_text().strip().lower() != "private":
-            access.first.click()
-            private_access = page.get_by_role(
-                "menuitemradio", name="private", exact=True
-            )
-            private_access.wait_for(state="visible", timeout=10_000)
-            show_video_guide(page, "Select private data access.", private_access)
-            private_access.click()
-        clear_video_guide(page)
+    guided_choose(
+        page,
+        "Current data access",
+        "private",
+        "Choose the current access level for the authoritative data.",
+    )
 
     guided_fill(
         page,
@@ -555,7 +559,7 @@ def main() -> int:
         # GitHub keeps background connections active, so "networkidle" may
         # never occur. The following element wait is the real readiness check.
         page.goto(TEMPLATE_REPO, wait_until="domcontentloaded")
-        page.get_by_text("OpenResearchWorkspace", exact=True).first.wait_for(
+        page.get_by_text("OpenResearchWorkspace Template", exact=True).first.wait_for(
             state="visible"
         )
         screenshot(page, screenshots["template"])
@@ -638,7 +642,7 @@ def main() -> int:
             timeout=30_000,
         )
         clear_video_guide(page)
-        page.get_by_text("Research structure", exact=True).wait_for(state="visible")
+        page.get_by_text("Your research structure", exact=True).wait_for(state="visible")
 
         screenshot(page, screenshots["workspace"], full_page=True)
         show_video_guide(
