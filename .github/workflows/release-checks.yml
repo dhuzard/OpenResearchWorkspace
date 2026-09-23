@@ -1,6 +1,11 @@
 name: Alpha release checks
 on:
   pull_request:
+  # The merged state is not what any pull request tested: main can carry a
+  # combination of branches that only ever met here. Validate it on arrival
+  # so a release never starts from an unverified commit.
+  push:
+    branches: [main]
   workflow_dispatch:
   workflow_call:
 permissions:
