@@ -183,6 +183,30 @@ def load_workspace(workspace: Path | str) -> tuple[Path, str, Mapping[str, Any]]
     return root, text, data
 
 
+def _workspace_preferences(root: Path) -> dict[str, str]:
+    """Read implementation preferences without making them scientific metadata."""
+
+    defaults = {
+        "study_structure": "single",
+        "assay_structure": "multiple",
+        "protocol_storage": "workspace",
+    }
+    path = root / RESEARCH_DIRECTORY / "workspace.yml"
+    try:
+        document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return defaults
+    if not isinstance(document, Mapping):
+        return defaults
+    preferences = document.get("preferences")
+    if not isinstance(preferences, Mapping):
+        return defaults
+    return {
+        key: value if isinstance((value := preferences.get(key)), str) else default
+        for key, default in defaults.items()
+    }
+
+
 def _text(value: Any, label: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise MutationInputError(f"{label} must be a non-empty string.")
@@ -519,9 +543,16 @@ def add_study(
     after = edit.append_item(text, ("studies",), item)
 
     study_root = Path(*relative.parts)
+    preferences = _workspace_preferences(root)
     layout = {study_root: (title, _study_readme(data))}
-    layout.update(study_folders(study_root))
-    layout[study_root / "assays"] = NO_ASSAY_FOLDER
+    layout.update(
+        study_folders(
+            study_root,
+            include_protocols=preferences["protocol_storage"] == "workspace",
+        )
+    )
+    if preferences["assay_structure"] == "multiple":
+        layout[study_root / "assays"] = ASSAY_CONTAINER_FOLDER
     directories, files = _scaffold_files(layout)
 
     return _finish(
@@ -621,7 +652,10 @@ def add_assay(
     after = edit.append_item(text, ("studies", index, "assays"), item)
 
     assay_root = Path(*relative.parts)
-    layout = {assay_root: (title, _assay_readme(parent))}
+    layout = {
+        assay_root.parent: ASSAY_CONTAINER_FOLDER,
+        assay_root: (title, _assay_readme(parent)),
+    }
     layout.update(assay_folders(assay_root))
     directories, files = _scaffold_files(layout)
 
