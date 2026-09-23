@@ -12,25 +12,22 @@ You do not need to learn ISA file formats to use ORW. The hierarchy simply gives
 my-research-project/                 ← Investigation
 ├── README.md
 ├── studies/
-│   └── study-01/                    ← Study
+│   └── my-study/                    ← Study
 │       ├── README.md
 │       ├── data/
 │       │   ├── raw/
 │       │   ├── processed/
 │       │   └── external/
-│       ├── assays/
-│       │   └── assay-01/            ← Assay
-│       │       ├── data/
-│       │       ├── analysis/
-│       │       └── results/
 │       ├── analysis/
 │       ├── results/
-│       └── protocols/
+│       └── protocols/               ← only when selected
 ├── references/
 ├── project-docs/
 ├── .research/
 └── .github/
 ```
+
+If one Study contains several distinct measurement types, ORW can add an `assays/` layer below that Study. It is not required for a simple project.
 
 ## A concrete example
 
@@ -61,10 +58,9 @@ A beginner does not need to design a complex hierarchy. ORW can initialize:
 ```text
 My project
 └── Main study
-    └── Main measurement
 ```
 
-Additional Studies and Assays are created only when scientifically needed.
+Additional Studies and an Assays layer are created only when scientifically needed. Protocol folders are likewise optional when protocols are managed elsewhere.
 
 ## Data stored elsewhere
 
