@@ -37,7 +37,13 @@ class SetupModelTests(unittest.TestCase):
         )
 
     def test_workspace_options_normalize(self) -> None:
-        config = SetupConfig.from_mapping(load_fixture("simple-study.json"))
+        payload = load_fixture("no-assay.json")
+        payload["workspace_options"] = {
+            "study_structure": "single",
+            "assay_structure": "single_or_none",
+            "protocol_storage": "elsewhere",
+        }
+        config = SetupConfig.from_mapping(payload)
         self.assertEqual(config.workspace_options.study_structure, "single")
         self.assertEqual(config.workspace_options.assay_structure, "single_or_none")
         self.assertEqual(config.workspace_options.protocol_storage, "elsewhere")
@@ -128,7 +134,16 @@ class WorkspaceGenerationTests(unittest.TestCase):
     def test_simple_workspace_omits_unneeded_assay_and_protocol_layers(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            config, result = self._generate("simple-study.json", root)
+            payload = load_fixture("no-assay.json")
+            payload["project_title"] = "Simple observational project"
+            payload["first_study"]["title"] = "Simple observational project"
+            payload["workspace_options"] = {
+                "study_structure": "single",
+                "assay_structure": "single_or_none",
+                "protocol_storage": "elsewhere",
+            }
+            config = SetupConfig.from_mapping(payload)
+            result = create_workspace(config, root)
 
             study = root / "studies" / result.study_identifier
             workspace = (root / ".research" / "workspace.yml").read_text(encoding="utf-8")
