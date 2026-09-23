@@ -15,7 +15,11 @@
 
 If you are a researcher who simply wants to create and use a project workspace, follow the click-by-click guide:
 
-### [→ Create my first ORW project: beginner step-by-step guide](GETTING_STARTED.md)
+### [→ Set up my research project](../../issues/new?template=orw-setup.yml)
+
+Use this **after** creating your own repository from this template.
+
+[Read the full beginner step-by-step guide](GETTING_STARTED.md)
 
 The guide explains unfamiliar GitHub words when they first appear and shows what to click, what information to enter, what ORW creates for you, where to put your files, how to invite collaborators, and what not to upload to GitHub.
 
