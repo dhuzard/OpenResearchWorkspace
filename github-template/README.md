@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > **This repository is the GitHub template distribution, not the ORW software-development repository.**
 > The canonical ORW specification, schemas, CLI, browser generator, validation logic, FAIR/RO-Crate tooling, tests, and development documentation live in [`dhuzard/OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace).
+>
+> **This repository is generated from that canonical repository.** Maintainer changes to the GitHub template are made under [`github-template/`](https://github.com/dhuzard/OpenResearchWorkspace/tree/main/github-template) in the canonical repository, tested there, and then published here.
 
 
 ## Start here — no coding required
@@ -32,7 +34,7 @@ The guide explains unfamiliar GitHub words when they first appear and shows what
 | Create a new research project on GitHub | **This repository: `OpenResearchWorkspace-template`** |
 | Understand or implement the ORW specification | [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace) |
 | Develop the ORW CLI, browser generator, validator, FAIR/RO-Crate support, agents, or MCP integrations | [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace) |
-| Contribute to the minimal GitHub researcher workflow | **This repository** |
+| Contribute to the minimal GitHub researcher workflow | [`OpenResearchWorkspace/github-template`](https://github.com/dhuzard/OpenResearchWorkspace/tree/main/github-template) |
 
 ## What this repository is
 
@@ -70,7 +72,7 @@ This repository must not independently redefine:
 - workspace mutation semantics;
 - agent or MCP policy.
 
-Those belong in [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace). Template changes should be generated from, pinned to, or tested against a specific ORW version so that this repository cannot silently drift into a second implementation.
+Those belong in [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace). This published repository is generated output and should not be hand-maintained. Template source changes are made in the canonical repository, built and contract-tested there, then synchronized here.
 
 ## What should live here
 
