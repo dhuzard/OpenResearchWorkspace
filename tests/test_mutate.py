@@ -192,13 +192,20 @@ class AddAssayTests(WorkspaceCase):
                 path="studies/elsewhere",
             )
 
-    def test_replaces_only_the_untouched_no_assay_note(self) -> None:
+    def test_replaces_only_the_legacy_untouched_no_assay_note(self) -> None:
         mutate.add_study(self.workspace, "Second study")
         note = self.workspace / "studies" / "second-study" / "assays" / "README.md"
-        self.assertIn("No Assay was initialized", note.read_text(encoding="utf-8"))
+        note.write_text(
+            "# Assays\n\nNo Assay was initialized because none was scientifically specified.\n",
+            encoding="utf-8",
+        )
 
         mutate.add_assay(self.workspace, "second-study", "Open field")
         self.assertNotIn("No Assay was initialized", note.read_text(encoding="utf-8"))
+        self.assertIn(
+            "Measurements and tests performed",
+            note.read_text(encoding="utf-8"),
+        )
 
     def test_keeps_an_edited_note(self) -> None:
         mutate.add_study(self.workspace, "Second study")
