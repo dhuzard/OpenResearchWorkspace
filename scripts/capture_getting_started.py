@@ -642,7 +642,7 @@ def main() -> int:
             timeout=30_000,
         )
         clear_video_guide(page)
-        page.get_by_text("Your research structure", exact=True).wait_for(state="visible")
+        page.get_by_text("Your initial research structure", exact=True).wait_for(state="visible")
 
         screenshot(page, screenshots["workspace"], full_page=True)
         show_video_guide(
