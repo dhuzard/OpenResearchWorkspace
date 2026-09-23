@@ -36,6 +36,12 @@ class SetupModelTests(unittest.TestCase):
             ("behaviour", "circadian rhythm", "mouse"),
         )
 
+    def test_workspace_options_normalize(self) -> None:
+        config = SetupConfig.from_mapping(load_fixture("simple-study.json"))
+        self.assertEqual(config.workspace_options.study_structure, "single")
+        self.assertEqual(config.workspace_options.assay_structure, "single_or_none")
+        self.assertEqual(config.workspace_options.protocol_storage, "elsewhere")
+
     def test_invalid_orcid_is_rejected(self) -> None:
         with self.assertRaises(SetupValidationError):
             SetupConfig.from_mapping(load_fixture("invalid-orcid.json"))
@@ -118,6 +124,29 @@ class WorkspaceGenerationTests(unittest.TestCase):
             self.assertTrue(
                 (root / "studies" / result.study_identifier / "assays" / "README.md").is_file()
             )
+
+    def test_simple_workspace_omits_unneeded_assay_and_protocol_layers(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config, result = self._generate("simple-study.json", root)
+
+            study = root / "studies" / result.study_identifier
+            workspace = (root / ".research" / "workspace.yml").read_text(encoding="utf-8")
+            readme = (root / "README.md").read_text(encoding="utf-8")
+
+            self.assertIsNone(config.first_assay)
+            self.assertFalse((study / "assays").exists())
+            self.assertFalse((study / "protocols").exists())
+            self.assertTrue((study / "data").is_dir())
+            self.assertTrue((study / "analysis").is_dir())
+            self.assertTrue((study / "results").is_dir())
+
+            self.assertIn('study_structure: "single"', workspace)
+            self.assertIn('assay_structure: "single_or_none"', workspace)
+            self.assertIn('protocol_storage: "elsewhere"', workspace)
+            self.assertIn("Your OpenResearchWorkspace is initialized", readme)
+            self.assertIn("## Start here", readme)
+            self.assertIn("No separate Assay layer", readme)
 
     def test_unicode_metadata_is_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
