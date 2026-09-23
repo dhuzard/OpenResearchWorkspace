@@ -55,7 +55,7 @@ dhuzard/OpenResearchWorkspace-template
     └── initialize_project.py
 ```
 
-The template adapter installs an immutable pinned revision of this canonical ORW core during initialization. It handles GitHub form parsing, permissions, checkout/commit/push, and user feedback; it does not contain an independent scientific workspace generator.
+The published template adapter installs an immutable pinned revision of this canonical ORW core during initialization. Its source assets are maintained under `github-template/` in this repository and assembled by `scripts/build_github_template.py`; `OpenResearchWorkspace-template` is generated output. The adapter handles GitHub form parsing, permissions, checkout/commit/push, and user feedback; it does not contain an independent scientific workspace generator.
 
 ## Phase 1 — Define a provider-neutral generation contract
 
