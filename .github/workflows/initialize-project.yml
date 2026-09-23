@@ -41,7 +41,7 @@ jobs:
           esac
 
       - name: Check out project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Refuse accidental re-initialization
         shell: bash
