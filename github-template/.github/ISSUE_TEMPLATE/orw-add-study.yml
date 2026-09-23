@@ -1,0 +1,34 @@
+name: Add another Study
+description: Add a scientifically distinct Study without editing YAML or using Git.
+title: "[ORW Add Study] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Add another Study
+
+        Use a new Study when you have a distinct experimental design, cohort, intervention, condition set, or other research unit that should not be mixed with the existing Study.
+
+        If you only have another measurement within the same Study, use **Add a measurement / Assay** instead.
+
+  - type: input
+    id: study_title
+    attributes:
+      label: New Study title
+      placeholder: Follow-up cohort
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Short Study description (optional)
+      description: Briefly explain what makes this Study distinct.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Ready to add this Study
+      options:
+        - label: This is a distinct Study within the same overall research project.
+          required: true
