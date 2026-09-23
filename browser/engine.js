@@ -68,6 +68,13 @@
     }
     if (!own(p, 'keywords')) p.keywords = [];
     if (Array.isArray(p.keywords)) p.keywords = p.keywords.map(trim);
+    if (!own(p, 'workspace_options')) {
+      p.workspace_options = {
+        study_structure: 'single',
+        assay_structure: 'multiple',
+        protocol_storage: 'workspace',
+      };
+    }
     const issues = validate(p, contract.setupSchema);
     if (issues.length) throw new InputError(issues);
     return p;
