@@ -84,8 +84,23 @@ class GitHubTemplateDistributionTests(unittest.TestCase):
 
             self.assertTrue((generated / "README.md").is_file())
             self.assertTrue((generated / "GETTING_STARTED.md").is_file())
+            for name in (
+                "orw-setup.yml",
+                "orw-add-study.yml",
+                "orw-add-assay.yml",
+                "orw-register-data.yml",
+                "orw-add-contributor.yml",
+                "orw-check-workspace.yml",
+            ):
+                self.assertTrue(
+                    (generated / ".github" / "ISSUE_TEMPLATE" / name).is_file(),
+                    name,
+                )
             self.assertTrue(
-                (generated / ".github" / "ISSUE_TEMPLATE" / "orw-setup.yml").is_file()
+                (generated / ".github" / "workflows" / "project-actions.yml").is_file()
+            )
+            self.assertTrue(
+                (generated / "scripts" / "handle_project_action.py").is_file()
             )
 
     def test_generated_adapter_initializes_with_local_canonical_core(self) -> None:
@@ -209,6 +224,174 @@ behaviour, circadian rhythm, mouse
             self.assertTrue(
                 (generated / ".research" / "template-workspace.yml").is_file()
             )
+
+    def test_generated_post_init_actions_use_canonical_mutation_api(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            generated = self._build(tmp_path)
+
+            setup_payload = {
+                "project_title": "Effects of light exposure on mouse activity",
+                "project_description": "Synthetic workflow test.",
+                "creator": {"name": "Jane Researcher", "orcid": None},
+                "first_study": {"title": "Light exposure study"},
+                "first_assay": None,
+                "data": {
+                    "location": "Institutional research server",
+                    "access": "private",
+                },
+                "keywords": ["mouse"],
+                "workspace_options": {
+                    "study_structure": "multiple",
+                    "assay_structure": "multiple",
+                    "protocol_storage": "workspace",
+                },
+            }
+
+            init_env = os.environ.copy()
+            existing_pythonpath = init_env.get("PYTHONPATH")
+            init_env["PYTHONPATH"] = (
+                str(REPO_ROOT / "src")
+                if not existing_pythonpath
+                else os.pathsep.join((str(REPO_ROOT / "src"), existing_pythonpath))
+            )
+            init_env["ORW_SETUP_JSON"] = json.dumps(setup_payload)
+            init_env["ORW_PROVIDER_USER"] = "jane-researcher"
+            subprocess.run(
+                [sys.executable, str(generated / "scripts" / "initialize_project.py")],
+                cwd=generated,
+                env=init_env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            def action(title: str, body: str):
+                event = tmp_path / "action-event.json"
+                output = tmp_path / "action-output.txt"
+                response = tmp_path / "action-response.md"
+                event.write_text(
+                    json.dumps({"issue": {"title": title, "body": body}}),
+                    encoding="utf-8",
+                )
+                output.write_text("", encoding="utf-8")
+                response.unlink(missing_ok=True)
+                env = init_env.copy()
+                env.update(
+                    {
+                        "GITHUB_EVENT_PATH": str(event),
+                        "GITHUB_OUTPUT": str(output),
+                        "ORW_RESPONSE_PATH": str(response),
+                        "GITHUB_REPOSITORY": "example/research-project",
+                    }
+                )
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(generated / "scripts" / "handle_project_action.py"),
+                    ],
+                    cwd=generated,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                )
+                return result, output.read_text(encoding="utf-8"), response.read_text(
+                    encoding="utf-8"
+                )
+
+            result, output, response = action(
+                "[ORW Add Study] Follow-up cohort",
+                """### New Study title
+Follow-up cohort
+
+### Short Study description (optional)
+A distinct follow-up cohort.
+""",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("changed=true", output)
+            self.assertIn("Study added", response)
+            self.assertTrue((generated / "studies" / "follow-up-cohort").is_dir())
+
+            result, output, response = action(
+                "[ORW Add Assay] ECG",
+                """### Which Study?
+Light exposure study
+
+### Measurement / Assay name
+ECG
+
+### Short description (optional)
+Cardiac recording.
+""",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("changed=true", output)
+            self.assertIn("Measurement / Assay added", response)
+            self.assertTrue(
+                (
+                    generated
+                    / "studies"
+                    / "light-exposure-study"
+                    / "assays"
+                    / "ecg"
+                ).is_dir()
+            )
+
+            result, output, response = action(
+                "[ORW Register Data] Home-cage recordings",
+                """### Data source name
+Home-cage recordings
+
+### Where are these data stored?
+Institutional archive
+
+### Current data access
+restricted
+
+### Persistent identifier or public URL (optional)
+_No response_
+
+### Short description (optional)
+Primary behavioural recordings.
+""",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("changed=true", output)
+            self.assertIn("Data source registered", response)
+
+            result, output, response = action(
+                "[ORW Add Contributor] Ada Lovelace",
+                """### Contributor name
+Ada Lovelace
+
+### Role (optional)
+Data analysis
+
+### ORCID (optional)
+0000-0002-1825-0097
+
+### Affiliation (optional)
+Example Research Institute
+""",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("changed=true", output)
+            self.assertIn("Contributor added", response)
+
+            result, output, response = action(
+                "[ORW Check] Validate workspace",
+                """### Run the check
+- [x] Check this workspace now.
+""",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("changed=false", output)
+            self.assertIn("ok=true", output)
+            self.assertIn("Workspace check passed", response)
+
+            report = validate_workspace(generated)
+            self.assertTrue(report.valid, report.issues)
 
     def test_compare_mode_detects_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
