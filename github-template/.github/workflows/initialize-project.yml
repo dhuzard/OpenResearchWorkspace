@@ -22,7 +22,7 @@ jobs:
     name: Create project structure and metadata
     if: >-
       contains(github.event.issue.body, '### Project title') &&
-      contains(github.event.issue.body, '### Ready to initialize') &&
+      contains(github.event.issue.body, '### Ready to create the workspace') &&
       github.repository != 'dhuzard/OpenResearchWorkspace' &&
       github.repository != 'dhuzard/OpenResearchWorkspace-template'
     runs-on: ubuntu-24.04
@@ -100,7 +100,7 @@ jobs:
           cat > /tmp/orw-success.md <<EOF
           ✅ **Your OpenResearchWorkspace project is initialized.**
 
-          ORW created your first ISA Study/Assay structure and updated the project metadata and README.
+          ORW created your initial Study structure from the choices in the setup form and updated the project metadata and README.
 
           ➡️ **[Open your initialized workspace](https://github.com/$REPO)**
 
@@ -112,7 +112,7 @@ jobs:
       - name: Workflow summary
         run: |
           echo "## Research workspace initialized" >> "$GITHUB_STEP_SUMMARY"
-          echo "The setup form was validated and the ISA-aligned workspace was created." >> "$GITHUB_STEP_SUMMARY"
+          echo "The setup form was validated and the researcher-shaped ORW workspace was created." >> "$GITHUB_STEP_SUMMARY"
           echo "Canonical ORW core: $ORW_CORE_REVISION" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Explain a failed setup
