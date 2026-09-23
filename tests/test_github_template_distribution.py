@@ -92,31 +92,37 @@ class GitHubTemplateDistributionTests(unittest.TestCase):
         issue_body = """### Project title
 Effects of light exposure on mouse activity
 
-### Short project description
+### What is this project about?
 Study of how altered light exposure affects spontaneous mouse activity.
 
 ### Your name
 Jane Researcher
 
-### First study title
-Light exposure study
+### Your ORCID (optional)
+0000-0002-1825-0097
 
-### What will you measure first?
-Behaviour
+### How is this research organized?
+One Study — this project is essentially one Study
 
-### Where are the authoritative/raw data stored?
+### First Study title (optional)
+_No response_
+
+### Do your Studies contain several distinct measurement types?
+Yes — use an Assays layer for several measurement types
+
+### Do you want to keep protocol documents in this workspace?
+Yes — create a protocols folder
+
+### Where are the authoritative or raw data stored?
 Institutional research server
 
-### Data access level
+### Current data access
 private
 
 ### Keywords (optional)
 behaviour, circadian rhythm, mouse
 
-### Your ORCID (optional)
-0000-0002-1825-0097
-
-### Ready to initialize
+### Ready to create the workspace
 - [x] I understand that submitting this form will initialize this repository as my research workspace.
 """
 
@@ -175,16 +181,25 @@ behaviour, circadian rhythm, mouse
             report = validate_workspace(generated)
             self.assertTrue(report.valid, report.issues)
             self.assertTrue((generated / ".research" / "initialized").is_file())
-            self.assertTrue(
-                (
-                    generated
-                    / "studies"
-                    / "light-exposure-study"
-                    / "assays"
-                    / "behaviour"
-                    / "README.md"
-                ).is_file()
+            study = (
+                generated
+                / "studies"
+                / "effects-of-light-exposure-on-mouse-activity"
             )
+            self.assertTrue((study / "assays" / "README.md").is_file())
+            self.assertTrue((study / "protocols" / "README.md").is_file())
+            self.assertFalse((study / "assays" / "behaviour").exists())
+
+            project = (generated / ".research" / "project.yml").read_text(
+                encoding="utf-8"
+            )
+            workspace = (generated / ".research" / "workspace.yml").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("    assays: []", project)
+            self.assertIn('study_structure: "single"', workspace)
+            self.assertIn('assay_structure: "multiple"', workspace)
+            self.assertIn('protocol_storage: "workspace"', workspace)
             self.assertTrue(
                 (generated / ".research" / "template-readme.md").is_file()
             )
