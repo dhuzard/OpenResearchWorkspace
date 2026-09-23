@@ -385,7 +385,32 @@ def _render_root_readme(
 
 GitHub does **not** need to contain your authoritative raw data. If they live on institutional storage or in a domain repository, keep them there and record the authoritative location instead.
 
-## Your research structure
+## A good working sequence
+
+1. **Work in the existing Study first.** Put ordinary research files in the Study folders above.
+2. **Register authoritative data early.** If important data live elsewhere, record their location rather than copying them into GitHub.
+3. **Add another Study only when the design really branches** — for example a distinct cohort, intervention, experiment, or study design.
+4. **Add a measurement / Assay only when a distinct modality needs its own structure** — for example ECG, imaging, behaviour, or RNA-seq within the same Study.
+5. **Add contributors as they join the project** so attribution is not reconstructed at the end.
+6. **Run a workspace check periodically**, especially before sharing, archiving, or publishing.
+
+The default rule is: **keep the structure simple until the science requires another layer.**
+
+## No-code ORW actions
+
+You can perform the common structural and metadata actions through GitHub forms:
+
+| What you need | Use this action |
+| --- | --- |
+| A distinct new Study | [**Add another Study**](../../issues/new?template=orw-add-study.yml) |
+| A distinct measurement type inside a Study | [**Add a measurement / Assay**](../../issues/new?template=orw-add-assay.yml) |
+| Record where another authoritative dataset lives | [**Register a data source**](../../issues/new?template=orw-register-data.yml) |
+| Record another project contributor | [**Add a contributor**](../../issues/new?template=orw-add-contributor.yml) |
+| Check that ORW metadata and paths are consistent | [**Check my workspace**](../../issues/new?template=orw-check-workspace.yml) |
+
+These forms call the same validated ORW core used by the command-line tools. You do not need to edit `.research/project.yml` yourself.
+
+## Your initial research structure
 
 - **Investigation:** {config.project_title}
 - **Study:** [{config.first_study.title}]({study_path}/)
