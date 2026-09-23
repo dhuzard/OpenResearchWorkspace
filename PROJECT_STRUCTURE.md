@@ -16,30 +16,30 @@ ISA provides an established model for experimental metadata rather than forcing 
 
 That hierarchy is a better scientific model than a flat `data/analysis/results` repository because the latter becomes ambiguous as soon as one project contains several cohorts, experiments, interventions, modalities or measurement technologies.
 
-## Default visible structure
+## Visible structure uses progressive disclosure
+
+The canonical scientific model supports Investigation → Study → Assay, but the visible folder tree SHOULD expose only the layers the researcher currently needs.
+
+A simple one-Study project may begin as:
 
 ```text
 my-research-project/                    # Investigation
 ├── README.md
 ├── studies/
-│   └── study-01/                       # Study
+│   └── my-study/                       # Study
 │       ├── README.md
 │       ├── data/
 │       │   ├── raw/
 │       │   ├── processed/
 │       │   └── external/
-│       ├── assays/
-│       │   └── assay-01/               # Assay
-│       │       ├── README.md
-│       │       ├── data/
-│       │       ├── analysis/
-│       │       └── results/
 │       ├── analysis/
 │       ├── results/
-│       └── protocols/
+│       └── protocols/                  # only when protocols are kept here
 ├── references/
 └── project-docs/
 ```
+
+When a Study contains several distinct measurement types, an `assays/` layer can be added. ORW MUST NOT require researchers to invent an Assay merely to satisfy folder structure.
 
 ORW infrastructure lives separately in `.research/` and `.github/`.
 
@@ -53,13 +53,13 @@ Investigation-wide material belongs in `references/` and `project-docs/`. Scient
 
 Each Study is a coherent unit of research. Its metadata should describe the design, subjects/sources and samples, characteristics, factors/treatments and protocols relevant to its Assays.
 
-Study-level folders are:
+Study-level folders may include:
 
-- `data/` — Study inputs or data shared across multiple Assays;
-- `assays/` — measurements/tests performed within the Study;
-- `analysis/` — analyses integrating or comparing Study-level information;
+- `data/` — Study inputs or data references;
+- `analysis/` — Study-level computational work;
 - `results/` — outputs produced at Study level;
-- `protocols/` — Study procedures and protocol references.
+- `protocols/` — when protocol documents are intentionally kept in the workspace;
+- `assays/` — only when distinct measurements/tests benefit from their own layer.
 
 ## Assay level
 
@@ -110,10 +110,9 @@ ISA alignment must not make ORW harder for beginners. A small experiment can beg
 ```text
 My project (Investigation)
 └── Main study (Study)
-    └── Main measurement (Assay)
 ```
 
-The setup interface can create these defaults automatically. Researchers only add additional Studies or Assays when their experimental design requires them.
+An Assay layer is added only when distinct measurement types need separate scientific structure. The setup interface should prefer the simplest valid representation and let researchers add complexity when the design requires it.
 
 ## Profiles
 
