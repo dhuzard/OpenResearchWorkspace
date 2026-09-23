@@ -13,7 +13,7 @@
 | [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace) | **Canonical ORW source and development repository** | Specification, schemas, Python core, CLI, browser generator, validation, FAIR/RO-Crate functionality, tests, documentation, and future agent/MCP integrations |
 | [`OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template) | **Minimal GitHub template for researchers** | Research-workspace scaffold and the thin GitHub-specific setup adapter needed to create an ORW-compatible project |
 
-**Source-of-truth rule:** all ORW scientific semantics, schemas, validation rules, and generation logic belong in this repository. The template repository is a thin distribution adapter and must not become a second implementation of the ORW contract.
+**Source-of-truth rule:** all ORW scientific semantics, schemas, validation rules, and generation logic belong in this repository. The template repository is **generated output**: its GitHub-specific source assets live under `github-template/`, while canonical `.research` placeholders come from `src/orw/templates/`. The published template must not become a second implementation of the ORW contract.
 
 A project created from the template becomes an independent research workspace. It does not need to remain synchronized with either repository; compatibility is expressed through recorded ORW/specification versions and explicit migrations.
 
@@ -85,7 +85,7 @@ researcher's independent ORW workspace
 
 The template repository should stay small. It may contain the researcher-facing workspace skeleton, the setup form/workflow, and generated or pinned artifacts required to initialize a compatible workspace. It should **not** become the home of ORW's Python implementation, browser application, canonical schemas, test suite, release machinery, or independent scientific rules.
 
-Changes to the template must be derived from or validated against the canonical ORW contract in this repository.
+Changes to the template are built and contract-tested from this repository with [`scripts/build_github_template.py`](scripts/build_github_template.py) and [`tests/test_github_template_distribution.py`](tests/test_github_template_distribution.py). See [GitHub template distribution](docs/github-template-distribution.md).
 
 ## ORW uses the ISA Investigation–Study–Assay model
 
@@ -303,6 +303,7 @@ ORW uses one standard and one template, with initialization presets rather than 
 - [`docs/ro-crate.md`](docs/ro-crate.md) — RO-Crate interoperability/export design.
 - [`docs/cli.md`](docs/cli.md) — local CLI installation, initialization, validation, JSON output, and exit codes.
 - [`docs/browser-generator.md`](docs/browser-generator.md) — browser workflow, static distribution, privacy boundary, and current limitations.
+- [`docs/github-template-distribution.md`](docs/github-template-distribution.md) — how the separate GitHub template is generated, contract-tested, drift-checked, and published.
 - [`docs/releases.md`](docs/releases.md) — alpha release checks, Trusted Publisher setup, TestPyPI rehearsal and public promotion.
 - [`CHANGELOG.md`](CHANGELOG.md) — versioned changes and limitations.
 - [`browser/README.md`](browser/README.md) — build and cross-language/browser testing instructions.
