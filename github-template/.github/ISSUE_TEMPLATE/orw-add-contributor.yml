@@ -1,0 +1,44 @@
+name: Add a contributor
+description: Record a person contributing to the research project.
+title: "[ORW Add Contributor] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Add a contributor
+
+        Record someone contributing to the Investigation. ORCID is optional but useful for unambiguous attribution.
+
+  - type: input
+    id: contributor_name
+    attributes:
+      label: Contributor name
+      placeholder: Ada Lovelace
+    validations:
+      required: true
+
+  - type: input
+    id: role
+    attributes:
+      label: Role (optional)
+      placeholder: Data analysis
+
+  - type: input
+    id: orcid
+    attributes:
+      label: ORCID (optional)
+      placeholder: 0000-0002-1825-0097
+
+  - type: input
+    id: affiliation
+    attributes:
+      label: Affiliation (optional)
+      placeholder: Example Research Institute
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Ready to add this contributor
+      options:
+        - label: The contributor information is appropriate to record in this project.
+          required: true
