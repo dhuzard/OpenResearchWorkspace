@@ -1,0 +1,63 @@
+name: Test generated GitHub template
+
+on:
+  push:
+    paths:
+      - "github-template/**"
+      - "src/orw/templates/**"
+      - "src/orw/initialize.py"
+      - "src/orw/_scaffold.py"
+      - "src/orw/model.py"
+      - "src/orw/validate.py"
+      - "scripts/build_github_template.py"
+      - "tests/test_github_template_distribution.py"
+      - ".github/workflows/test-github-template.yml"
+  pull_request:
+    paths:
+      - "github-template/**"
+      - "src/orw/templates/**"
+      - "src/orw/initialize.py"
+      - "src/orw/_scaffold.py"
+      - "src/orw/model.py"
+      - "src/orw/validate.py"
+      - "scripts/build_github_template.py"
+      - "tests/test_github_template_distribution.py"
+      - ".github/workflows/test-github-template.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  template-contract:
+    name: Build and initialize generated template
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out canonical repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Install canonical ORW core
+        run: python -m pip install .
+
+      - name: Run generated-template contract tests
+        run: python -m unittest tests.test_github_template_distribution -v
+
+      - name: Build reviewable template artifact
+        run: |
+          python scripts/build_github_template.py \
+            --output dist/github-template \
+            --core-revision "$GITHUB_SHA" \
+            --force
+
+      - name: Share tested generated template
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: generated-github-template
+          path: dist/github-template/
+          if-no-files-found: error
