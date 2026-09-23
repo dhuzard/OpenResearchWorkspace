@@ -117,10 +117,17 @@ def _layout(
     return {root / relative: (title, text) for relative, title, text in entries}
 
 
-def study_folders(study_root: Path) -> dict[Path, tuple[str, str]]:
+def study_folders(
+    study_root: Path,
+    *,
+    include_protocols: bool = True,
+) -> dict[Path, tuple[str, str]]:
     """Folders scaffolded inside a Study, keyed by workspace-relative path."""
 
-    return _layout(study_root, STUDY_SUBFOLDERS)
+    entries = STUDY_SUBFOLDERS
+    if not include_protocols:
+        entries = tuple(entry for entry in entries if entry[0] != "protocols")
+    return _layout(study_root, entries)
 
 
 def assay_folders(assay_root: Path) -> dict[Path, tuple[str, str]]:
@@ -250,7 +257,10 @@ related_identifiers: []
 '''
 
 
-def _render_workspace_yaml(context: ImplementationContext | None) -> str:
+def _render_workspace_yaml(
+    context: ImplementationContext | None,
+    config: SetupConfig,
+) -> str:
     provider = ""
     if context and (context.provider or context.provider_user):
         provider_name = context.provider or "unknown"
@@ -261,6 +271,7 @@ def _render_workspace_yaml(context: ImplementationContext | None) -> str:
         if context.provider_user:
             provider += f"\n    user: {yaml_string(context.provider_user)}"
 
+    options = config.workspace_options
     return f'''orw:
   spec_version: "{SPEC_VERSION}"
   template_version: "{TEMPLATE_VERSION}"
@@ -271,6 +282,11 @@ implementation:
   generator: "orw-core"
   canonical_project_record: ".research/project.yml"
   capabilities_record: ".research/capabilities.yml"{provider}
+
+preferences:
+  study_structure: {yaml_string(options.study_structure)}
+  assay_structure: {yaml_string(options.assay_structure)}
+  protocol_storage: {yaml_string(options.protocol_storage)}
 '''
 
 
@@ -280,43 +296,133 @@ def _render_root_readme(
     assay_identifier: str | None,
 ) -> str:
     study_path = f"studies/{study_identifier}"
-    structure = (
-        f"- **Investigation:** {config.project_title}\n"
-        f"- **Study:** [{config.first_study.title}]({study_path}/)\n"
-    )
-    if config.first_assay and assay_identifier:
-        structure += (
-            f"- **Assay:** [{config.first_assay.title}]"
-            f"({study_path}/assays/{assay_identifier}/)\n"
+    options = config.workspace_options
+
+    if options.study_structure == "multiple":
+        study_note = (
+            "This Investigation is configured to contain **several Studies**. "
+            "The Study below is the first one."
+        )
+    elif options.study_structure == "undecided":
+        study_note = (
+            "The Study structure is **not fixed yet**. You can start with the Study "
+            "below and add more later if the research requires it."
         )
     else:
-        structure += "- **Assay:** none initialized\n"
+        study_note = (
+            "This project starts as **one Study inside one Investigation**. "
+            "You do not need to create additional Study levels unless the project grows."
+        )
+
+    if config.first_assay and assay_identifier:
+        measurement_note = (
+            f"An initial Assay is already recorded: **{config.first_assay.title}**."
+        )
+        measurement_path = f"{study_path}/assays/{assay_identifier}/"
+    elif options.assay_structure == "multiple":
+        measurement_note = (
+            "This Study may contain **several measurement types / Assays**. "
+            "An `assays/` container is ready, but no Assay name was invented during setup."
+        )
+        measurement_path = f"{study_path}/assays/"
+    elif options.assay_structure == "undecided":
+        measurement_note = (
+            "The project has **not committed to an Assay layer yet**. "
+            "Keep Study-wide material at Study level until distinct measurements need "
+            "their own structure."
+        )
+        measurement_path = None
+    else:
+        measurement_note = (
+            "No separate Assay layer is used at initialization. "
+            "For a simple project, keep data, analysis and results directly in the Study."
+        )
+        measurement_path = None
+
+    if options.protocol_storage == "workspace":
+        protocol_note = (
+            f"Protocol documents are intended to live in "
+            f"[`{study_path}/protocols/`]({study_path}/protocols/)."
+        )
+        protocol_action = (
+            f"4. Add or update protocol documents in "
+            f"[`{study_path}/protocols/`]({study_path}/protocols/)."
+        )
+    elif options.protocol_storage == "elsewhere":
+        protocol_note = (
+            "Protocols are managed elsewhere. Record stable links or identifiers when "
+            "available rather than duplicating controlled documents."
+        )
+        protocol_action = ""
+    else:
+        protocol_note = (
+            "Protocol storage was left undecided. Add a protocol folder later only if "
+            "it becomes useful."
+        )
+        protocol_action = ""
+
+    measurement_action = ""
+    if measurement_path:
+        measurement_action = (
+            f" If you later separate measurement-specific work, use "
+            f"[`{measurement_path}`]({measurement_path})."
+        )
+
+    protocol_line = f"\n{protocol_action}" if protocol_action else ""
 
     return f'''# {config.project_title}
 
 {config.project_description}
 
-## Research structure
+> ✅ **Your OpenResearchWorkspace is initialized.**
+> Start with the scientific folders below. You normally do not need to edit `.research/` or `.github/`.
 
-This workspace uses the ISA scientific hierarchy:
+## Start here
 
-{structure}
-## Project creator
+1. Add or reference the data used by the Study in [`{study_path}/data/`]({study_path}/data/).
+2. Put analysis code, notebooks or workflows in [`{study_path}/analysis/`]({study_path}/analysis/).
+3. Put derived tables, figures and reports in [`{study_path}/results/`]({study_path}/results/).{protocol_line}
 
-{config.creator.name}
+GitHub does **not** need to contain your authoritative raw data. If they live on institutional storage or in a domain repository, keep them there and record the authoritative location instead.
+
+## Your research structure
+
+- **Investigation:** {config.project_title}
+- **Study:** [{config.first_study.title}]({study_path}/)
+{f"- **Initial Assay:** [{config.first_assay.title}]({measurement_path})" if config.first_assay and measurement_path else ""}
+
+{study_note}
+
+{measurement_note}{measurement_action}
+
+## Protocols
+
+{protocol_note}
 
 ## Data
 
 Authoritative/raw data location: **{config.data.location}**  
 Access: **{config.data.access}**
 
-## Where to work
+## Where things go
 
-Use the Study folder above for study-wide protocols and context. Put measurement-specific data, analysis, and results inside the relevant Assay when an Assay exists.
+| What you are adding | Suggested place |
+| --- | --- |
+| Study-wide data or data references | [`{study_path}/data/`]({study_path}/data/) |
+| Analysis code / notebooks / workflows | [`{study_path}/analysis/`]({study_path}/analysis/) |
+| Derived tables / figures / reports | [`{study_path}/results/`]({study_path}/results/) |
+| Project-wide notes and decisions | [`project-docs/`](project-docs/) |
+| Literature and references | [`references/`](references/) |
 
-The canonical machine-readable scientific record is `.research/project.yml`. ORW implementation state is kept separately in `.research/workspace.yml`.
+## ORW infrastructure
+
+You can normally ignore these folders during everyday research:
+
+- `.research/` — machine-readable ORW metadata and workspace state;
+- `.github/` — GitHub forms and automation.
+
+The canonical scientific record is `.research/project.yml`. ORW implementation state and the workspace-shaping choices made during setup are stored separately in `.research/workspace.yml`.
 '''
-
 
 def create_workspace(
     config: SetupConfig,
@@ -359,6 +465,7 @@ def create_workspace(
     )
 
     if assay_root and config.first_assay:
+        _ensure_readme(root, study_root / "assays", *ASSAY_CONTAINER_FOLDER)
         _ensure_readme(
             root,
             assay_root,
@@ -368,10 +475,13 @@ def create_workspace(
                 f"**{config.first_study.title}**."
             ),
         )
-    else:
-        _ensure_readme(root, study_root / "assays", *NO_ASSAY_FOLDER)
+    elif config.workspace_options.assay_structure == "multiple":
+        _ensure_readme(root, study_root / "assays", *ASSAY_CONTAINER_FOLDER)
 
-    folders = study_folders(study_root)
+    folders = study_folders(
+        study_root,
+        include_protocols=config.workspace_options.protocol_storage == "workspace",
+    )
     folders.update(_layout(Path("."), INVESTIGATION_FOLDERS))
 
     if assay_root:
@@ -394,7 +504,10 @@ def create_workspace(
             assay_root,
         ),
     )
-    _write_text(research / "workspace.yml", _render_workspace_yaml(implementation))
+    _write_text(
+        research / "workspace.yml",
+        _render_workspace_yaml(implementation, config),
+    )
     _write_text(research / "initialized", "initialized: true\n")
     _write_text(
         root / "README.md",
