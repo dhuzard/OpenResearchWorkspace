@@ -17,6 +17,9 @@ from .fair import (
     FairExportError, SCHEMES, citation_cff, citation_is_generated, datacite_metadata,
     fair_report,
 )
+from .orcid_lookup import (
+    OrcidLookupError, OrcidNotFound, OrcidUnavailable, fetch_person,
+)
 from .mutate import (
     LICENSE_SCOPES, MutationConflict, MutationInputError, MutationResult, RELATIONS,
     RESOURCE_COLLECTIONS, STATUSES, WorkspaceNotValid, add_assay, add_contributor,
@@ -342,6 +345,29 @@ def _cmd_resource_add(args: argparse.Namespace) -> int:
 
 
 def _cmd_contributor_add(args: argparse.Namespace) -> int:
+    given_name, family_name = args.given_name, args.family_name
+    if args.fetch:
+        if not args.orcid:
+            print(
+                "Input error: --fetch reads a record by its ORCID, so it needs --orcid.",
+                file=sys.stderr,
+            )
+            return EXIT_INPUT
+        try:
+            person = fetch_person(args.orcid)
+        except OrcidNotFound as exc:
+            print(f"Input error: {exc}", file=sys.stderr)
+            return EXIT_INPUT
+        except OrcidUnavailable as exc:
+            # Being offline is not a reason to refuse to record a contributor.
+            print(f"Warning: {exc} Recording what you supplied.", file=sys.stderr)
+        except OrcidLookupError as exc:
+            print(f"Input error: {exc}", file=sys.stderr)
+            return EXIT_INPUT
+        else:
+            # What the researcher typed wins; the registry only fills the gaps.
+            given_name = given_name or person.given_name
+            family_name = family_name or person.family_name
     return _run_mutation(
         args,
         lambda: add_contributor(
@@ -349,8 +375,8 @@ def _cmd_contributor_add(args: argparse.Namespace) -> int:
             args.name,
             role=args.role,
             orcid=args.orcid,
-            given_name=args.given_name,
-            family_name=args.family_name,
+            given_name=given_name,
+            family_name=family_name,
             affiliation=args.affiliation,
             email=args.email,
             dry_run=args.dry_run,
@@ -719,6 +745,17 @@ def _add_mutation_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     contributor_add.add_argument(
         "--family-name", dest="family_name", help="Family name(s)."
+    )
+    contributor_add.add_argument(
+        "--fetch",
+        action="store_true",
+        help=(
+            "Read the public name on the ORCID record and fill --given-name and "
+            "--family-name from it. Needs --orcid, and is the only command that "
+            "uses the network: it sends the ORCID to pub.orcid.org and reads "
+            "public data back. Names you pass explicitly win. An unknown ORCID is "
+            "refused; a registry that cannot be reached only warns."
+        ),
     )
     contributor_add.add_argument("--affiliation", help="Institution or organization.")
     contributor_add.add_argument("--email", help="Contact email address.")
