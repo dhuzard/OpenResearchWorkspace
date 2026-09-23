@@ -31,11 +31,10 @@ You need only:
 
 1. a GitHub account;
 2. a short name for your research project;
-3. the title of your first study;
-4. an idea of what you will measure first;
-5. a high-level description of where your authoritative/raw data are stored.
+3. a one- or two-sentence description of the project;
+4. a high-level description of where your authoritative/raw data are stored.
 
-An ORCID is useful but optional.
+ORCID, a specific Study title, and an Assay name are **not required** to get started.
 
 ### Four GitHub words you may see
 
@@ -106,42 +105,52 @@ Choose the form named **Set up my research project**.
 
 ## Step 4 — Fill in the setup form
 
-The form should ask for information such as:
+The form asks for a small amount of project information, then three choices that control how much structure ORW creates initially.
 
-- **Project title** — the human-readable title of the overall project;
-- **Project description** — one or two sentences explaining the purpose;
-- **Researcher name** — how your name should appear in project metadata;
-- **First Study** — the first experimental or observational study in the project;
-- **First Assay / measurement** — what you will measure first, for example behaviour, imaging, electrophysiology, sequencing, or another measurement type;
-- **Data location** — where the authoritative/raw data are stored;
-- **Data access level** — for example private, restricted, embargoed, open, or unknown;
-- **Keywords** — optional;
-- **ORCID** — optional.
+You will provide:
 
-Example:
+- **Project title** — the human-readable title of the overall research project;
+- **What is this project about?** — one or two sentences describing the question or objective;
+- **Your name** and optional **ORCID**;
+- **How is this research organized?** — one Study, several Studies, or not sure yet;
+- **First Study title (optional)** — leave blank for a one-Study project and ORW will reuse the project title;
+- **Do your Studies contain several distinct measurement types?** — choose **Yes** only if a separate Assays layer is genuinely useful;
+- **Do you want to keep protocol documents in this workspace?** — choose whether ORW creates a protocols folder now;
+- **Where are the authoritative or raw data stored?**;
+- **Current data access** — private, restricted, embargoed, open, or unknown;
+- optional **keywords**.
+
+ORW deliberately does **not** ask you to invent a first Assay or measurement name during setup.
+
+For a simple project, a reasonable configuration is:
 
 ```text
 Project title:
 Effects of light exposure on mouse activity
 
-Description:
+What is this project about?
 Study of how altered light exposure affects spontaneous mouse activity.
 
-Researcher:
-Jane Researcher
+How is this research organized?
+One Study — this project is essentially one Study
 
-First Study:
-Light exposure study
+First Study title:
+[leave blank]
 
-First measurement:
-Behaviour
+Do your Studies contain several distinct measurement types?
+No — keep data, analysis and results directly at Study level
+
+Do you want to keep protocol documents in this workspace?
+Yes — create a protocols folder
 
 Authoritative/raw data location:
 Institutional research server
 
-Data access:
-Private
+Current data access:
+private
 ```
+
+This produces a deliberately simple project. If your research later grows into several Studies or several measurement types, ORW can add that structure later.
 
 ### Do not put secrets in the setup form
 
@@ -181,47 +190,48 @@ When initialization succeeds, the setup page should provide a link back to the i
 
 ## Step 6 — Understand the scientific structure
 
-ORW uses the ISA scientific hierarchy:
+ORW uses the ISA idea of **Investigation → Study → Assay**, but it does not force every project to display all three levels.
+
+For a simple one-Study project:
 
 ```text
 Investigation
 └── Study
-    └── Assay
+    ├── data
+    ├── analysis
+    ├── results
+    └── protocols       # only if you chose to store protocols here
 ```
 
-In ordinary language:
-
-- **Investigation** = your overall research project;
-- **Study** = one study/design within the project;
-- **Assay** = one measurement or test within a Study.
-
-For example:
+If a Study genuinely contains several distinct measurement types, ORW can expose an Assays layer:
 
 ```text
-Effects of light exposure on mouse activity     ← Investigation
-└── Light exposure study                        ← Study
-    └── Behaviour                               ← Assay
+Investigation
+└── Study
+    └── Assays
+        ├── Measurement A
+        └── Measurement B
 ```
 
-An initialized workspace will look approximately like:
+The initial workspace therefore depends on your setup choices. A simple project may look approximately like:
 
 ```text
 your-project/
 ├── README.md
 ├── studies/
-│   └── your-first-study/
+│   └── your-study/
 │       ├── data/
-│       ├── protocols/
 │       ├── analysis/
 │       ├── results/
-│       └── assays/
-│           └── your-first-assay/
+│       └── protocols/      # only when selected
 ├── references/
 ├── project-docs/
 └── .research/
 ```
 
-You can normally ignore `.research/`. It contains machine-readable metadata used by ORW.
+If you selected several measurement types, an `assays/` container is also created, but ORW does not invent Assay names for you.
+
+You can normally ignore `.research/` and `.github/`. They contain machine-readable metadata and GitHub automation rather than day-to-day research material.
 
 ---
 
@@ -354,7 +364,7 @@ Those technologies may exist underneath ORW, but they are implementation details
 - [ ] I chose an appropriate visibility setting, usually **Private** for active unpublished work.
 - [ ] I completed the **Set up my research project** form.
 - [ ] My README shows my own project information.
-- [ ] I can identify my first Study and Assay.
+- [ ] I understand whether this project currently uses one or several Studies and whether it needs an Assays layer.
 - [ ] I know where my authoritative/raw data live.
 - [ ] I did not put passwords, credentials, or sensitive participant information in the setup form.
 - [ ] I can upload an ordinary project file through the GitHub website.
