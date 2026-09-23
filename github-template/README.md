@@ -24,8 +24,8 @@ The guide explains unfamiliar GitHub words when they first appear and shows what
 
 1. Click **Use this template → Create a new repository**.
 2. In your new repository, open **Issues → New issue → Set up my research project**.
-3. Fill the short scientific setup form and submit it.
-4. ORW initializes the workspace automatically; no terminal or Git commands are required.
+3. Choose the simplest structure that fits: one/several Studies, whether several measurement types need an Assays layer, and whether protocols should live here.
+4. Submit the form. ORW initializes the workspace automatically; no terminal or Git commands are required.
 
 ## Which repository do I need?
 
@@ -76,23 +76,24 @@ Those belong in [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearc
 
 ## What should live here
 
-After initialization, a researcher workspace remains intentionally small and researcher-facing, approximately:
+After initialization, a researcher workspace remains intentionally small and researcher-facing. For a simple one-Study project it may look like:
 
 ```text
 my-research-project/
 ├── README.md
 ├── studies/
-│   └── study-01/
+│   └── my-study/
 │       ├── data/
-│       ├── assays/
 │       ├── analysis/
 │       ├── results/
-│       └── protocols/
+│       └── protocols/       # only if selected
 ├── references/
 ├── project-docs/
 ├── .research/
-└── .github/          # GitHub-specific setup adapter
+└── .github/                 # GitHub-specific setup adapter
 ```
+
+If the researcher says a Study contains several distinct measurement types, ORW also creates an `assays/` container. It does **not** require or invent an Assay name during first-time setup.
 
 It should contain only the workspace scaffold and the minimum GitHub-specific initialization machinery required for a researcher.
 
@@ -100,6 +101,6 @@ It should **not** contain ORW development internals such as `src/`, the browser 
 
 ## Status
 
-The minimal GitHub setup adapter is now present here. It installs an immutable, pinned revision of the canonical ORW core during initialization, then uses that core to generate the researcher’s ISA-aligned workspace. Scientific generation logic is therefore not duplicated in this repository.
+The minimal GitHub setup adapter is present here. It installs an immutable, pinned revision of the canonical ORW core during initialization, then uses that core to generate a workspace shaped by the researcher’s choices. Scientific generation logic is therefore not duplicated in this repository.
 
 For the current ORW implementation and documentation, see [`dhuzard/OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace).
