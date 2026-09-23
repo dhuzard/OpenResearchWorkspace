@@ -1,0 +1,18 @@
+name: Check my workspace
+description: Validate the ORW structure and receive a plain-language result.
+title: "[ORW Check] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Check my workspace
+
+        ORW will validate the machine-readable project record, declared paths, and workspace state. It will not modify the scientific content.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Run the check
+      options:
+        - label: Check this workspace now.
+          required: true
