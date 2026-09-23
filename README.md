@@ -184,7 +184,7 @@ Collaborate and work
 Publish when ready
 ```
 
-A very simple project can start with one Investigation, one Study and one Assay. Complexity is added only when the science requires it.
+A very simple project can start with one Investigation and one Study. An Assay layer is added only when distinct measurement types need it.
 
 ## Local CLI
 
