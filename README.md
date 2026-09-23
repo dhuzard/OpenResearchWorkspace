@@ -169,22 +169,32 @@ The browser generator implements local form validation, structure/metadata revie
 ```text
 Use this template
       ↓
-Create my research repository (Investigation)
+Create my research repository
       ↓
-Click “Set up my research project”
+Set up my research project
       ↓
-Fill a short form
+Choose the simplest useful structure
       ↓
-ORW initializes automatically
+ORW creates the first Study
       ↓
-First Study + first Assay are created
+Work in that Study
       ↓
-Collaborate and work
+Register authoritative data early
       ↓
-Publish when ready
+Add another Study only when the design branches
+      ↓
+Add an Assay only when a distinct measurement needs its own layer
+      ↓
+Add contributors during the project
+      ↓
+Check the workspace
+      ↓
+Share / archive / publish intentionally
 ```
 
-A very simple project can start with one Investigation and one Study. An Assay layer is added only when distinct measurement types need it.
+A very simple project can start with one Investigation and one Study. The GitHub adapter now exposes post-initialization **no-code forms** for adding another Study, adding a measurement/Assay, registering a data source, adding a contributor, and validating the workspace. These forms call the same provider-neutral mutation and validation APIs as the CLI; they do not implement a second scientific model.
+
+The governing usability rule is: **keep the visible structure simple until the science requires another layer.**
 
 ## Local CLI
 
