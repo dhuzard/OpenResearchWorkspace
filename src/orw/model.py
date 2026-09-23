@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 from typing import Any, Mapping
 
 ACCESS_LEVELS = frozenset({"private", "restricted", "embargoed", "open", "unknown"})
+STUDY_STRUCTURES = frozenset({"single", "multiple", "undecided"})
+ASSAY_STRUCTURES = frozenset({"single_or_none", "multiple", "undecided"})
+PROTOCOL_STORAGE = frozenset({"workspace", "elsewhere", "undecided"})
 ORCID_RE = re.compile(r"^(https://orcid\.org/)?\d{4}-\d{4}-\d{4}-[\dX]{4}$")
 
 
@@ -62,6 +65,15 @@ class DataSource:
 
 
 @dataclass(frozen=True)
+class WorkspaceOptions:
+    """Researcher-facing choices that shape the initial workspace, not the science."""
+
+    study_structure: str = "single"
+    assay_structure: str = "multiple"
+    protocol_storage: str = "workspace"
+
+
+@dataclass(frozen=True)
 class SetupConfig:
     """Normalized scientific setup payload shared by every ORW adapter."""
 
@@ -72,6 +84,7 @@ class SetupConfig:
     first_assay: AssaySeed | None
     data: DataSource
     keywords: tuple[str, ...] = ()
+    workspace_options: WorkspaceOptions = field(default_factory=WorkspaceOptions)
 
     @classmethod
     def from_mapping(cls, payload: Mapping[str, Any]) -> "SetupConfig":
@@ -88,6 +101,7 @@ class SetupConfig:
                 "first_assay",
                 "data",
                 "keywords",
+                "workspace_options",
             },
             "setup",
         )
@@ -155,6 +169,62 @@ class SetupConfig:
             keywords.append(keyword)
             seen.add(keyword)
 
+        options_raw = payload.get("workspace_options")
+        if options_raw is None:
+            workspace_options = WorkspaceOptions()
+        elif isinstance(options_raw, Mapping):
+            _reject_unknown_keys(
+                options_raw,
+                {"study_structure", "assay_structure", "protocol_storage"},
+                "workspace_options",
+            )
+            study_structure = (
+                _optional_text(
+                    options_raw.get("study_structure"),
+                    "Study structure",
+                )
+                or "single"
+            )
+            assay_structure = (
+                _optional_text(
+                    options_raw.get("assay_structure"),
+                    "Assay structure",
+                )
+                or "multiple"
+            )
+            protocol_storage = (
+                _optional_text(
+                    options_raw.get("protocol_storage"),
+                    "Protocol storage",
+                )
+                or "workspace"
+            )
+            if study_structure not in STUDY_STRUCTURES:
+                raise SetupValidationError(
+                    "Study structure must be one of: "
+                    + ", ".join(sorted(STUDY_STRUCTURES))
+                    + "."
+                )
+            if assay_structure not in ASSAY_STRUCTURES:
+                raise SetupValidationError(
+                    "Assay structure must be one of: "
+                    + ", ".join(sorted(ASSAY_STRUCTURES))
+                    + "."
+                )
+            if protocol_storage not in PROTOCOL_STORAGE:
+                raise SetupValidationError(
+                    "Protocol storage must be one of: "
+                    + ", ".join(sorted(PROTOCOL_STORAGE))
+                    + "."
+                )
+            workspace_options = WorkspaceOptions(
+                study_structure=study_structure,
+                assay_structure=assay_structure,
+                protocol_storage=protocol_storage,
+            )
+        else:
+            raise SetupValidationError("workspace_options must be an object.")
+
         return cls(
             project_title=project_title,
             project_description=project_description,
@@ -163,6 +233,7 @@ class SetupConfig:
             first_assay=first_assay,
             data=DataSource(data_location, data_access),
             keywords=tuple(keywords),
+            workspace_options=workspace_options,
         )
 
     def to_mapping(self) -> dict[str, Any]:
@@ -184,4 +255,9 @@ class SetupConfig:
                 "access": self.data.access,
             },
             "keywords": list(self.keywords),
+            "workspace_options": {
+                "study_structure": self.workspace_options.study_structure,
+                "assay_structure": self.workspace_options.assay_structure,
+                "protocol_storage": self.workspace_options.protocol_storage,
+            },
         }
