@@ -50,8 +50,17 @@ Data-access labels do not stop someone from reading a ZIP you share.
 
 All form processing and ZIP creation occur in the browser. The built document
 has no remote scripts, fonts, analytics, backend requests, cookies, or application
-storage. Its Content Security Policy blocks connections and form submissions;
-script/style hashes allow only the code embedded by the build.
+storage. Its Content Security Policy blocks form submissions; script/style hashes
+allow only the code embedded by the build.
+
+**One connection is possible, and only when you ask for it.** The *Look up*
+button beside the ORCID field sends that ORCID to `pub.orcid.org` and reads the
+public name back, so you can confirm the identifier belongs to the person you
+mean. The Content Security Policy permits that single origin and no other:
+filling in the form, reviewing it and downloading the ZIP still connect to
+nothing, and the page works offline apart from that button. If you would rather
+the page never connect at all, do not press it — and if the registry cannot be
+reached, the lookup says so and your work continues unchanged.
 
 A hosted copy still requires a page request to the host. The host can modify what
 it serves; the page cannot control browser extensions, browser-managed history,
@@ -61,7 +70,8 @@ passwords, access tokens, participant identifiers, or confidential clinical data
 Setup and generated metadata are checked against bundled ORW schemas. Cross-language
 fixtures independently validate extracted ZIPs using Python `jsonschema` and the
 ORW workspace validator. This is schema/workspace validation—not FAIR certification,
-scientific review, or an identity check. ORCID checking is currently format-only.
+scientific review, or an identity check. ORCID checking is format-only until you press *Look up*, which asks the
+registry whether the identifier exists.
 
 ## Build and share — maintainers
 
