@@ -1,4 +1,4 @@
-name: Check my workspace
+name: After setup — Check my workspace
 description: Validate the ORW structure and receive a plain-language result.
 title: "[ORW Check] "
 body:
