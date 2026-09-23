@@ -1,5 +1,8 @@
 # ORW GitHub template workflow
 
+
+> **Distribution architecture:** `dhuzard/OpenResearchWorkspace-template` is generated from this canonical repository. GitHub-specific source assets live under `github-template/`; canonical workspace placeholders live under `src/orw/templates/`. Build and test the distribution with `scripts/build_github_template.py` and `tests/test_github_template_distribution.py`. Do not maintain scientific ORW logic directly in the published template repository.
+
 The GitHub template is the primary way an ordinary researcher creates an OpenResearchWorkspace.
 
 It is a bootstrap mechanism, not a long-term synchronization relationship with the ORW development repository.
