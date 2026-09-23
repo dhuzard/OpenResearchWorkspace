@@ -103,6 +103,45 @@
     const option = document.createElement('option'); option.value = access; option.textContent = access[0].toUpperCase() + access.slice(1);
     option.defaultSelected = access === 'private'; $('data-access').append(option);
   }
+  // The one place this page talks to the network, and only on a click. The
+  // ORCID is sent to orcid.org and the public name read back; nothing else
+  // about the workspace leaves the browser, and the form stays usable when the
+  // registry is unreachable. CSP allows this origin and no other.
+  const orcidShape = new RegExp(contract.setupSchema.properties.creator.properties.orcid.pattern, 'u');
+  function orcidStatus(message, state) {
+    const status = $('orcid-status');
+    status.textContent = message;
+    status.className = 'hint' + (state ? ' ' + state : '');
+    status.hidden = !message;
+  }
+  $('orcid-lookup').addEventListener('click', async () => {
+    const button = $('orcid-lookup');
+    const raw = $('orcid').value.trim();
+    if (!raw) { orcidStatus('Enter an ORCID first.', 'missing'); return; }
+    if (!orcidShape.test(raw)) { orcidStatus('Use the 0000-0002-1825-0097 format.', 'missing'); return; }
+    const id = raw.replace(/^https:\/\/orcid\.org\//, '');
+    button.disabled = true; orcidStatus('Asking orcid.org…');
+    try {
+      const response = await fetch('https://pub.orcid.org/v3.0/' + id + '/person', {headers: {Accept: 'application/json'}});
+      if (response.status === 404) { orcidStatus('No such ORCID in the registry. Check it against the researcher’s record.', 'missing'); return; }
+      if (!response.ok) { orcidStatus('The registry answered with an error. Your entry is unchanged.', null); return; }
+      const person = await response.json();
+      const part = key => (person.name && person.name[key] && person.name[key].value || '').trim();
+      const full = [part('given-names'), part('family-name')].filter(Boolean).join(' ');
+      if (!full) { orcidStatus('ORCID exists. Its owner keeps the name private, so nothing was filled in.', 'found'); return; }
+      // What the researcher typed wins, exactly as it does on the command line.
+      if (!$('creator-name').value.trim()) {
+        $('creator-name').value = full;
+        orcidStatus('ORCID belongs to ' + full + ', filled in above.', 'found');
+      } else {
+        orcidStatus('ORCID belongs to ' + full + '. Your name entry was left as you wrote it.', 'found');
+      }
+      invalidate();
+    } catch (_) {
+      orcidStatus('Could not reach the registry. You can carry on; nothing was changed.', null);
+    } finally { button.disabled = false; }
+  });
+  $('orcid').addEventListener('input', () => orcidStatus('', null));
   $('version').textContent = 'Core ' + contract.variants['00'].project.spec_version + ' · browser generator';
   $('review').disabled = false; $('example').disabled = false;
   window.addEventListener('pagehide', () => { revoke(); current = null; });

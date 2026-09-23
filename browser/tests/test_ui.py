@@ -145,6 +145,11 @@ class BrowserAcceptanceTests(unittest.TestCase):
         self.assertEqual(self.requests[self.bootstrap:], [])
 
     def test_form_and_download_work_offline_without_requests(self):
+        """Describing, reviewing and downloading still touch nothing.
+
+        The ORCID lookup is the page's only connection and it needs a click, so
+        the whole ordinary path must remain exactly as silent as it always was.
+        """
         self.context.set_offline(True)
         self.example(); self.review(); self.download()
         self.assertEqual(self.requests[self.bootstrap:], [])
@@ -152,14 +157,25 @@ class BrowserAcceptanceTests(unittest.TestCase):
         if not self.content_mode:
             self.assertEqual(self.page.evaluate('localStorage.length + sessionStorage.length'), 0)
 
-    def test_csp_blocks_script_initiated_connections(self):
+    def test_typing_an_orcid_does_not_look_it_up(self):
+        """Only the button connects. Typing must never phone home on its own."""
+        self.example()
+        self.page.locator('#orcid').fill('0000-0002-1825-0097')
+        self.page.locator('#orcid').blur()
+        self.review()
+        self.assertEqual(self.requests[self.bootstrap:], [])
+
+    def test_csp_allows_only_the_orcid_registry(self):
+        """The lookup opened exactly one door, not the building."""
         blocked = self.page.evaluate("""async () => {
           try { await fetch('https://example.invalid/must-not-connect'); return false; }
           catch (_) { return true; }
         }""")
         self.assertTrue(blocked)
         csp = self.page.locator('meta[http-equiv="Content-Security-Policy"]').get_attribute('content')
-        self.assertIn("connect-src 'none'", csp)
+        self.assertIn('connect-src https://pub.orcid.org', csp)
+        self.assertNotIn("connect-src 'none'", csp)
+        self.assertIn("default-src 'none'", csp)
         self.assertIn("form-action 'none'", csp)
         self.assertNotIn("'unsafe-inline'", csp)
 
@@ -185,6 +201,93 @@ class BrowserAcceptanceTests(unittest.TestCase):
             self.page.screenshot(path=str(path / 'browser-mobile.png'), full_page=True)
             self.page.set_viewport_size({'width': 1440, 'height': 1100})
             self.page.screenshot(path=str(path / 'browser-desktop.png'), full_page=True)
+
+    # The registry is stubbed in every test below. Reaching the real pub.orcid.org
+    # would make this suite depend on a third party being up, and would announce
+    # each CI run to it.
+    ORCID = 'https://pub.orcid.org/v3.0/0000-0002-1825-0097/person'
+
+    def stub_registry(self, *, status=200, given='Josiah', family='Carberry', fail=False):
+        def handler(route):
+            if fail:
+                route.abort('failed'); return
+            def part(value):
+                return None if value is None else {'value': value}
+            body = {'name': None} if given is None and family is None else {
+                'name': {'given-names': part(given), 'family-name': part(family)}}
+            route.fulfill(status=status, content_type='application/json', body=json.dumps(body))
+        self.page.route('https://pub.orcid.org/**', handler)
+
+    def look_up(self, orcid='0000-0002-1825-0097'):
+        self.page.locator('#orcid').fill(orcid)
+        self.page.locator('#orcid-lookup').click()
+        self.page.locator('#orcid-status').wait_for(state='visible')
+        self.page.wait_for_function(
+            "() => !document.getElementById('orcid-status').textContent.includes('Asking')")
+        return self.page.locator('#orcid-status').text_content()
+
+    def registry_calls(self):
+        return [url for _method, url in self.requests[self.bootstrap:] if 'orcid.org' in url]
+
+    def test_lookup_fills_an_empty_name_and_calls_the_registry_once(self):
+        self.stub_registry()
+        self.example()
+        self.page.locator('#creator-name').fill('')
+        message = self.look_up()
+        self.assertIn('Josiah Carberry', message)
+        self.assertEqual(self.page.locator('#creator-name').input_value(), 'Josiah Carberry')
+        self.assertEqual(self.registry_calls(), [self.ORCID])
+
+    def test_lookup_never_overwrites_a_name_already_typed(self):
+        """What the researcher wrote wins, exactly as it does on the CLI."""
+        self.stub_registry()
+        self.example()
+        message = self.look_up()
+        self.assertIn('Josiah Carberry', message)
+        self.assertEqual(self.page.locator('#creator-name').input_value(), 'Jane Researcher')
+
+    def test_unknown_orcid_is_reported_and_fills_nothing(self):
+        self.stub_registry(status=404)
+        self.example()
+        self.page.locator('#creator-name').fill('')
+        self.assertIn('No such ORCID', self.look_up())
+        self.assertEqual(self.page.locator('#creator-name').input_value(), '')
+
+    def test_a_private_name_still_confirms_the_orcid(self):
+        self.stub_registry(given=None, family=None)
+        self.example()
+        self.page.locator('#creator-name').fill('')
+        message = self.look_up()
+        self.assertIn('private', message)
+        self.assertEqual(self.page.locator('#creator-name').input_value(), '')
+
+    def test_an_unreachable_registry_leaves_the_form_usable(self):
+        """The degradation promise: no network, no lookup, no loss of work."""
+        self.stub_registry(fail=True)
+        self.example()
+        self.assertIn('Could not reach', self.look_up())
+        self.review(); workspace, _ = self.download()
+        self.assertTrue((workspace / '.research/project.yml').exists())
+
+    def test_a_malformed_orcid_is_caught_before_any_request(self):
+        self.stub_registry()
+        self.example()
+        self.assertIn('format', self.look_up('not-an-orcid'))
+        self.assertEqual(self.registry_calls(), [])
+
+    def test_lookup_does_not_survive_into_the_download(self):
+        """A looked-up name is an ordinary entry; nothing extra is recorded."""
+        self.stub_registry()
+        self.example()
+        self.page.locator('#creator-name').fill('')
+        self.look_up()
+        self.review()
+        workspace, _ = self.download()
+        project = yaml.safe_load((workspace / '.research/project.yml').read_text(encoding='utf-8'))
+        contributor = project['contributors'][0]
+        self.assertEqual(contributor['name'], 'Josiah Carberry')
+        self.assertEqual(contributor['orcid'], '0000-0002-1825-0097')
+        self.assertEqual(set(contributor) - {'name', 'role', 'orcid'}, set())
 
     def test_saved_html_can_be_opened_offline(self):
         if self.content_mode:

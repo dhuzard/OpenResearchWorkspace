@@ -113,7 +113,10 @@ def build(output: Path) -> Path:
         return "'sha256-" + base64.b64encode(sha256(body.encode('utf-8')).digest()).decode() + "'"
     scripts = re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', html)
     styles = re.findall(r'<style>([\s\S]*?)</style>', html)
-    csp = ("default-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'; "
+    # connect-src names the single origin the ORCID lookup uses. It is the only
+    # external connection the page can make, and only when the reader asks for it.
+    csp = ("default-src 'none'; connect-src https://pub.orcid.org; "
+           "form-action 'none'; base-uri 'none'; "
            "object-src 'none'; img-src data:; script-src " + ' '.join(map(integrity, scripts))
            + '; style-src ' + ' '.join(map(integrity, styles)))
     html = html.replace('@@CSP@@', csp)

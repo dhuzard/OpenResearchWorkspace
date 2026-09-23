@@ -178,7 +178,11 @@ class BrowserContractTests(unittest.TestCase):
             html = first.decode('utf-8')
             self.assertNotIn('@@CONTRACT@@', html)
             self.assertNotIn('@@CSP@@', html)
-            self.assertIn("connect-src 'none'", html)
+            # The ORCID lookup is the page's only permitted connection, and it
+            # still loads nothing remotely: no external script, style or asset.
+            connect = re.search(r'connect-src ([^;]+);', html).group(1).split()
+            self.assertEqual(connect, ['https://pub.orcid.org'])
+            self.assertIn("default-src 'none'", html)
             self.assertIn("form-action 'none'", html)
             self.assertNotIn("'unsafe-inline'", html)
             self.assertFalse(re.search(r'<script[^>]+src=', html))
