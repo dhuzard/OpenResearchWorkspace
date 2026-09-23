@@ -236,30 +236,34 @@ The `0.1.0a1` package is prepared; public-index availability must be established
 
 See [CLI usage](docs/cli.md), the [FAIR capability layer](docs/fair.md) and [release instructions](docs/releases.md).
 
-## Default scientific project skeleton
+## Scientific project skeleton
+
+ORW keeps the canonical ISA model but does **not** force every new project to display every possible layer. The initial scaffold follows the researcher’s setup choices.
+
+A simple one-Study project can start as:
 
 ```text
 my-research-project/                 # Investigation workspace
 ├── README.md
 ├── studies/
-│   └── study-01/
+│   └── my-study/
 │       ├── README.md
 │       ├── data/
 │       │   ├── raw/
 │       │   ├── processed/
 │       │   └── external/
-│       ├── assays/
-│       │   └── assay-01/
 │       ├── analysis/
 │       ├── results/
-│       └── protocols/
+│       └── protocols/              # only when protocols are stored here
 ├── references/
 ├── project-docs/
 ├── .research/
-└── .github/                        # optional GitHub adapter; absent from browser ZIP
+└── .github/                        # GitHub adapter only
 ```
 
-The hierarchy follows ISA: the workspace represents an Investigation; `studies/` contains its research units; `assays/` contains measurements/tests belonging to a Study. Analysis and results remain close to the Study they interpret, while Investigation-wide references and project documentation remain at the root.
+If a Study genuinely contains several distinct measurement types, ORW can also create an `assays/` layer. The beginner GitHub setup no longer asks researchers to invent an Assay name merely to initialize the workspace.
+
+The workspace still represents one Investigation and may later contain additional Studies and Assays as the science requires them. Analysis and results stay as close as practical to the Study or Assay they interpret.
 
 See [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md) for the normative definition.
 
