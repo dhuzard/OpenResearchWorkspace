@@ -1,0 +1,50 @@
+profiles_version: "0.1"
+
+default_profile: mixed
+
+profiles:
+  experimental:
+    label: Experimental / wet lab
+    include:
+      - data
+      - analysis
+      - results
+      - protocols
+      - project-docs
+      - references
+
+  computational:
+    label: Computational / data analysis
+    include:
+      - data
+      - analysis
+      - results
+      - project-docs
+      - references
+
+  mixed:
+    label: Mixed experimental + computational
+    include:
+      - data
+      - analysis
+      - results
+      - protocols
+      - project-docs
+      - references
+
+  literature:
+    label: Literature / systematic review
+    include:
+      - references
+      - analysis
+      - results
+      - project-docs
+
+  other:
+    label: Other
+    include:
+      - project-docs
+
+notes:
+  - "Profiles are initialization presets, not different ORW standards."
+  - "All included folders retain the semantics defined in .research/layout.yml."
