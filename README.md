@@ -16,6 +16,7 @@
 **Source-of-truth rule:** all ORW scientific semantics, schemas, validation rules, and generation logic belong in this repository. The template repository is a thin distribution adapter and must not become a second implementation of the ORW contract.
 
 A project created from the template becomes an independent research workspace. It does not need to remain synchronized with either repository; compatibility is expressed through recorded ORW/specification versions and explicit migrations.
+
 > **Software alpha preparation: `0.1.0a1`.** The browser, CLI, workspace mutation commands, FAIR outputs, validation and RO-Crate directory exporter are implemented. A preparation commit is not a published release: TestPyPI rehearsal and public PyPI promotion are separate, explicitly approved stages. See the [release guide](docs/releases.md) and [changelog](CHANGELOG.md).
 >
 > Evaluate on disposable copies. Ordinary initialization requires an empty destination. Export destinations must be outside the source workspace; `--force` only replaces an unchanged, identifiable ORW export. Metadata and the README can themselves be sensitive. These tools are not a FAIR certification, an OS sandbox, or a complete hosted research repository.
