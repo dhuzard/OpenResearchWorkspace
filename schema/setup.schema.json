@@ -102,6 +102,36 @@
         "minLength": 1
       },
       "uniqueItems": true
+    },
+    "workspace_options": {
+      "type": "object",
+      "properties": {
+        "study_structure": {
+          "type": "string",
+          "enum": [
+            "single",
+            "multiple",
+            "undecided"
+          ]
+        },
+        "assay_structure": {
+          "type": "string",
+          "enum": [
+            "single_or_none",
+            "multiple",
+            "undecided"
+          ]
+        },
+        "protocol_storage": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "elsewhere",
+            "undecided"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
