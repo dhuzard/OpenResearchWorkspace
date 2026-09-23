@@ -8,3 +8,8 @@ implementation:
   primary_reference: github-template
   canonical_project_record: ".research/project.yml"
   capabilities_record: ".research/capabilities.yml"
+
+preferences:
+  study_structure: "single"
+  assay_structure: "multiple"
+  protocol_storage: "workspace"
