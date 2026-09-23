@@ -1,0 +1,24 @@
+{
+  "project_title": "Simple observational project",
+  "project_description": "A single-study project that does not need a separate Assay layer at initialization.",
+  "creator": {
+    "name": "Jane Researcher",
+    "orcid": null
+  },
+  "first_study": {
+    "title": "Simple observational project"
+  },
+  "first_assay": null,
+  "data": {
+    "location": "Institutional research server",
+    "access": "private"
+  },
+  "keywords": [
+    "observational"
+  ],
+  "workspace_options": {
+    "study_structure": "single",
+    "assay_structure": "single_or_none",
+    "protocol_storage": "elsewhere"
+  }
+}
