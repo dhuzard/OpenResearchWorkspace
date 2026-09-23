@@ -84,13 +84,18 @@ jobs:
           git push
 
       - name: Reply with the result
-        if: always() && hashFiles('/tmp/orw-action-response.md') != ''
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
         shell: bash
-        run: gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body-file /tmp/orw-action-response.md
+        run: |
+          if [ -f /tmp/orw-action-response.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body-file /tmp/orw-action-response.md
+          else
+            echo "No ORW response file was produced."
+          fi
 
       - name: Close successful action
         if: steps.action.outputs.ok == 'true'
