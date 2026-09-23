@@ -20,6 +20,7 @@ from orw import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "")
 EVENT_PATH = Path(os.environ["GITHUB_EVENT_PATH"])
 OUTPUT_PATH = Path(os.environ["GITHUB_OUTPUT"])
 RESPONSE_PATH = Path(os.environ.get("ORW_RESPONSE_PATH", "/tmp/orw-action-response.md"))
@@ -110,10 +111,15 @@ def main() -> int:
             description = read(values, "Short Study description (optional)") or None
             result = add_study(ROOT, study_title, description=description)
             identifier = result.plan.identifier or ""
+            study_url = (
+                f"https://github.com/{REPOSITORY}/tree/main/studies/{identifier}"
+                if REPOSITORY
+                else f"studies/{identifier}/"
+            )
             result_message(
                 "Study added",
                 result.plan.summary + ".",
-                f"Open the new Study: [`studies/{identifier}/`](../tree/main/studies/{identifier})",
+                f"Open the new Study: [`studies/{identifier}/`]({study_url})",
             )
             write_outputs(changed=True, ok=True)
             return 0
@@ -130,13 +136,16 @@ def main() -> int:
                 description=description,
             )
             identifier = result.plan.identifier or ""
+            assay_path = f"studies/{study_id}/assays/{identifier}/"
+            assay_url = (
+                f"https://github.com/{REPOSITORY}/tree/main/{assay_path.rstrip('/')}"
+                if REPOSITORY
+                else assay_path
+            )
             result_message(
                 "Measurement / Assay added",
                 result.plan.summary + ".",
-                (
-                    f"Open it under [`studies/{study_id}/assays/{identifier}/`]"
-                    f"(../tree/main/studies/{study_id}/assays/{identifier})"
-                ),
+                f"Open it under [`{assay_path}`]({assay_url})",
             )
             write_outputs(changed=True, ok=True)
             return 0
