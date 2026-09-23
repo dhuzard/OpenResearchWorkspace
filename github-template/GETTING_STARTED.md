@@ -293,22 +293,33 @@ If the project belongs to an institutional GitHub organization, your organizatio
 
 ---
 
-## Step 10 — Work normally
+## Step 10 — Continue the project without editing YAML
 
-At this point, the important mental model is scientific rather than technical:
+After initialization, use the project README as your main entry point.
 
-```text
-Project
-├── Study 1
-│   ├── Assay A
-│   └── Assay B
-└── Study 2
-    └── Assay A
-```
+The recommended sequence is:
 
-Add research material at the level where it belongs. ORW's structured metadata and validation machinery should remain mostly behind the scenes.
+1. **Work in the existing Study first.** Upload or reference ordinary research files in its data, analysis, results, and protocol folders.
+2. **Register important external data early.** Use **Register a data source** when authoritative data live elsewhere.
+3. **Add another Study only when the research design really separates** — for example a new cohort, experiment, intervention, or study design.
+4. **Add a measurement / Assay only when a distinct modality needs its own structure** inside a Study.
+5. **Add contributors as they join**, rather than reconstructing attribution at publication time.
+6. **Check the workspace periodically**, especially before sharing or archiving.
 
-You do not need to edit machine-readable metadata during ordinary day-to-day work unless you specifically want to.
+Your initialized README provides direct no-code actions:
+
+- **Add another Study**
+- **Add a measurement / Assay**
+- **Register a data source**
+- **Add a contributor**
+- **Check my workspace**
+
+Each opens a short GitHub form. Submitting it runs the canonical ORW operation, validates the result, commits the change only when valid, and replies in the form thread.
+
+You still do **not** need to edit `.research/project.yml` manually.
+
+The default rule is simple: **do not add another structural layer until the science requires it.**
+
 
 ---
 
