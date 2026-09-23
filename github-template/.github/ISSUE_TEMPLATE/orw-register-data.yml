@@ -1,0 +1,62 @@
+name: Register a data source
+description: Record where authoritative research data live without uploading them to GitHub.
+title: "[ORW Register Data] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Register a data source
+
+        Use this to make the workspace point to an authoritative dataset stored elsewhere. ORW records the location and access status; it does not copy or upload the data.
+
+        Do not enter passwords, access tokens, participant identifiers, or other secrets.
+
+  - type: input
+    id: data_name
+    attributes:
+      label: Data source name
+      placeholder: Home-cage raw recordings
+    validations:
+      required: true
+
+  - type: input
+    id: data_location
+    attributes:
+      label: Where are these data stored?
+      description: Use a high-level location, stable URL, repository record, or institutional path that is safe to record.
+      placeholder: Institutional research server / project XP14
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data_access
+    attributes:
+      label: Current data access
+      options:
+        - private
+        - restricted
+        - embargoed
+        - open
+        - unknown
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: identifier
+    attributes:
+      label: Persistent identifier or public URL (optional)
+      placeholder: 10.5281/zenodo.1234567
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Short description (optional)
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Ready to register this data source
+      options:
+        - label: I have not entered credentials or sensitive identifiers in this form.
+          required: true
