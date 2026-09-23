@@ -1,7 +1,21 @@
 # OpenResearchWorkspace
 
-**A portable research workspace specification with GitHub as one supported reference implementation.**
+**Canonical specification, schemas, tooling, and reference implementations for portable OpenResearchWorkspace (ORW) research workspaces.**
 
+> [!IMPORTANT]
+> **This is the ORW development repository, not the researcher-facing GitHub template.**
+> To create a research project from a minimal GitHub template, use [`dhuzard/OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template).
+
+## Two repositories, two roles
+
+| Repository | Role | Contains |
+| --- | --- | --- |
+| [`OpenResearchWorkspace`](https://github.com/dhuzard/OpenResearchWorkspace) | **Canonical ORW source and development repository** | Specification, schemas, Python core, CLI, browser generator, validation, FAIR/RO-Crate functionality, tests, documentation, and future agent/MCP integrations |
+| [`OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template) | **Minimal GitHub template for researchers** | Research-workspace scaffold and the thin GitHub-specific setup adapter needed to create an ORW-compatible project |
+
+**Source-of-truth rule:** all ORW scientific semantics, schemas, validation rules, and generation logic belong in this repository. The template repository is a thin distribution adapter and must not become a second implementation of the ORW contract.
+
+A project created from the template becomes an independent research workspace. It does not need to remain synchronized with either repository; compatibility is expressed through recorded ORW/specification versions and explicit migrations.
 > **Software alpha preparation: `0.1.0a1`.** The browser, CLI, workspace mutation commands, FAIR outputs, validation and RO-Crate directory exporter are implemented. A preparation commit is not a published release: TestPyPI rehearsal and public PyPI promotion are separate, explicitly approved stages. See the [release guide](docs/releases.md) and [changelog](CHANGELOG.md).
 >
 > Evaluate on disposable copies. Ordinary initialization requires an empty destination. Export destinations must be outside the source workspace; `--force` only replaces an unchanged, identifiable ORW export. Metadata and the README can themselves be sensitive. These tools are not a FAIR certification, an OS sandbox, or a complete hosted research repository.
@@ -13,7 +27,7 @@ ORW is **forge-agnostic by design**. A valid workspace does not require GitHub, 
 Three creation paths are implemented:
 
 - a **static browser generator**: form → review → local workspace ZIP, with no account or installation;
-- the beginner-oriented GitHub template and setup form;
+- the dedicated [`OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template) repository for the beginner-oriented GitHub path;
 - a local `orw` CLI for creation, validation, and RO-Crate export.
 
 The browser is a portable static build, not a required hosted ORW service. A public hosted instance is not automatically deployed.
@@ -44,21 +58,33 @@ Studies, Assays, resources and contributors can already be recorded with the
 CLI (`orw study add`, `orw assay add`), and RO-Crate export already exists
 there too.
 
-## GitHub template: set up a new project
+## GitHub template — separate repository
 
-If you are reading this README **inside a new repository that you just created from the ORW template**, use the setup form below:
+The GitHub researcher workflow now lives in a dedicated repository:
 
-### [→ Set up my research project](../../issues/new?template=orw-setup.yml)
+### [→ Open the ORW GitHub template](https://github.com/dhuzard/OpenResearchWorkspace-template)
 
-The form asks for your project title, first Study, first measurement/Assay, data location, and a few optional metadata fields. After you submit it, ORW initializes the workspace automatically and replies when it is ready.
+Researchers who want the GitHub path should create their project from that repository, **not from this development repository**.
 
-You do **not** need to open GitHub Actions, run code, install Git, or edit YAML.
+The separation is intentional:
 
-> GitHub calls the setup form an **issue** and may label the final button **Create** or **Submit new issue**. In ORW this simply means sending the project setup form. It is closed automatically after successful initialization.
+```text
+OpenResearchWorkspace
+  canonical specification + schemas + core/tooling
+                     │
+                     │ generates / validates against
+                     ▼
+OpenResearchWorkspace-template
+  minimal GitHub-specific distribution adapter
+                     │
+                     │ "Use this template"
+                     ▼
+researcher's independent ORW workspace
+```
 
-If you are viewing the **OpenResearchWorkspace development repository itself**, do not submit the setup form here. First use **Use this template** to create your own repository.
+The template repository should stay small. It may contain the researcher-facing workspace skeleton, the setup form/workflow, and generated or pinned artifacts required to initialize a compatible workspace. It should **not** become the home of ORW's Python implementation, browser application, canonical schemas, test suite, release machinery, or independent scientific rules.
 
-The template adapter verifies the original placeholder scientific metadata before replacing them and preserves the old overview/metadata in `.research/template-*`. Edited or unrecognized metadata cause refusal, not silent reinitialization.
+Changes to the template must be derived from or validated against the canonical ORW contract in this repository.
 
 ## ORW uses the ISA Investigation–Study–Assay model
 
@@ -80,7 +106,7 @@ See [`docs/isa.md`](docs/isa.md) for the rationale and mapping.
 
 ## Start here
 
-Choose the [browser guide](docs/browser-generator.md) for local ZIP creation, the [GitHub setup guide](docs/getting-started.md) for the template workflow, or [CLI usage](docs/cli.md) for command-line automation. All use the same [scientific project structure](docs/project-structure.md).
+Choose the [browser guide](docs/browser-generator.md) for local ZIP creation, the dedicated [`OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template) for the GitHub workflow, or [CLI usage](docs/cli.md) for command-line automation. All use the same canonical ORW contract and [scientific project structure](docs/project-structure.md).
 
 ### Visual walkthrough — GitHub path
 
