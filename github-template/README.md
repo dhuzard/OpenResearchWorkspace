@@ -31,6 +31,10 @@ The guide explains unfamiliar GitHub words when they first appear and shows what
 3. Choose the simplest structure that fits: one/several Studies, whether several measurement types need an Assays layer, and whether protocols should live here.
 4. Submit the form. ORW initializes the workspace automatically; no terminal or Git commands are required.
 
+After initialization, the generated project README becomes the main no-code entry point. It links to forms for **Add another Study**, **Add a measurement / Assay**, **Register a data source**, **Add a contributor**, and **Check my workspace**.
+
+The recommended rule is to work in the existing Study first and add new structural layers only when the research design requires them.
+
 ## Which repository do I need?
 
 | If you want to… | Use |
