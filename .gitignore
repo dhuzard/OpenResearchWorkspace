@@ -7,3 +7,8 @@
 *.egg-info/
 __pycache__/
 *.py[cod]
+
+# Throwaway workspace left by a local CLI walkthrough. Anchored to the
+# repository root so a study directory of this name inside a real workspace
+# is never ignored.
+/my-study/
