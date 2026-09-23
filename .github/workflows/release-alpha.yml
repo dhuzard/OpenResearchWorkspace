@@ -35,7 +35,7 @@ env:
   PYTHONUTF8: '1'
 jobs:
   guard:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -56,7 +56,7 @@ jobs:
   build:
     needs: [guard, checks]
     if: inputs.phase == 'testpypi'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -82,7 +82,7 @@ jobs:
   publish-testpypi:
     needs: build
     if: inputs.phase == 'testpypi'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: testpypi
     permissions:
       contents: read
@@ -102,7 +102,7 @@ jobs:
 
   verify-testpypi:
     needs: publish-testpypi
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -126,7 +126,7 @@ jobs:
   acquire-verified:
     needs: guard
     if: inputs.phase == 'pypi'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       source_sha: ${{ steps.proof.outputs.source_sha }}
     steps:
@@ -157,7 +157,7 @@ jobs:
 
   publish-pypi:
     needs: acquire-verified
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: pypi
     permissions:
       contents: read
@@ -176,7 +176,7 @@ jobs:
 
   verify-pypi:
     needs: publish-pypi
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -193,7 +193,7 @@ jobs:
 
   github-prerelease:
     needs: [verify-pypi, acquire-verified]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       actions: read

@@ -10,12 +10,19 @@ on:
   workflow_call:
 permissions:
   contents: read
+concurrency:
+  # A superseded branch or main run has nothing left to prove, so let the
+  # newer one cancel it. A release rehearsal arrives through workflow_call,
+  # where github.event_name is the caller's workflow_dispatch: it lands in
+  # its own group and is never cancelled by ordinary development traffic.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
 jobs:
   distributions:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-24.04, windows-latest, macos-latest]
         python: ['3.10', '3.13']
     runs-on: ${{ matrix.os }}
     env:
@@ -44,12 +51,12 @@ jobs:
       - name: Rebuild standalone browser from source
         run: python scripts/build_browser.py
       - name: Exercise the candidate-building path without upload credentials
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.13'
         run: |
           python scripts/release.py build --directory dist/release-candidate --version 0.1.0a1
           python scripts/release.py verify --directory dist/release-candidate --version 0.1.0a1
       - name: Share non-published review artifacts
-        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
+        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.13'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: alpha-review-artifacts
