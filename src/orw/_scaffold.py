@@ -294,6 +294,7 @@ def _render_root_readme(
     config: SetupConfig,
     study_identifier: str,
     assay_identifier: str | None,
+    implementation: ImplementationContext | None = None,
 ) -> str:
     study_path = f"studies/{study_identifier}"
     options = config.workspace_options
@@ -370,6 +371,11 @@ def _render_root_readme(
 
     protocol_line = f"\n{protocol_action}" if protocol_action else ""
 
+    no_code_actions = ""
+    if implementation and implementation.provider == "github":
+        no_code_actions = """
+{no_code_actions}"""
+
     return f'''# {config.project_title}
 
 {config.project_description}
@@ -383,7 +389,7 @@ def _render_root_readme(
 2. Put analysis code, notebooks or workflows in [`{study_path}/analysis/`]({study_path}/analysis/).
 3. Put derived tables, figures and reports in [`{study_path}/results/`]({study_path}/results/).{protocol_line}
 
-GitHub does **not** need to contain your authoritative raw data. If they live on institutional storage or in a domain repository, keep them there and record the authoritative location instead.
+This workspace does **not** need to contain your authoritative raw data. If they live on institutional storage or in a domain repository, keep them there and record the authoritative location instead.
 
 ## A good working sequence
 
@@ -536,7 +542,12 @@ def create_workspace(
     _write_text(research / "initialized", "initialized: true\n")
     _write_text(
         root / "README.md",
-        _render_root_readme(config, study_identifier, assay_identifier),
+        _render_root_readme(
+            config,
+            study_identifier,
+            assay_identifier,
+            implementation,
+        ),
     )
 
     return WorkspaceResult(
