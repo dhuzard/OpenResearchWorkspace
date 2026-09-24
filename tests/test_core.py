@@ -14,6 +14,7 @@ from orw.initialize import (  # noqa: E402
     ImplementationContext,
     WorkspaceAlreadyInitialized,
     create_workspace,
+    initialize_template,
 )
 from orw.model import SetupConfig, SetupValidationError  # noqa: E402
 from orw.validate import validate_workspace  # noqa: E402
@@ -162,6 +163,67 @@ class WorkspaceGenerationTests(unittest.TestCase):
             self.assertIn("Your OpenResearchWorkspace is initialized", readme)
             self.assertIn("## Start here", readme)
             self.assertIn("No separate Assay layer", readme)
+
+    def test_template_initialization_preserves_legacy_human_guidance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            research = root / ".research"
+            research.mkdir()
+            for name in ("project.yml", "workspace.yml"):
+                source = REPO_ROOT / "src" / "orw" / "templates" / name
+                (research / name).write_bytes(source.read_bytes())
+
+            (root / "README.md").write_text(
+                "# Legacy ORW template\n\nResearcher-facing setup overview.\n",
+                encoding="utf-8",
+            )
+            legacy_project_docs = (
+                "# Project documentation\n\n"
+                "Legacy template guidance that must be preserved, not overwritten.\n"
+            )
+            legacy_references = (
+                "# References\n\n"
+                "Legacy reference guidance that must be preserved, not overwritten.\n"
+            )
+            (root / "project-docs").mkdir()
+            (root / "project-docs" / "README.md").write_text(
+                legacy_project_docs,
+                encoding="utf-8",
+            )
+            (root / "references").mkdir()
+            (root / "references" / "README.md").write_text(
+                legacy_references,
+                encoding="utf-8",
+            )
+
+            payload = load_fixture("no-assay.json")
+            payload["workspace_options"] = {
+                "study_structure": "single",
+                "assay_structure": "single_or_none",
+                "protocol_storage": "workspace",
+            }
+            config = SetupConfig.from_mapping(payload)
+            result = initialize_template(
+                config,
+                root,
+                implementation=ImplementationContext(
+                    provider="github",
+                    provider_user="legacy-user",
+                ),
+            )
+
+            self.assertTrue((root / ".research" / "initialized").is_file())
+            self.assertTrue((root / "studies" / result.study_identifier).is_dir())
+            self.assertEqual(
+                (root / "project-docs" / "README.md").read_text(encoding="utf-8"),
+                legacy_project_docs,
+            )
+            self.assertEqual(
+                (root / "references" / "README.md").read_text(encoding="utf-8"),
+                legacy_references,
+            )
+            report = validate_workspace(root)
+            self.assertTrue(report.valid, report.issues)
 
     def test_unicode_metadata_is_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
