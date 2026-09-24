@@ -1,133 +1,130 @@
 # ORW GitHub template workflow
 
+The researcher-facing GitHub template is distributed from the separate repository:
 
-> **Distribution architecture:** `dhuzard/OpenResearchWorkspace-template` is generated from this canonical repository. GitHub-specific source assets live under `github-template/`; canonical workspace placeholders live under `src/orw/templates/`. Build and test the distribution with `scripts/build_github_template.py` and `tests/test_github_template_distribution.py`. Do not maintain scientific ORW logic directly in the published template repository.
+`dhuzard/OpenResearchWorkspace-template`
 
-The GitHub template is the primary way an ordinary researcher creates an OpenResearchWorkspace.
+That repository is generated from the canonical ORW development repository. It is an initialization and GitHub-adapter distribution, not an independent scientific implementation.
 
-It is a bootstrap mechanism, not a long-term synchronization relationship with the ORW development repository.
+## Source and distribution boundary
 
-## Before project creation
-
-The template contains two layers:
-
-```text
-scientist-facing skeleton
-├── data/
-├── analysis/
-├── results/
-├── protocols/
-├── references/
-└── project-docs/
-
-ORW infrastructure
-├── .research/
-├── .github/
-├── schema/
-└── capabilities/
-```
-
-The folder semantics are defined in `PROJECT_STRUCTURE.md` and `.research/layout.yml`.
-
-## Project creation
-
-The researcher selects **Use this template** and creates an independent repository.
-
-Recommended ownership options include a personal GitHub account, laboratory organization, or institutional organization. The created repository is the canonical workspace for that project.
-
-## First-run initialization
-
-The repository should expose one obvious action:
-
-> **Set up this research project**
-
-The setup should ask only for information needed to initialize the workspace:
-
-- title and short description;
-- contributors and ORCIDs where available;
-- keywords and project status;
-- where authoritative data live;
-- whether data are sensitive/restricted;
-- licensing choices;
-- project profile;
-- optional capabilities.
-
-### Project profile
-
-The researcher should choose one initialization preset:
-
-- Experimental / wet lab
-- Computational / data analysis
-- Mixed experimental + computational
-- Literature / systematic review
-- Other
-
-Profiles are defined in `.research/profiles.yml`. They decide which parts of the canonical skeleton are useful at initialization; they do not create different ORW standards or redefine folder semantics.
-
-The setup process then generates/synchronizes internal records:
+Canonical source:
 
 ```text
-researcher form
-      ↓
-.research/project.yml
-.research/workspace.yml
-.research/capabilities.yml
-.research/layout.yml
-      ↓
-project README + selected project skeleton
-      ↓
-later generated citation/archival/FAIR metadata
+OpenResearchWorkspace/
+├── src/orw/                 # scientific core
+├── src/orw/templates/       # canonical template metadata
+├── github-template/         # GitHub-specific forms, workflows and researcher docs
+└── scripts/build_github_template.py
 ```
 
-The same information should not need to be entered separately into several metadata files.
+Published distribution:
 
-## Scientific skeleton
+```text
+OpenResearchWorkspace-template/
+├── README.md
+├── GETTING_STARTED.md
+├── .research/               # generated canonical placeholders
+├── .github/                 # GitHub forms/workflows
+└── scripts/                 # thin GitHub adapters
+```
 
-The default mixed project profile is:
+The template repository must not contain an independent copy of ORW scientific generation logic.
+
+## Researcher sequence
+
+```text
+Use this template
+      ↓
+Create independent research repository
+      ↓
+Set up my research project
+      ↓
+Choose the simplest useful structure
+      ↓
+ORW creates the first Study
+      ↓
+Work in the existing Study
+      ↓
+Register authoritative data early
+      ↓
+Add Study / Assay only when scientifically needed
+      ↓
+Add contributors during the project
+      ↓
+Check workspace
+      ↓
+Share / archive / publish intentionally
+```
+
+## First-time setup
+
+The current GitHub setup asks for:
+
+- project title and short description;
+- researcher name and optional ORCID;
+- one Study versus several Studies;
+- optional first Study title;
+- whether distinct measurement types need an Assays layer;
+- whether protocol documents should live in the workspace;
+- authoritative/raw data location and access status;
+- optional keywords.
+
+The setup deliberately does **not** require a first Assay name.
+
+These workspace-shaping choices are implementation preferences in `.research/workspace.yml`; they are not scientific claims in `.research/project.yml`.
+
+## Progressive visible structure
+
+A simple project may initialize as:
 
 ```text
 README.md
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── external/
-├── analysis/
-│   ├── notebooks/
-│   ├── scripts/
-│   └── workflows/
-├── results/
-│   ├── tables/
-│   ├── figures/
-│   └── reports/
-├── protocols/
-├── references/
-└── project-docs/
+studies/
+└── my-study/
+    ├── data/
+    ├── analysis/
+    ├── results/
+    └── protocols/      # only when selected
+references/
+project-docs/
+.research/
+.github/
 ```
 
-The intended provenance direction is:
+An `assays/` layer is created only when distinct measurement types need their own structure.
 
-```text
-raw/external data → processed data → analysis → results → publication/archive
-```
+## Post-initialization no-code actions
 
-Raw source evidence should not be silently overwritten. External data may remain outside GitHub and be represented by links, identifiers, manifests, checksums, or access metadata.
+The generated README links to GitHub Issue Forms for:
 
-## Workspace state
+- Add another Study;
+- Add a measurement / Assay;
+- Register a data source;
+- Add a contributor;
+- Check my workspace.
 
-`.research/workspace.yml` tracks ORW implementation state, including the specification/template version and initialization status.
+Those forms are thin adapters over the same provider-neutral mutation and validation APIs used by the CLI.
 
-Once initialized, the research repository evolves independently from the ORW template. Researchers should not be expected to maintain a fork relationship, merge upstream template commits, or understand ORW's own Git history.
+The core must not infer these UI actions merely from `provider: github`; the current GitHub adapter explicitly declares that it contains them. This prevents broken links in legacy GitHub repositories.
 
-Future ORW tooling may inspect recorded versions and offer explicit workspace/schema migrations when needed.
+## Compatibility
 
-## Capabilities
+Repositories created before the dedicated template split may contain the entire ORW development repository, old workflows, old root-level scientific folders, and historical metadata placeholders.
 
-`.research/capabilities.yml` records optional functionality independently from the scientific project description. A project should not need a different template for each combination of features.
+The current initializer:
 
-Examples include archival publication/DOI, FAIR enrichment, reproducibility/provenance, AI-ready context, and agent skills.
+- accepts exact known legacy uninitialized workspace placeholders;
+- preserves existing human guidance files such as `project-docs/README.md` and `references/README.md`;
+- detects legacy development-repository markers and writes `.research/legacy-template-notice.md`;
+- refuses to silently rewrite already-initialized pre-core scientific metadata.
 
-## Optional UI
+See [Legacy GitHub template migration](docs/legacy-template-migration.md).
 
-A future lightweight UI may provide forms for initialization, metadata editing, capability activation, and publication.
+## Publication and synchronization
 
-The UI is a view/editor over the repository. It is not the authoritative project database. The repository remains usable without a central ORW service.
+A research project created from the template becomes independent. It is not expected to merge changes from either ORW repository.
+
+Template releases are generated and contract-tested in the canonical repository, then synchronized to `OpenResearchWorkspace-template`.
+
+Existing research projects should receive future ORW changes through explicit migrations or optional tooling, not upstream template merges.
