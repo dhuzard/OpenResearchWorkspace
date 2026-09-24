@@ -2,7 +2,7 @@
 
 > **Scope:** this document describes the current GitHub adapter. GitHub is not required by the ORW specification. Provider-neutral core/CLI/browser architecture is defined in [docs/portable-implementations.md](docs/portable-implementations.md), and RO-Crate export is defined in [docs/ro-crate.md](docs/ro-crate.md).
 
-The primary OpenResearchWorkspace reference implementation is a **self-initializing GitHub template** designed for a scientist who has never used Git.
+The primary hosted reference implementation is a **self-initializing GitHub template distributed from `dhuzard/OpenResearchWorkspace-template`**, designed for a scientist who has never used Git. The scientific core remains provider-neutral.
 
 The researcher should create an independent project repository from the template. They should not need to fork OpenResearchWorkspace or keep their project synchronized with the ORW development repository.
 
@@ -18,17 +18,7 @@ The newly created repository starts in an uninitialized ORW state.
 
 The repository presents a clear **Set up this research project** action.
 
-The researcher answers a short form:
-
-- project title;
-- short description;
-- contributors;
-- ORCIDs where available;
-- keywords;
-- where data will live;
-- whether data are sensitive/restricted;
-- initial licensing choices;
-- optional capabilities to enable.
+The researcher answers a short form covering project title/description, researcher identity, Study structure, whether an Assays layer is needed, protocol-storage preference, authoritative data location/access, and optional keywords. The form does not require an artificial first Assay.
 
 The setup process writes or updates:
 
@@ -47,16 +37,7 @@ The researcher adds project collaborators. GitHub permissions may provide the un
 
 ### 4. Work
 
-The visible project surface should remain small and recognizable:
-
-```text
-Project overview
-Data
-Analysis
-Results
-Docs
-Tasks / discussions
-```
+The visible project surface should remain small and recognizable. A simple workspace begins with one Study and exposes only the data/analysis/results/protocol layers the researcher actually needs. Additional Studies and Assays are added later through no-code actions or the same provider-neutral mutation API.
 
 Infrastructure may exist under `.research/`, `.github/`, and capability-specific directories without becoming part of the normal user workflow.
 
@@ -119,3 +100,8 @@ The repository remains the project instance.
 ## Critical usability metric
 
 A new researcher should be able to create and understand a project, add collaborators, register where data live, and reach a publish-ready state without reading Git documentation.
+
+
+## Compatibility with the pre-split template
+
+Repositories created before 23 September 2026 may carry ORW development files and historical initialization formats. Current compatibility behavior and migration guidance are documented in [docs/legacy-template-migration.md](docs/legacy-template-migration.md).
