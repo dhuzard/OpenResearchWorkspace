@@ -285,6 +285,19 @@ def _validate_identifiers(
                 assay_ids.add(assay_id)
 
 
+def _looks_like_pre_core_github_workspace(project: Mapping[str, Any]) -> bool:
+    """Recognize the September 2026 pre-core GitHub initializer shape."""
+
+    legacy_project = project.get("project")
+    legacy_investigation = project.get("investigation")
+    return (
+        isinstance(legacy_project, Mapping)
+        and isinstance(legacy_investigation, Mapping)
+        and isinstance(legacy_investigation.get("studies"), list)
+        and "studies" not in project
+    )
+
+
 def _validate_workspace_state(
     root: Path,
     project_data: Mapping[str, Any] | None,
@@ -439,6 +452,19 @@ def validate_workspace(destination: Path | str) -> ValidationReport:
         )
 
     if project_data is not None:
+        if _looks_like_pre_core_github_workspace(project_data):
+            issues.append(
+                ValidationIssue(
+                    "legacy_template_format",
+                    (
+                        "This workspace appears to have been initialized by the "
+                        "pre-core GitHub template used before 21 September 2026. "
+                        "Its metadata shape requires an explicit migration; do not "
+                        "repair it by hand. See docs/legacy-template-migration.md."
+                    ),
+                    ".research/project.yml",
+                )
+            )
         _validate_schema(project_data, issues)
         _validate_identifiers(project_data, issues)
         _validate_declared_paths(root, project_data, issues)
