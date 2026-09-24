@@ -146,6 +146,7 @@ class ImplementationContext:
 
     provider: str | None = None
     provider_user: str | None = None
+    no_code_actions: bool = False
 
 
 @dataclass(frozen=True)
@@ -372,7 +373,11 @@ def _render_root_readme(
     protocol_line = f"\n{protocol_action}" if protocol_action else ""
 
     no_code_actions = ""
-    if implementation and implementation.provider == "github":
+    if (
+        implementation
+        and implementation.provider == "github"
+        and implementation.no_code_actions
+    ):
         no_code_actions = """
 {no_code_actions}"""
 
