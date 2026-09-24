@@ -75,10 +75,21 @@ class GitHubTemplateDistributionTests(unittest.TestCase):
                 "browser",
                 "schema",
                 "docs",
+                "analysis",
+                "data",
+                "results",
+                "protocols",
+                "capabilities",
+                "examples",
                 "pyproject.toml",
                 "MANIFEST.in",
+                ".readthedocs.yaml",
+                "LICENSE",
                 "SPEC.md",
                 "CHANGELOG.md",
+                "REFERENCE_IMPLEMENTATION.md",
+                "TEMPLATE_WORKFLOW.md",
+                "PROJECT_STRUCTURE.md",
             ):
                 self.assertNotIn(forbidden, top_level)
 
