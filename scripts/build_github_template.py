@@ -58,11 +58,21 @@ FORBIDDEN_TOP_LEVEL = {
     "docs",
     "dist",
     "build",
+    "analysis",
+    "data",
+    "results",
+    "protocols",
+    "capabilities",
+    "examples",
     "pyproject.toml",
     "MANIFEST.in",
+    ".readthedocs.yaml",
+    "LICENSE",
     "SPEC.md",
     "CHANGELOG.md",
     "REFERENCE_IMPLEMENTATION.md",
+    "TEMPLATE_WORKFLOW.md",
+    "PROJECT_STRUCTURE.md",
 }
 
 
