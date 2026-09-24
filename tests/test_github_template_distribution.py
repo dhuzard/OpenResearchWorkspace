@@ -215,6 +215,9 @@ behaviour, circadian rhythm, mouse
             self.assertIn('study_structure: "single"', workspace)
             self.assertIn('assay_structure: "multiple"', workspace)
             self.assertIn('protocol_storage: "workspace"', workspace)
+            generated_readme = (generated / "README.md").read_text(encoding="utf-8")
+            self.assertIn("orw-add-study.yml", generated_readme)
+            self.assertIn("orw-check-workspace.yml", generated_readme)
             self.assertTrue(
                 (generated / ".research" / "template-readme.md").is_file()
             )
