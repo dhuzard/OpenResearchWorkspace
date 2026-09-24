@@ -372,6 +372,21 @@ def _render_root_readme(
 
     protocol_line = f"\n{protocol_action}" if protocol_action else ""
 
+    adapter_notice = ""
+    if (
+        implementation
+        and implementation.provider == "github"
+        and not implementation.no_code_actions
+    ):
+        adapter_notice = """
+## Older GitHub adapter detected
+
+This workspace was initialized through a GitHub adapter that does not contain the current post-setup no-code forms. The scientific workspace is still usable, but links for adding Studies, Assays, data sources, contributors, or running a workspace check are not installed here.
+
+For a real legacy project, review the [legacy template migration guide](https://github.com/dhuzard/OpenResearchWorkspace/blob/main/docs/legacy-template-migration.md) before replacing adapter files.
+
+"""
+
     no_code_actions = ""
     if (
         implementation
@@ -421,7 +436,7 @@ This workspace does **not** need to contain your authoritative raw data. If they
 
 The default rule is: **keep the structure simple until the science requires another layer.**
 
-{no_code_actions}## Your initial research structure
+{adapter_notice}{no_code_actions}## Your initial research structure
 
 - **Investigation:** {config.project_title}
 - **Study:** [{config.first_study.title}]({study_path}/)
