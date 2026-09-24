@@ -230,7 +230,7 @@ orw fair citation                     # generate CITATION.cff
 orw fair datacite                     # the metadata a deposit would submit
 ```
 
-Identifiers are validated, not just shape-matched: an ORCID that fails its check digit is refused. Generating a deposit payload is not depositing it — no network call is made and no DOI is minted. See the [FAIR guide](docs/fair.md).
+Identifiers are validated, not just shape-matched: an ORCID that fails its check digit is refused. A check digit only proves an identifier is well formed, so `orw contributor add --orcid ... --fetch` can also ask the registry whether it exists and fill the contributor's given and family names from the public record; that lookup is the only operation in ORW that uses the network, and it warns rather than fails when the registry cannot be reached. Generating a deposit payload is not depositing it — no network call is made and no DOI is minted. See the [FAIR guide](docs/fair.md).
 
 Every mutation refuses to start from a workspace that does not validate, detects conflicts before touching the filesystem, preserves the rest of `.research/project.yml` byte for byte (including your comments and key order), and rolls the whole operation back if the result would not validate. `--json` emits the same plan for scripts and agents.
 
