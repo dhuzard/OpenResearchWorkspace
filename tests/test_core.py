@@ -169,9 +169,21 @@ class WorkspaceGenerationTests(unittest.TestCase):
             root = Path(tmp)
             research = root / ".research"
             research.mkdir()
-            for name in ("project.yml", "workspace.yml"):
-                source = REPO_ROOT / "src" / "orw" / "templates" / name
-                (research / name).write_bytes(source.read_bytes())
+            project_source = REPO_ROOT / "src" / "orw" / "templates" / "project.yml"
+            (research / "project.yml").write_bytes(project_source.read_bytes())
+            (research / "workspace.yml").write_text(
+                'orw:\n'
+                '  spec_version: "0.1"\n'
+                '  template_version: "0.1.0"\n'
+                '  initialized: false\n'
+                '  initialized_at: null\n'
+                '\n'
+                'implementation:\n'
+                '  primary_reference: github-template\n'
+                '  canonical_project_record: ".research/project.yml"\n'
+                '  capabilities_record: ".research/capabilities.yml"\n',
+                encoding="utf-8",
+            )
 
             (root / "README.md").write_text(
                 "# Legacy ORW template\n\nResearcher-facing setup overview.\n",
@@ -193,6 +205,16 @@ class WorkspaceGenerationTests(unittest.TestCase):
             (root / "references").mkdir()
             (root / "references" / "README.md").write_text(
                 legacy_references,
+                encoding="utf-8",
+            )
+            (root / "pyproject.toml").write_text(
+                "[project]\nname = \"openresearchworkspace\"\n",
+                encoding="utf-8",
+            )
+            legacy_workflow = root / ".github" / "workflows" / "release-checks.yml"
+            legacy_workflow.parent.mkdir(parents=True)
+            legacy_workflow.write_text(
+                "name: Alpha release checks\non:\n  push:\n    branches: [main]\n",
                 encoding="utf-8",
             )
 
@@ -222,6 +244,14 @@ class WorkspaceGenerationTests(unittest.TestCase):
                 (root / "references" / "README.md").read_text(encoding="utf-8"),
                 legacy_references,
             )
+            notice = (
+                root / ".research" / "legacy-template-notice.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("release-checks.yml", notice)
+            self.assertIn("root `LICENSE`", notice)
+            generated_readme = (root / "README.md").read_text(encoding="utf-8")
+            self.assertIn("Legacy template detected", generated_readme)
+            self.assertNotIn("orw-add-study.yml", generated_readme)
             report = validate_workspace(root)
             self.assertTrue(report.valid, report.issues)
 
