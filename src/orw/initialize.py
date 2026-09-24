@@ -26,6 +26,29 @@ class WorkspaceConflict(SetupValidationError):
     """Initialization refused without modifying existing workspace content."""
 
 
+LEGACY_TEMPLATE_PLACEHOLDERS: dict[str, tuple[bytes, ...]] = {
+    "workspace.yml": (
+        b'orw:\n'
+        b'  spec_version: "0.1"\n'
+        b'  template_version: "0.1.0"\n'
+        b'  initialized: false\n'
+        b'  initialized_at: null\n'
+        b'\n'
+        b'implementation:\n'
+        b'  primary_reference: github-template\n'
+        b'  canonical_project_record: ".research/project.yml"\n'
+        b'  capabilities_record: ".research/capabilities.yml"\n'
+    ),
+}
+
+
+def _recognized_template_placeholder(name: str, actual: bytes, expected: bytes) -> bool:
+    """Accept current placeholders plus exact historical self-initializing templates."""
+
+    if actual == expected:
+        return True
+    return actual in LEGACY_TEMPLATE_PLACEHOLDERS.get(name, ())
+
 def _preflight(destination: Path | str) -> Path:
     root = absolute_path(destination)
     try:
@@ -153,7 +176,7 @@ metadata fail the exact-byte check rather than being overwritten.
             actual = target.read_bytes()
         except (OSError, UnsafePathError) as exc:
             raise WorkspaceConflict(f"Not a recognized ORW template: {target}") from exc
-        if actual != expected:
+        if not _recognized_template_placeholder(name, actual, expected):
             raise WorkspaceConflict(f"Template metadata are edited or unrecognized: {target}")
         original[relative] = actual
     overview = root / "README.md"
