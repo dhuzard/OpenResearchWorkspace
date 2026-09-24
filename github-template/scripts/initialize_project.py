@@ -28,6 +28,7 @@ def main() -> None:
         context = ImplementationContext(
             provider="github",
             provider_user=os.environ.get("ORW_PROVIDER_USER") or None,
+            no_code_actions=True,
         )
         result = initialize_template(config, root, implementation=context)
     except (
