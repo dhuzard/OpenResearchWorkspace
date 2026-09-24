@@ -251,6 +251,7 @@ class WorkspaceGenerationTests(unittest.TestCase):
             self.assertIn("root `LICENSE`", notice)
             generated_readme = (root / "README.md").read_text(encoding="utf-8")
             self.assertIn("Legacy template detected", generated_readme)
+            self.assertIn("Older GitHub adapter detected", generated_readme)
             self.assertNotIn("orw-add-study.yml", generated_readme)
             report = validate_workspace(root)
             self.assertTrue(report.valid, report.issues)
