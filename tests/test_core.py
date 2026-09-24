@@ -255,6 +255,64 @@ class WorkspaceGenerationTests(unittest.TestCase):
             report = validate_workspace(root)
             self.assertTrue(report.valid, report.issues)
 
+    def test_pre_core_initialized_workspace_is_identified_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            research = root / ".research"
+            research.mkdir()
+            (research / "project.yml").write_text(
+                """spec_version: "0.1"
+
+project:
+  title: "Legacy project"
+  description: "Created by the early GitHub initializer."
+  status: active
+
+investigation:
+  title: "Legacy project"
+  description: "Created by the early GitHub initializer."
+  studies:
+    - id: "study-01"
+      title: "Study 1"
+      path: "studies/study-01"
+      assays: []
+
+contributors:
+  - name: "Researcher"
+
+data: []
+resources: []
+outputs: []
+related_identifiers: []
+""",
+                encoding="utf-8",
+            )
+            (research / "workspace.yml").write_text(
+                """orw:
+  spec_version: "0.1"
+  template_version: "0.1.0"
+  initialized: false
+  initialized_at: null
+
+implementation:
+  primary_reference: github-template
+  canonical_project_record: ".research/project.yml"
+  capabilities_record: ".research/capabilities.yml"
+""",
+                encoding="utf-8",
+            )
+            (research / "initialized").write_text(
+                "initialized: true\n",
+                encoding="utf-8",
+            )
+
+            report = validate_workspace(root)
+            self.assertFalse(report.valid)
+            self.assertTrue(
+                any(issue.code == "legacy_template_format" for issue in report.issues),
+                report.issues,
+            )
+
     def test_unicode_metadata_is_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
