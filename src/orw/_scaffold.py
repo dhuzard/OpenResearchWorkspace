@@ -379,7 +379,21 @@ def _render_root_readme(
         and implementation.no_code_actions
     ):
         no_code_actions = """
-{no_code_actions}"""
+## No-code ORW actions
+
+You can perform the common structural and metadata actions through GitHub forms:
+
+| What you need | Use this action |
+| --- | --- |
+| A distinct new Study | [**Add another Study**](../../issues/new?template=orw-add-study.yml) |
+| A distinct measurement type inside a Study | [**Add a measurement / Assay**](../../issues/new?template=orw-add-assay.yml) |
+| Record where another authoritative dataset lives | [**Register a data source**](../../issues/new?template=orw-register-data.yml) |
+| Record another project contributor | [**Add a contributor**](../../issues/new?template=orw-add-contributor.yml) |
+| Check that ORW metadata and paths are consistent | [**Check my workspace**](../../issues/new?template=orw-check-workspace.yml) |
+
+These forms call the same validated ORW core used by the command-line tools. You do not need to edit `.research/project.yml` yourself.
+
+"""
 
     return f'''# {config.project_title}
 
@@ -407,21 +421,7 @@ This workspace does **not** need to contain your authoritative raw data. If they
 
 The default rule is: **keep the structure simple until the science requires another layer.**
 
-## No-code ORW actions
-
-You can perform the common structural and metadata actions through GitHub forms:
-
-| What you need | Use this action |
-| --- | --- |
-| A distinct new Study | [**Add another Study**](../../issues/new?template=orw-add-study.yml) |
-| A distinct measurement type inside a Study | [**Add a measurement / Assay**](../../issues/new?template=orw-add-assay.yml) |
-| Record where another authoritative dataset lives | [**Register a data source**](../../issues/new?template=orw-register-data.yml) |
-| Record another project contributor | [**Add a contributor**](../../issues/new?template=orw-add-contributor.yml) |
-| Check that ORW metadata and paths are consistent | [**Check my workspace**](../../issues/new?template=orw-check-workspace.yml) |
-
-These forms call the same validated ORW core used by the command-line tools. You do not need to edit `.research/project.yml` yourself.
-
-## Your initial research structure
+{no_code_actions}## Your initial research structure
 
 - **Investigation:** {config.project_title}
 - **Study:** [{config.first_study.title}]({study_path}/)
