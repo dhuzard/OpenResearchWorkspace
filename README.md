@@ -312,6 +312,7 @@ ORW uses one standard and one template, with initialization presets rather than 
 - [`docs/cli.md`](docs/cli.md) — local CLI installation, initialization, validation, JSON output, and exit codes.
 - [`docs/browser-generator.md`](docs/browser-generator.md) — browser workflow, static distribution, privacy boundary, and current limitations.
 - [`docs/github-template-distribution.md`](docs/github-template-distribution.md) — how the separate GitHub template is generated, contract-tested, drift-checked, and published.
+- [`docs/legacy-template-migration.md`](docs/legacy-template-migration.md) — compatibility rules and recovery for repositories created from the old combined template.
 - [`docs/releases.md`](docs/releases.md) — alpha release checks, Trusted Publisher setup, TestPyPI rehearsal and public promotion.
 - [`CHANGELOG.md`](CHANGELOG.md) — versioned changes and limitations.
 - [`browser/README.md`](browser/README.md) — build and cross-language/browser testing instructions.
