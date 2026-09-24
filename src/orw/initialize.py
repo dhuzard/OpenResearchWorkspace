@@ -46,14 +46,30 @@ def _config(config: SetupConfig) -> SetupConfig:
     return SetupConfig.from_mapping(config.to_mapping())
 
 
-def _install_new_files(stage: Path, root: Path, *, replaceable: dict[str, bytes] | None = None) -> None:
-    """Exclusive-create new files; template replacements have preserved originals."""
+def _install_new_files(
+    stage: Path,
+    root: Path,
+    *,
+    replaceable: dict[str, bytes] | None = None,
+    preserve_existing: set[str] | None = None,
+) -> None:
+    """Install staged files without overwriting unrecognized existing content.
+
+    replaceable is reserved for exact template placeholders whose original
+    bytes were verified before initialization. preserve_existing names
+    human-facing files that are allowed to pre-exist and are deliberately left
+    untouched; this supports older ORW template snapshots without weakening the
+    safety boundary around machine-readable metadata or scientific paths.
+    """
     replaceable = replaceable or {}
+    preserve_existing = preserve_existing or set()
     staged = sorted(p for p in stage.rglob("*") if p.is_file())
     for source in staged:
         rel = source.relative_to(stage).as_posix()
         target = root / rel
         assert_no_links(target)
+        if target.exists() and rel in preserve_existing:
+            continue
         if target.exists() and rel not in replaceable:
             raise WorkspaceConflict(f"Refusing to overwrite existing file: {target}")
         if rel in replaceable and target.read_bytes() != replaceable[rel]:
@@ -66,6 +82,8 @@ def _install_new_files(stage: Path, root: Path, *, replaceable: dict[str, bytes]
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             assert_no_links(target)
+            if target.exists() and rel in preserve_existing:
+                continue
             if rel in replaceable:
                 if target.read_bytes() != replaceable[rel]:
                     raise WorkspaceConflict(f"Template changed during initialization: {target}")
@@ -156,5 +174,13 @@ metadata fail the exact-byte check rather than being overwritten.
         result = _scaffold.create_workspace(config, stage, implementation=implementation)
         for source, backup in backups.items():
             (stage / backup).write_bytes(original[source])
-        _install_new_files(stage, root, replaceable=original)
+        _install_new_files(
+            stage,
+            root,
+            replaceable=original,
+            preserve_existing={
+                "project-docs/README.md",
+                "references/README.md",
+            },
+        )
     return replace(result, destination=root)
