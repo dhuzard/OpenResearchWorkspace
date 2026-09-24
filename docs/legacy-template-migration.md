@@ -153,7 +153,23 @@ The dedicated current template includes Issue Forms for:
 
 Legacy GitHub repositories do not necessarily contain those forms.
 
-The core therefore does **not** infer no-code actions merely from `provider: github`. The current GitHub adapter explicitly declares that capability. This prevents legacy initialized repositories from receiving README links to forms that do not exist.
+The core therefore does **not** infer no-code actions merely from `provider: github`. The current GitHub adapter explicitly declares that capability. This prevents repaired legacy repositories from receiving README links to forms that do not exist.
+
+### Short-lived post-split snapshots
+
+During the transition on 23 September 2026, a repository could have been initialized with a README that mentioned the no-code actions before all of the corresponding Issue Forms and `project-actions.yml` workflow were present in that repository.
+
+Detection is simple:
+
+```text
+README contains ?template=orw-add-study.yml
+but
+.github/ISSUE_TEMPLATE/orw-add-study.yml does not exist
+```
+
+or the Issue Form exists but `.github/workflows/project-actions.yml` does not.
+
+Do not add only one missing file. The forms, handler script, project-actions workflow, and pinned core revision are an adapter set and should be upgraded together from one generated template revision.
 
 ## Repairing a failed disposable repository
 
