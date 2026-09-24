@@ -109,17 +109,11 @@ See [`docs/isa.md`](docs/isa.md) for the rationale and mapping.
 
 Choose the [browser guide](docs/browser-generator.md) for local ZIP creation, the dedicated [`OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template) for the GitHub workflow, or [CLI usage](docs/cli.md) for command-line automation. All use the same canonical ORW contract and [scientific project structure](docs/project-structure.md).
 
-### Visual walkthrough — GitHub path
+### GitHub walkthrough
 
-[▶ Watch the annotated setup walkthrough (WebM)](docs/assets/getting-started/orw-getting-started.webm)
+The previous screenshots and video documented the old combined development/template repository and have been retired from the live guide after the repository split.
 
-The recording provides numbered instructions and highlights each GitHub control before it is used.
-
-| Create a project from the template | Complete the guided setup form |
-| --- | --- |
-| ![The OpenResearchWorkspace template page with the Use this template button visible](docs/assets/getting-started/01-use-template.png) | ![The ORW setup form filled with example research-project values](docs/assets/getting-started/03-setup-form.png) |
-
-![The initialized workspace showing its generated Study and Assay structure](docs/assets/getting-started/05-initialized-workspace.png)
+Use the current [beginner guide in `OpenResearchWorkspace-template`](https://github.com/dhuzard/OpenResearchWorkspace-template/blob/main/GETTING_STARTED.md). Fresh screenshots should be generated only from a successful real E2E run against the dedicated template repository.
 
 For the architecture, read [`docs/concepts.md`](docs/concepts.md), [`docs/isa.md`](docs/isa.md), and [`SPEC.md`](SPEC.md).
 
