@@ -49,6 +49,63 @@ def _recognized_template_placeholder(name: str, actual: bytes, expected: bytes) 
         return True
     return actual in LEGACY_TEMPLATE_PLACEHOLDERS.get(name, ())
 
+LEGACY_DEVELOPMENT_MARKERS = (
+    "pyproject.toml",
+    "src/orw",
+    "tests",
+    ".github/workflows/release-checks.yml",
+    ".github/workflows/test-core.yml",
+    ".github/workflows/test-browser.yml",
+    ".github/workflows/release-alpha.yml",
+)
+
+
+def _legacy_development_artifacts(root: Path) -> tuple[str, ...]:
+    """Detect the pre-split development repository when used as a project template."""
+
+    return tuple(marker for marker in LEGACY_DEVELOPMENT_MARKERS if (root / marker).exists())
+
+
+def _write_legacy_template_notice(stage: Path, artifacts: tuple[str, ...]) -> None:
+    if not artifacts:
+        return
+    notice = [
+        "# Legacy ORW template migration notice",
+        "",
+        "This research repository was created from the old combined ORW development/template repository.",
+        "Initialization preserved potentially user-edited legacy files instead of deleting them automatically.",
+        "",
+        "Detected legacy development artifacts:",
+        "",
+    ]
+    notice.extend(f"- `{item}`" for item in artifacts)
+    notice.extend(
+        [
+            "",
+            "## What to review",
+            "",
+            "- Old ORW development workflows such as `release-checks.yml`, `test-core.yml`, and `test-browser.yml` may run on pushes and are not needed for a research project.",
+            "- Development folders such as `src/`, `tests/`, `browser/`, `docs/`, and package files are not part of the researcher-facing ORW workspace.",
+            "- A copied root `LICENSE` is the license of ORW software; it does **not** automatically define the license of your research data, documentation, or project outputs.",
+            "- Old root-level `data/`, `analysis/`, `results/`, or `protocols/` folders may coexist with the new Study structure. Prefer the Study folders created by ORW unless you intentionally migrate content.",
+            "",
+            "Review and remove legacy development artifacts only after confirming they contain no project-specific edits.",
+            "",
+        ]
+    )
+    (stage / ".research" / "legacy-template-notice.md").write_text(
+        "\n".join(notice), encoding="utf-8"
+    )
+    readme = stage / "README.md"
+    readme.write_text(
+        readme.read_text(encoding="utf-8")
+        + "\n## Legacy template detected\n\n"
+        + "This repository was created from the old combined ORW development/template repository. "
+        + "Review [`.research/legacy-template-notice.md`](.research/legacy-template-notice.md) "
+        + "for inherited development files and workflows that may be safe to remove.\n",
+        encoding="utf-8",
+    )
+
 def _preflight(destination: Path | str) -> Path:
     root = absolute_path(destination)
     try:
@@ -192,9 +249,11 @@ metadata fail the exact-byte check rather than being overwritten.
     for backup in backups.values():
         if (root / backup).exists():
             raise WorkspaceConflict(f"Template backup already exists: {backup}")
+    legacy_artifacts = _legacy_development_artifacts(root)
     with tempfile.TemporaryDirectory(prefix="orw-template-") as temporary:
         stage = Path(temporary) / "workspace"
         result = _scaffold.create_workspace(config, stage, implementation=implementation)
+        _write_legacy_template_notice(stage, legacy_artifacts)
         for source, backup in backups.items():
             (stage / backup).write_bytes(original[source])
         _install_new_files(
