@@ -19,7 +19,7 @@ This is the **canonical ORW specification and reference-implementation repositor
 
 ## Checks
 ```bash
-python -m pip install -e .
+python -m pip install -e . pytest
 python -m pytest -q
 python scripts/build_browser.py
 ```
